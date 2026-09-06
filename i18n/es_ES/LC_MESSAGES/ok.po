@@ -767,7 +767,7 @@ msgid "Toggle the levitator and verify if the character is floating"
 msgstr ""
 
 msgid "Use Liberation"
-msgstr ""
+msgstr "Usar Liberación de Resonancia"
 
 msgid "Daily"
 msgstr ""
@@ -1310,3 +1310,36 @@ msgstr "¿Eliminar permanentemente el equipo {team}?"
 
 msgid "Team deleted."
 msgstr "Equipo eliminado."
+
+msgid "Overworld Mob Hunt (Surface Test)"
+msgstr "Caza de monstruos del mundo (prueba en superficie)"
+
+msgid "Walk through one verified surface area. Requires a calibrated Hunt Profile."
+msgstr "Recorre a pie una zona de superficie verificada. Requiere un perfil de caza calibrado."
+
+msgid "Target Mob"
+msgstr "Monstruo objetivo"
+
+msgid "Hunt Profile"
+msgstr "Perfil de caza"
+
+msgid "Safe Test Mode"
+msgstr "Modo de prueba seguro"
+
+msgid "Max Camps"
+msgstr "Máximo de campamentos"
+
+msgid "Max Camp Retries"
+msgstr "Máximo de reintentos por campamento"
+
+msgid "Use Teleport"
+msgstr "Usar teletransporte"
+
+msgid "Use Motorcycle"
+msgstr "Usar motocicleta"
+
+msgid "Surface Only"
+msgstr "Solo superficie"
+
+msgid "Localization Only"
+msgstr "Solo localización"

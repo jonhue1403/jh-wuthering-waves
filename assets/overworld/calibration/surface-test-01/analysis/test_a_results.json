@@ -1,0 +1,625 @@
+{
+  "status": "FAIL",
+  "test_b_authorized": false,
+  "inputs_sha256": {
+    "stationary_001.png": "f78a10a177a7c3a3c8cdc7200ab8b2ba50f1c5c8b5de8f5a40167e011722efb4",
+    "stationary_002.png": "34d4ddb19132c5e7d757888843e5665244a859ee0ad54f0353ce6694ba8677ca",
+    "stationary_003.png": "777669703fc0f50baac6453305172dec67f1a590610ec6efcbf5f15e540d8201",
+    "stationary_004.png": "2425faf8819959b9d36495b68134b7941f391cb28e8dbb4629594e2ef736810f",
+    "stationary_005.png": "e016e5b0967fbb0ecf40269a67f687c7f2549be6292dada48ba1195c7239bd33",
+    "stationary_006.png": "f6462fcac129912ba3ad739310bc83173bab3de5df9af1e089fd7f4ef2b3b3f6",
+    "stationary_007.png": "00463d2d4030f3119d78278749eab7f8060205eeed33a1177db613bc9ba68d4b",
+    "stationary_008.png": "b8dc93537b863495cf8add388487673c6a932923a2fea55016fde24e69e50926",
+    "stationary_009.png": "268050e921507fa2dc5b65b37a014c1df06a95f133be61243bf612e6778f8fb7",
+    "stationary_010.png": "0531a225d22d7b5d09fa264fafedb08e4a48360d3bbcd54c78296842c2962f0f",
+    "full_map_position.png": "888a6b31129ed10f36f73d0899f2c30c7b89eae7a71292c5d3d0380c921377c3",
+    "metadata.json": "c67b77c0dd91470eb71b4a5e79dfe077fcef81c636dfe80a1d02d8dbe3b8d92d"
+  },
+  "database_sha256": "5eb6bbafb6ad6af5c7c3c3d7bee0e21426e3d0536ec8c04aa3fa1e2d46ea3e8a",
+  "opencv_version": "5.0.0",
+  "reference_sha256": "10fed129d8005ad08bb74f02e39378cac967d30e7d2f2fc21d867330361e604e",
+  "reference_derivation": {
+    "source": "User full_map_position.png, unchanged 2560x1440; no local Kuro tiles exist",
+    "operation": "warpAffine uniform scale 1/image_scale; INTER_LINEAR; no crop, rotation, score optimization or source overwrite",
+    "image_scale_full_map_pixels_per_minimap_pixel": 2.6657430025420137,
+    "reference_size": [
+      961,
+      541
+    ],
+    "world_units_per_full_map_pixel": 50.100045998870094,
+    "world_origin": [
+      -98320.1328209656,
+      -526959.0328891921
+    ],
+    "world_units_per_reference_pixel": 133.55384704852096,
+    "sift_raw_ratio_matches": 28,
+    "sift_unique_pairs": 22,
+    "sift_unique_inliers": 20,
+    "similarity_rotation_degrees_diagnostic_only": 0.08976434599189312,
+    "terrain_residual_max_full_map_pixels": 1.8996048960956091,
+    "terrain_held_out_count": 7,
+    "terrain_held_out_residual_max_full_map_pixels": 2.0649651277852388,
+    "terrain_correspondences": [
+      {
+        "minimap_xy": [
+          38.78306198120117,
+          99.95144653320312
+        ],
+        "full_map_xy": [
+          1049.8963623046875,
+          652.734130859375
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          43.60216522216797,
+          64.91960906982422
+        ],
+        "full_map_xy": [
+          1062.161376953125,
+          559.854736328125
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          51.92519760131836,
+          165.17086791992188
+        ],
+        "full_map_xy": [
+          1083.8262939453125,
+          828.5225219726562
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          136.97438049316406,
+          47.829959869384766
+        ],
+        "full_map_xy": [
+          1310.4566650390625,
+          515.3904418945312
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          137.8406982421875,
+          49.627777099609375
+        ],
+        "full_map_xy": [
+          1313.6187744140625,
+          520.3026123046875
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          142.80401611328125,
+          54.806785583496094
+        ],
+        "full_map_xy": [
+          1325.9013671875,
+          534.0264892578125
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          152.6388702392578,
+          116.23180389404297
+        ],
+        "full_map_xy": [
+          1250.95703125,
+          706.7608032226562
+        ],
+        "inlier": false
+      },
+      {
+        "minimap_xy": [
+          152.82615661621094,
+          119.14239501953125
+        ],
+        "full_map_xy": [
+          1288.8677978515625,
+          754.2037963867188
+        ],
+        "inlier": false
+      },
+      {
+        "minimap_xy": [
+          154.47215270996094,
+          25.767126083374023
+        ],
+        "full_map_xy": [
+          1357.451416015625,
+          456.71197509765625
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          165.9488067626953,
+          175.4552764892578
+        ],
+        "full_map_xy": [
+          1387.9957275390625,
+          856.121337890625
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          174.06118774414062,
+          100.50896453857422
+        ],
+        "full_map_xy": [
+          1409.1910400390625,
+          656.6752319335938
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          174.5363006591797,
+          117.30071258544922
+        ],
+        "full_map_xy": [
+          1410.6112060546875,
+          700.8997192382812
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          178.2809600830078,
+          144.96798706054688
+        ],
+        "full_map_xy": [
+          1420.9151611328125,
+          774.5755004882812
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          193.47805786132812,
+          164.23968505859375
+        ],
+        "full_map_xy": [
+          1461.2325439453125,
+          825.9420776367188
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          193.6634063720703,
+          115.11905670166016
+        ],
+        "full_map_xy": [
+          1461.7369384765625,
+          695.2381591796875
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          202.03781127929688,
+          101.23291778564453
+        ],
+        "full_map_xy": [
+          1484.090576171875,
+          658.4223022460938
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          206.18035888671875,
+          99.4199447631836
+        ],
+        "full_map_xy": [
+          1495.1202392578125,
+          653.4537353515625
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          206.21636962890625,
+          109.19895935058594
+        ],
+        "full_map_xy": [
+          1495.2333984375,
+          679.0864868164062
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          206.47213745117188,
+          105.40535736083984
+        ],
+        "full_map_xy": [
+          1496.072998046875,
+          669.2147216796875
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          215.86972045898438,
+          63.54058074951172
+        ],
+        "full_map_xy": [
+          1521.2626953125,
+          556.0708618164062
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          217.74044799804688,
+          94.77508544921875
+        ],
+        "full_map_xy": [
+          1526.061279296875,
+          640.6309204101562
+        ],
+        "inlier": true
+      },
+      {
+        "minimap_xy": [
+          224.3202667236328,
+          119.01121520996094
+        ],
+        "full_map_xy": [
+          1543.1519775390625,
+          705.2676391601562
+        ],
+        "inlier": true
+      }
+    ]
+  },
+  "landmarks": [
+    {
+      "id": "1451326173333368832",
+      "item_id": "CS_02",
+      "name": "小型信标",
+      "x": 9962.0,
+      "y": -513189.0,
+      "state_id": 906,
+      "floor_id": "",
+      "country_id": 4,
+      "description": "罗伊冰原-蚀刻平原",
+      "label": "Northeast Resonance Beacon",
+      "full_map_pixel_xy": [
+        2161.5,
+        275.0
+      ],
+      "pixel_source": "HSV connected-component bounding-box center",
+      "selection_roi": [
+        2120,
+        220,
+        90,
+        110
+      ],
+      "hsv_low": [
+        85,
+        90,
+        160
+      ],
+      "hsv_high": [
+        110,
+        255,
+        255
+      ]
+    },
+    {
+      "id": "1451327183948935168",
+      "item_id": "CS_02",
+      "name": "小型信标",
+      "x": -26192.0,
+      "y": -469086.0,
+      "state_id": 906,
+      "floor_id": "",
+      "country_id": 4,
+      "description": "罗伊冰原-蚀刻平原",
+      "label": "South Resonance Beacon",
+      "full_map_pixel_xy": [
+        1439.5,
+        1155.0
+      ],
+      "pixel_source": "HSV connected-component bounding-box center",
+      "selection_roi": [
+        1400,
+        1100,
+        90,
+        110
+      ],
+      "hsv_low": [
+        85,
+        90,
+        160
+      ],
+      "hsv_high": [
+        110,
+        255,
+        255
+      ]
+    },
+    {
+      "id": "1451217545689624576",
+      "item_id": "7010",
+      "name": "陷足流川残象聚落",
+      "x": -64962.0,
+      "y": -498537.0,
+      "state_id": 906,
+      "floor_id": "",
+      "country_id": 4,
+      "description": "该区域每日将会刷新一定数量的残象，击败聚落内的残象后，残象有概率掉落对应的声骸套件。",
+      "label": "West fixed Tacet Discord settlement marker",
+      "full_map_pixel_xy": [
+        664.5,
+        567.5
+      ],
+      "pixel_source": "HSV connected-component bounding-box center",
+      "selection_roi": [
+        610,
+        515,
+        110,
+        110
+      ],
+      "hsv_low": [
+        0,
+        100,
+        70
+      ],
+      "hsv_high": [
+        10,
+        255,
+        255
+      ]
+    }
+  ],
+  "landmark_residuals_full_map_pixels": [
+    0.23537585882827636,
+    0.2353758588282358,
+    1.344522144579853
+  ],
+  "landmark_fit": "Two beacons fit uniform positive scale+offset; west settlement is held out",
+  "best_two_same_layer_beacon_assignments": [
+    {
+      "ids": [
+        "1451326173333368832",
+        "1451327183948935168"
+      ],
+      "max_residual_full_map_pixels": 1.344522144579853
+    },
+    {
+      "ids": [
+        "1451351850780782592",
+        "1451327183948935168"
+      ],
+      "max_residual_full_map_pixels": 490.0731771068501
+    }
+  ],
+  "layer_assessment": "state 906 via three Kuro POIs; all floor_id empty. Empty floor_id is not proof of surface. User reports surface; screenshot shows outdoors.",
+  "minimap_box_xywh": [
+    48,
+    38,
+    248,
+    247
+  ],
+  "runtime_threshold_unchanged": 0.7,
+  "samples": [
+    {
+      "filename": "stationary_001.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.6296979784965515,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_002.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.6290883421897888,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_003.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.6283764839172363,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_004.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.6274124979972839,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_005.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.626512348651886,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_006.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.62535560131073,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_007.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.6250361800193787,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_008.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.6246170997619629,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_009.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.624978244304657,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    },
+    {
+      "filename": "stationary_010.png",
+      "source": "OK-Script masked TM_CCOEFF_NORMED",
+      "confidence": 0.6245499849319458,
+      "accepted_xy": null,
+      "candidate_only_xy": [
+        -34347.84008472406,
+        -490899.49418609147
+      ],
+      "reference_pixel_xy": [
+        479,
+        270
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "layer_source": "Kuro landmark correspondence; not image-detected"
+    }
+  ],
+  "statistics": {
+    "accepted_count": 0,
+    "candidate_mean_xy": [
+      -34347.84008472406,
+      -490899.49418609135
+    ],
+    "candidate_sample_variance_xy": [
+      0.0,
+      1.5058363506743118e-20
+    ],
+    "candidate_max_pairwise_spread_reference_pixels": 0.0,
+    "candidate_max_pairwise_spread_world_units": 0.0,
+    "observed_candidate_noise_envelope_reference_pixels": 0.0,
+    "accepted_localization_tolerance": null,
+    "tolerance_explanation": "No accepted positions: cannot derive an accepted localization tolerance. Candidate envelope is an observed statistic, not a pass threshold; integer quantization and shared scale calibration can hide error."
+  },
+  "independent_position_comparison": {
+    "source": "Full-map yellow player-arrow HSV component centroid, excluded from terrain fit",
+    "full_map_pixel_xy": [
+      1281.5939505041247,
+      720.5609532538955
+    ],
+    "approximate_kuro_xy": [
+      -34112.21694883532,
+      -490858.89598618227
+    ],
+    "candidate_distance_reference_pixels": 1.7902525792782955,
+    "absolute_ground_truth_error": null,
+    "limitation": "Arrow centroid is not a verified position anchor; icon geometry and Kuro landmark precision remain uncalibrated. HUD coordinate text has no verified conversion and is not used."
+  },
+  "diagnostics": {
+    "native_full_map_score_frame_001": 0.2968774735927582,
+    "grayscale_score_frame_001_analysis_only": 0.5924028158187866,
+    "note": "Scale correction alone does not meet the existing color matcher threshold. No threshold, mask, runtime matcher, or game task changed."
+  }
+}

@@ -811,7 +811,7 @@ class BaseWWTask(BaseTask):
     def get_my_angle(self):
         return self.rotate_arrow_and_find()[0]
 
-    def rotate_arrow_and_find(self):
+    def rotate_arrow_and_find(self, cancel_check=None):
         arrow_template = self.get_feature_by_name('arrow')
         original_mat = arrow_template.mat
         max_conf = 0
@@ -825,6 +825,8 @@ class BaseWWTask(BaseTask):
         # if self.debug:
         #     self.screenshot('arrow_original', original_ mat)
         for angle in range(0, 360):
+            if cancel_check is not None:
+                cancel_check()
             # Rotate the template image
             rotation_matrix = cv2.getRotationMatrix2D(center, -angle, 1.0)
             template = cv2.warpAffine(original_mat, rotation_matrix, (w, h))

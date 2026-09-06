@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "scope": "localization_only",
+  "policy": {
+    "reference_pixel_sha256": "239a569ad0ef294d836b6623a1046fd155d1a2b62f570f6abee306cb6cb7c8a5",
+    "mask_pixel_sha256": "e7af348597509b3a661c24e04865c0c65ec194ce3b256c97727e8b9cc17297ee",
+    "minimap_size": [
+      248,
+      247
+    ],
+    "state_id": 906,
+    "floor_id": "",
+    "score_threshold": 0.7,
+    "distinct_radius": 8,
+    "min_margin": 0.34874535724520683,
+    "min_inliers": 11,
+    "min_coverage": 1.6324931435287973e-05,
+    "max_geometry_error": 1.481737015915146
+  },
+  "training": {
+    "positive_frames": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "validation_frames": [
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "margin_positive_min_negative_max_midpoint": [
+      0.6544008105993271,
+      0.04308990389108658,
+      0.34874535724520683
+    ],
+    "support_positive_min_negative_max_midpoint": [
+      17,
+      4,
+      10.5
+    ],
+    "geometry_error_limit_derivation": "Prior held-out terrain residual / measured map-to-minimap scale + sqrt(2)/2 reference-pixel quantization",
+    "score_threshold": "Retain 0.700; check both positive and negative distributions, do not lower it",
+    "distinct_radius": "Existing 8-reference-pixel arrival scale, grouping adjacent samples of one peak; immediate runner-up also recorded",
+    "limitations": "One stationary pose, correlated frames; geometry used frame 001. Not independent region generalization or live certification."
+  }
+}

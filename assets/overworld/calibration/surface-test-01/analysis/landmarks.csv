@@ -1,0 +1,4 @@
+label,source_location_id,item_id,state_id,floor_id,kuro_x,kuro_y,full_map_x,full_map_y,reference_x,reference_y,role
+Northeast Resonance Beacon,1451326173333368832,CS_02,906,,9962.0,-513189.0,2161.5,275.0,810.8433550941802,103.16073220027738,fit
+South Resonance Beacon,1451327183948935168,CS_02,906,,-26192.0,-469086.0,1439.5,1155.0,539.9995418265428,433.275075241165,fit
+West fixed Tacet Discord settlement marker,1451217545689624576,7010,906,,-64962.0,-498537.0,664.5,567.5,249.2738419893975,212.88623826784513,held_out

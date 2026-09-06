@@ -1384,3 +1384,36 @@ msgstr "{team} 팀을 영구적으로 삭제하시겠습니까?"
 
 msgid "Team deleted."
 msgstr "팀을 삭제했습니다."
+
+msgid "Overworld Mob Hunt (Surface Test)"
+msgstr "필드 몬스터 사냥 (지상 테스트)"
+
+msgid "Walk through one verified surface area. Requires a calibrated Hunt Profile."
+msgstr "검증된 지상 구역을 도보로 순회합니다. 보정된 사냥 프로필이 필요합니다."
+
+msgid "Target Mob"
+msgstr "대상 몬스터"
+
+msgid "Hunt Profile"
+msgstr "사냥 프로필"
+
+msgid "Safe Test Mode"
+msgstr "안전 테스트 모드"
+
+msgid "Max Camps"
+msgstr "최대 거점 수"
+
+msgid "Max Camp Retries"
+msgstr "거점 최대 재시도 횟수"
+
+msgid "Use Teleport"
+msgstr "순간 이동 사용"
+
+msgid "Use Motorcycle"
+msgstr "오토바이 사용"
+
+msgid "Surface Only"
+msgstr "지상만"
+
+msgid "Localization Only"
+msgstr "위치 확인만"
