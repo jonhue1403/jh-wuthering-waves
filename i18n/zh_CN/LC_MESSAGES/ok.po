@@ -1432,3 +1432,36 @@ msgstr "确定要永久删除队伍 {team} 吗？"
 
 msgid "Team deleted."
 msgstr "队伍已删除。"
+
+msgid "Overworld Mob Hunt (Surface Test)"
+msgstr "大世界怪物狩猎（地表测试）"
+
+msgid "Walk through one verified surface area. Requires a calibrated Hunt Profile."
+msgstr "在已验证的地表区域步行狩猎。需要已校准的狩猎配置文件。"
+
+msgid "Target Mob"
+msgstr "目标怪物"
+
+msgid "Hunt Profile"
+msgstr "狩猎配置文件"
+
+msgid "Safe Test Mode"
+msgstr "安全测试模式"
+
+msgid "Max Camps"
+msgstr "最多营地数"
+
+msgid "Max Camp Retries"
+msgstr "营地最大重试次数"
+
+msgid "Use Teleport"
+msgstr "使用传送"
+
+msgid "Use Motorcycle"
+msgstr "使用摩托车"
+
+msgid "Surface Only"
+msgstr "仅地表"
+
+msgid "Localization Only"
+msgstr "仅定位"

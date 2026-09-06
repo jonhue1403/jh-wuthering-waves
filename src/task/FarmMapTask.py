@@ -5,12 +5,16 @@ from typing import List
 
 import cv2
 import numpy as np
-from ok import Logger, Box, get_bounding_box
+from ok import Box, get_bounding_box
 from src.task.BaseCombatTask import BaseCombatTask
 from src.task.BaseWWTask import calculate_angle_clockwise
 from src.task.WWOneTimeTask import WWOneTimeTask
-
-logger = Logger.get_logger(__name__)
+from src.overworld.navigation import (
+    NavigationStatus,
+    WaypointObservation,
+    WorldRouteNavigator,
+    WWTaskNavigationBackend,
+)
 
 
 class BigMap(WWOneTimeTask, BaseCombatTask):
@@ -151,18 +155,16 @@ class FarmMapTask(BigMap):
         self.description = "Farm world map with a marked path of stars (diamond as the starting point), start in the map screen"
         self.name = "🗺️ Farm Map with Star Path"
         self.max_star_distance = 1000
-        self.stuck_keys = [['space', 0.02], ['a', 2], ['d', 2], ['t', 0.02]]
-        self.stuck_index = 0
-        self.last_distance = 0
         self._has_health_bar = False
+        self._route_navigator = WorldRouteNavigator(
+            WWTaskNavigationBackend(self, self._observe_star),
+        )
 
     @property
     def star_move_distance_threshold(self):
         return self.height_of_screen(0.03)
 
     def run(self):
-        self.stuck_index = 0
-        self.last_distance = 0
         self.load_stars()
         self.go_to_star()
 
@@ -174,69 +176,80 @@ class FarmMapTask(BigMap):
         return True
 
     def go_to_star(self):
-        current_direction = None
-        current_adjust = None
         self.center_camera()
-        too_far_count = 0
-
         try:
             while True:
-                self.sleep(0.01)
-                self.middle_click(interval=1, after_sleep=0.2)
                 self._has_health_bar = False
                 if self.in_combat():
-                    self.sleep(2)
-                    self._stop_movement(current_direction)
-                    current_direction = None
-                    start = time.time()
-                    self.combat_once()
-                    duration = time.time() - start
-
-                    while True:
-                        dropped, has_more = self.yolo_find_echo(use_color=False,
-                                                                turn=duration > 15 or self._has_health_bar)
-                        self.incr_drop(dropped)
-                        self.sleep(0.5)
-                        if not dropped or not has_more:
-                            break
-
-                star, distance, angle = self.find_direction_angle()
+                    self._handle_navigation_combat()
+                    continue
+                star, distance, _ = self.find_direction_angle()
                 if not star:
                     self.log_info('cannot find any stars, stop farming', notify=True)
                     break
-                if distance <= self.star_move_distance_threshold:
-                    self.log_info(f'reached star {star} {distance} {self.star_move_distance_threshold}')
+                result = self._route_navigator.follow_to(
+                    star,
+                    arrival_threshold=self.star_move_distance_threshold,
+                    far_distance=self.height_of_screen(0.4),
+                    max_far_observations=3,
+                    on_far=self._on_far_star,
+                )
+                if result.status is NavigationStatus.ARRIVED:
+                    self.log_info(
+                        f'reached star {star} {distance} {self.star_move_distance_threshold}'
+                    )
                     self.remove_star(star)
                     continue
-                elif distance >= self.height_of_screen(0.4):
-                    too_far_count += 1
-                    if self.debug:
-                        self.screenshot('too_far', frame=self.big_map_frame, show_box=True)
-                        self.screenshot('far', frame=self.get_box_by_name('box_minimap').crop_frame(self.frame))
-                    if too_far_count >= 3:
-                        self.log_error('too far from next star, stop farming', notify=True)
-                        break
-                    else:
-                        continue
-                elif distance == self.last_distance:
-                    logger.info(f'might be stuck, try {[self.stuck_index % 4]}')
-                    self.send_key(self.stuck_keys[self.stuck_index % 4][0],
-                                  down_time=self.stuck_keys[self.stuck_index % 4][1], after_sleep=0.5)
-                    self.stuck_index += 1
+                if result.status is NavigationStatus.COMBAT:
+                    self._handle_navigation_combat()
                     continue
-
-                self.last_distance = distance
-
-                # --- REFACTORED BLOCK ---
-                current_direction, current_adjust, should_continue = self._navigate_based_on_angle(
-                    angle, current_direction, current_adjust
-                )
-                if should_continue:
-                    continue
-                # --- END REFACTORED BLOCK ---
+                if result.status is NavigationStatus.LOST_LOCALIZATION:
+                    self.log_error('too far from next star or localization was lost, stop farming', notify=True)
+                elif result.status is NavigationStatus.STUCK:
+                    self.log_error('stuck recovery exhausted, stop farming', notify=True)
+                else:
+                    self.log_error(f'route navigation stopped: {result.status.value}', notify=True)
+                break
 
         finally:
-            self._stop_movement(current_direction)
+            self._route_navigator.stop()
+
+    def _observe_star(self, star):
+        """Adapt the existing big-map localization to a generic observation."""
+        try:
+            my_box = self.find_my_location()
+        except RuntimeError:
+            return None
+        distance = my_box.center_distance(star)
+        direction_angle = calculate_angle_clockwise(my_box, star)
+        my_angle = self.get_my_angle()
+        center = my_box.center()
+        return WaypointObservation(
+            distance=distance,
+            bearing=self.get_angle_between(my_angle, direction_angle),
+            position=(float(center[0]), float(center[1])),
+        )
+
+    def _on_far_star(self, observation):
+        if self.debug:
+            self.screenshot('too_far', frame=self.big_map_frame, show_box=True)
+            self.screenshot('far', frame=self.get_box_by_name('box_minimap').crop_frame(self.frame))
+
+    def _handle_navigation_combat(self):
+        """Handle combat only after the navigator has released movement."""
+        self.sleep(2)
+        start = time.time()
+        self.combat_once()
+        duration = time.time() - start
+        while True:
+            dropped, has_more = self.yolo_find_echo(
+                use_color=False,
+                turn=duration > 15 or self._has_health_bar,
+            )
+            self.incr_drop(dropped)
+            self.sleep(0.5)
+            if not dropped or not has_more:
+                break
 
 
 star_color = {

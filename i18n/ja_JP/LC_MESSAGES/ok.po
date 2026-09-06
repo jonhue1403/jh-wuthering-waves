@@ -717,7 +717,7 @@ msgid "Toggle the levitator and verify if the character is floating"
 msgstr ""
 
 msgid "Use Liberation"
-msgstr ""
+msgstr "共鳴解放を使用"
 
 msgid "Daily"
 msgstr ""
@@ -1383,3 +1383,36 @@ msgstr "チーム {team} を完全に削除しますか？"
 
 msgid "Team deleted."
 msgstr "チームを削除しました。"
+
+msgid "Overworld Mob Hunt (Surface Test)"
+msgstr "フィールドの敵狩り（地上テスト）"
+
+msgid "Walk through one verified surface area. Requires a calibrated Hunt Profile."
+msgstr "確認済みの地上エリアを徒歩で巡回します。校正済みの狩りプロファイルが必要です。"
+
+msgid "Target Mob"
+msgstr "対象の敵"
+
+msgid "Hunt Profile"
+msgstr "狩りプロファイル"
+
+msgid "Safe Test Mode"
+msgstr "安全テストモード"
+
+msgid "Max Camps"
+msgstr "最大拠点数"
+
+msgid "Max Camp Retries"
+msgstr "拠点の最大再試行回数"
+
+msgid "Use Teleport"
+msgstr "ファストトラベルを使用"
+
+msgid "Use Motorcycle"
+msgstr "バイクを使用"
+
+msgid "Surface Only"
+msgstr "地上のみ"
+
+msgid "Localization Only"
+msgstr "位置特定のみ"
