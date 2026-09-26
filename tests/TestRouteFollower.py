@@ -200,6 +200,20 @@ class TestWorldRouteNavigator(unittest.TestCase):
 
 
 class TestWWTaskNavigationBackend(unittest.TestCase):
+    def test_detour_backs_off_before_sidestep_and_cancellation_releases_key(self):
+        from unittest.mock import Mock, call
+        task = Mock()
+        backend = WWTaskNavigationBackend(task, lambda waypoint: None, detour_seconds=1.5, backup_seconds=.5)
+        backend.recover(RecoveryStage.RIGHT_DETOUR)
+        self.assertEqual([call.send_key_down("s"), call.sleep(.5), call.send_key_up("s"),
+                          call.send_key_down("d"), call.sleep(1.5), call.send_key_up("d")], task.mock_calls)
+        task.reset_mock()
+        task.sleep.side_effect = InterruptedError("cancelled")
+        with self.assertRaises(InterruptedError):
+            backend.recover(RecoveryStage.LEFT_DETOUR)
+        task.send_key_up.assert_called_once_with("s")
+        task.send_key_down.assert_called_once_with("s")
+
     def test_stop_releases_tracked_and_possible_movement_controls_and_camera(self):
         class FakeTask:
             def __init__(self):

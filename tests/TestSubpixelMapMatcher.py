@@ -91,6 +91,36 @@ class TestSubpixelMapMatcher(unittest.TestCase):
         with self.assertRaises(ValueError):
             replace(self.policy, score_threshold=.699)
 
+    def test_bounded_edges_preserve_location_and_reject_false_corroboration(self):
+        policy = replace(self.policy, gradient_mode="bounded64", feature_mode="dense")
+        matcher = HybridMapMatcher(self.reference, policy)
+        result = matcher.match(self.mini, self.mask)
+        self.assertTrue(result.accepted, result)
+        np.testing.assert_allclose(result.pixel_xy, (154.375, 134.125), atol=.15)
+        wrong = {**matcher.feature_translation(self.mini, self.mask),
+                 "feature_pixel_xy": (194.375, 134.125)}
+        with patch.object(matcher, "feature_translation", return_value=wrong):
+            self.assertIn("signals_disagree", matcher.match(self.mini, self.mask).reason)
+        duplicate = np.concatenate((self.reference, self.reference), axis=1)
+        repeated = HybridMapMatcher(duplicate, replace(policy, reference_pixel_sha256=pixel_hash(duplicate)))
+        with patch.object(repeated, "feature_translation", return_value=matcher.feature_translation(self.mini, self.mask)):
+            self.assertIn("ambiguous_peak", repeated.match(self.mini, self.mask).reason)
+
+    def test_bounded_representation_is_explicit_and_keeps_edge_direction(self):
+        raw = gradients(self.reference)
+        bounded = gradients(self.reference, "bounded64")
+        self.assertLessEqual(np.linalg.norm(bounded, axis=2).max(), 64.00001)
+        np.testing.assert_allclose(raw[:, :, 0] * bounded[:, :, 1],
+                                   raw[:, :, 1] * bounded[:, :, 0], atol=.002)
+        np.testing.assert_array_equal(raw[np.linalg.norm(raw, axis=2) <= 64],
+                                      bounded[np.linalg.norm(raw, axis=2) <= 64])
+        self.assertEqual("raw", self.policy.gradient_mode)
+        with self.assertRaises(ValueError):
+            replace(self.policy, gradient_mode="auto")
+        self.assertEqual("standard", self.policy.feature_mode)
+        with self.assertRaises(ValueError):
+            replace(self.policy, feature_mode="auto")
+
     def test_combined_real_dataset_and_all_controls_through_runtime_path(self):
         from scripts.validate_subpixel_gradient import ROOT, main
         if not (ROOT / "assets/overworld/calibration/surface-test-02/stationary_010.png").is_file():

@@ -58,7 +58,10 @@ negative controls. These are saved samples, not independent live trials.
 `python -m pip check` reports no broken requirements. Translation syntax and
 duplicate-msgid checks pass for all five catalogs.
 
-## Live outcome: not completed
+## Early live attempts (superseded by subsequent validation)
+
+The later [live validation report](overworld-hunt-live-2026-09-26.md) records the
+successful controlled camp run. The following is the earlier blocker history.
 
 The installed game was launched and its `Wuthering Waves` window was enumerated.
 Capture failed with `FrameArrived timed out`; the recovery attempt returned
@@ -110,7 +113,7 @@ not remove the game's elevation requirement. Added `run-local.cmd` so the user
 can start this checkout as administrator through the normal Windows action.
 This does not elevate Codex or prove that live tests have passed.
 
-Still required:
+At that stage, the outstanding validation steps were:
 
 1. Fresh stationary captures and same-position full-map/layer evidence.
 2. Review reference scale and independent landmarks; select a real mob and camp.
@@ -118,6 +121,6 @@ Still required:
 4. Observe short-walk arrival/cancellation, then the one-camp combat/clear sequence.
 5. Repeat the live sequence and record outcomes before claiming reliable operation.
 
-Follow [the current guide](overworld-hunt.md). No review flags were enabled and
-no target or live profile was fabricated. Existing captures remain local; the
+Follow [the current guide](overworld-hunt.md) and later live report for current status.
+No review flags had been enabled at that stage. Existing captures remain local; the
 original dirty work is also retained in the named pre-integration Git stash.

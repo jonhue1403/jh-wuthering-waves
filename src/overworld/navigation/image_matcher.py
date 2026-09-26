@@ -21,9 +21,17 @@ def pixel_hash(image):
     return hashlib.sha256(image.tobytes()).hexdigest()
 
 
-def gradients(image):
+def gradients(image, mode="raw"):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).astype(np.float32)
-    return np.dstack((cv2.Sobel(gray, cv2.CV_32F, 1, 0), cv2.Sobel(gray, cv2.CV_32F, 0, 1)))
+    result = np.dstack((cv2.Sobel(gray, cv2.CV_32F, 1, 0), cv2.Sobel(gray, cv2.CV_32F, 0, 1)))
+    if mode == "bounded64":
+        # Bright POI overlays must not dominate terrain edge directions. The
+        # same fixed magnitude cap is applied to every query and gallery pixel.
+        magnitude = np.linalg.norm(result, axis=2, keepdims=True)
+        result *= np.minimum(1, 64 / np.maximum(magnitude, 1e-6))
+    elif mode != "raw":
+        raise ValueError("Unknown gradient representation")
+    return result
 
 
 def correlation(reference, template, mask, method=cv2.TM_CCORR_NORMED):
@@ -61,12 +69,16 @@ class MatcherCalibration:
     min_coverage: float
     max_geometry_error: float
     sampling_mode: str = "integer"
+    gradient_mode: str = "raw"
+    feature_mode: str = "standard"
 
     def __post_init__(self):
         numeric = (self.score_threshold, self.distinct_radius, self.min_margin,
                    self.min_coverage, self.max_geometry_error)
         if (not all(math.isfinite(v) for v in numeric) or not 0.7 <= self.score_threshold <= 1
                 or self.sampling_mode not in ("integer", "sift_phase")
+                or self.gradient_mode not in ("raw", "bounded64")
+                or self.feature_mode not in ("standard", "dense")
                 or self.distinct_radius <= 0 or not 0 < self.min_margin <= 2
                 or type(self.min_inliers) is not int or self.min_inliers < 3
                 or type(self.state_id) is not int or self.state_id <= 0 or not isinstance(self.floor_id, str)
@@ -116,8 +128,9 @@ class HybridMapMatcher:
             raise ValueError("Matcher calibration does not belong to this reference")
         self.reference = reference
         self.calibration = calibration
-        self.reference_gradients = gradients(reference)
-        self.sift = cv2.SIFT_create()
+        self.reference_gradients = gradients(reference, calibration.gradient_mode)
+        self.sift = (cv2.SIFT_create(nOctaveLayers=5, contrastThreshold=.02)
+                     if calibration.feature_mode == "dense" else cv2.SIFT_create())
         self.reference_keypoints, self.reference_descriptors = self.sift.detectAndCompute(
             cv2.cvtColor(reference, cv2.COLOR_BGR2GRAY), None)
 
@@ -168,7 +181,7 @@ class HybridMapMatcher:
                 or pixel_hash(mask) != self.calibration.mask_pixel_sha256
                 or mini.shape[0] > self.reference.shape[0] or mini.shape[1] > self.reference.shape[1]):
             return LocalizationEvidence(None, None, "gradient_sift", reason="shape_or_mask"), None
-        scores = correlation(self.reference_gradients, gradients(mini), mask)
+        scores = correlation(self.reference_gradients, gradients(mini, self.calibration.gradient_mode), mask)
         peaks = distinct_peaks(scores, self.calibration.minimap_size, self.calibration.distinct_radius, 2)
         if len(peaks) < 2:
             return LocalizationEvidence(None, None, "gradient_sift", reason="no_distinct_comparison"), scores
@@ -210,7 +223,7 @@ class HybridMapMatcher:
             return invalid, None
         sampled = cv2.remap(self.reference_gradients, xx + np.float32(phase[0]),
                             yy + np.float32(phase[1]), cv2.INTER_LINEAR)
-        scores = correlation(sampled, gradients(mini), mask)
+        scores = correlation(sampled, gradients(mini, self.calibration.gradient_mode), mask)
         peaks = distinct_peaks(scores, (width, height), self.calibration.distinct_radius, 2)
         if len(peaks) < 2:
             return invalid, scores

@@ -11,6 +11,7 @@ from src.overworld.navigation import NavigationStatus, WorldRouteNavigator, WWTa
 from src.overworld.models import HuntPosition
 from src.overworld.navigation.player_locator import PlayerLocator, SurfaceProfile
 from src.overworld.navigation.image_matcher import HybridMapMatcher, MatcherCalibration
+from src.overworld.navigation.arrow_heading import arrow_heading
 from src.overworld.planner import DryRunRoutePlanner, TravelCostModel, cluster_spawns
 from src.task.BaseCombatTask import BaseCombatTask, CharDeadException
 from src.task.FarmMapTask import create_circle_mask_with_hole
@@ -136,7 +137,8 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
         self._check_hunt_cancel()
         if self.in_combat() or self.enemy_present():
             raise ValueError("Start movement validation outside combat and enemy aggro")
-        backend = WWTaskNavigationBackend(self, self.locator.observe)
+        backend = WWTaskNavigationBackend(self, self.locator.observe,
+                                          detour_seconds=1.5, backup_seconds=.5)
         self.navigator = WorldRouteNavigator(
             backend, position_threshold=profile.units_per_pixel * 4,
             distance_threshold=profile.units_per_pixel * 4,
@@ -261,8 +263,12 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
         return (*match.center(), match.confidence)
 
     def _facing(self):
-        angle, match = self.rotate_arrow_and_find(cancel_check=self._check_hunt_cancel)
-        return angle if match is not None and match.confidence >= 0.6 else None
+        angle, evidence = arrow_heading(
+            self.get_box_by_name("arrow").crop_frame(self.frame),
+            self.get_feature_by_name("arrow").mat, self._check_hunt_cancel,
+        )
+        self._diagnostic("heading", **evidence)
+        return angle
 
     def locate(self):
         return self.locator.locate()

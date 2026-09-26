@@ -5,6 +5,10 @@ for unattended farming. The September 26 integration includes upstream `61bfa64`
 the subpixel matcher, and executable localization, short-walk, and hunt stages.
 Saved-image and mocked tests are not evidence of successful gameplay.
 
+The [September 26 live report](overworld-hunt-live-2026-09-26.md) records successful
+localization, movement cancellation, short walks, combat, and one-camp clearance,
+plus the fixes found during those trials and the remaining runtime/reliability limits.
+
 ## Run this checkout
 
 Use `./.venv/Scripts/python.exe main.py` from this repository. A separately

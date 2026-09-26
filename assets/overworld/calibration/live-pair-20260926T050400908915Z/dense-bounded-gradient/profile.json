@@ -1,0 +1,38 @@
+{
+  "surface_verified": true,
+  "map_image": "reference.png",
+  "kuro_database": "Z:/Game/wuwa-map/map_items.db",
+  "target_mob": "噼啪啪",
+  "state_id": 906,
+  "floor_id": "",
+  "origin": [
+    -149611.1076743619,
+    -567252.2609441326
+  ],
+  "units_per_pixel": 133.5701063948294,
+  "frame_size": [
+    2560,
+    1440
+  ],
+  "spawn_ids": [
+    "1453530316921958400"
+  ],
+  "match_threshold": 0.7,
+  "localization_tolerance_pixels": 1.0,
+  "matcher_calibration": "matcher_calibration.json",
+  "localization_verified": false,
+  "navigation_verified": false,
+  "test_walk_target": [
+    -85660,
+    -531280
+  ],
+  "test_walk_timeout": 10,
+  "review_evidence": "Surface exterior visible in stationary_001.png. Ground beacon 1451335452654366720 matches transferred world geometry within 3 full-map pixels; historical three-POI surface registration retained. Target is a database spawn; its current presence is not yet observed.",
+  "walk_target_review": "10 m west toward visible nearby open road; no teleport/combat/recovery.",
+  "localization_evidence": "assets\\overworld\\calibration\\live-validation-20260926T052222063685Z\\result.json",
+  "navigation_evidence": [
+    "assets\\overworld\\calibration\\live-validation-20260926T052254595683Z\\result.json",
+    "assets\\overworld\\calibration\\live-validation-20260926T052334426767Z\\result.json"
+  ],
+  "superseded_by": "../../academy-native-reference-01/profile.json"
+}
