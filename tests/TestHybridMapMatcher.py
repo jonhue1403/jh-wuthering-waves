@@ -112,7 +112,7 @@ class TestHybridMapMatcher(unittest.TestCase):
         match = replace(match, confidence=.95, pixel_xy=(400, 10))
         self.assertIsNone(locator.locate())
 
-    def test_test_a_hybrid_profile_cannot_enter_movement_startup(self):
+    def test_unverified_hybrid_profile_cannot_enter_movement_startup(self):
         from src.task.HuntMobTask import HuntMobTask
         task = HuntMobTask(executor=Mock(), app=Mock())
         task.config = {**task.default_config, "Hunt Profile": "profile.json", "Localization Only": False}
@@ -120,7 +120,7 @@ class TestHybridMapMatcher(unittest.TestCase):
                                  10, (2560, 1440), frozenset(), matcher_calibration_path=Path("policy.json"))
         task.executor.reset_mock()  # Constructor reads ordinary framework options.
         with patch("src.task.HuntMobTask.SurfaceProfile.load", return_value=profile):
-            with self.assertRaisesRegex(ValueError, "restricted to Localization Only"):
+            with self.assertRaisesRegex(ValueError, "reviewed live localization"):
                 task.run()
         self.assertEqual([], task.executor.mock_calls)
 

@@ -209,7 +209,12 @@ class HuntController:
                     run.session.mark_cleared(camp.camp_id)
                     run.replan_reason = "camp clear verified"
                     self._state(HuntState.CLEARED, camp)
-            self._state(HuntState.COMPLETE)
+            if run.session.failed_camps:
+                run.reason = (f"{len(run.session.failed_camps)} camp(s) failed; "
+                              f"{len(run.session.cleared_camps)} cleared")
+                self._state(HuntState.FAILED)
+            else:
+                self._state(HuntState.COMPLETE)
         except HuntCancelled:
             run.reason = "Task cancelled"
             self._state(HuntState.CANCELLED)

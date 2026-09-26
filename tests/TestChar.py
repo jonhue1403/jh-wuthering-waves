@@ -1684,7 +1684,9 @@ class TestChar(TaskTestCase):
         sub_dps = BaseChar(task, 2, char_type=CharType.SUB_DPS)
         combat.chars = [main_dps, healer, sub_dps]
 
-        healer.last_buff_time = time.time() - 15
+        # Use distinct remaining durations (12s vs 13s); equal durations
+        # otherwise depend on the order of consecutive time.time() calls.
+        healer.last_buff_time = time.time() - 16
         sub_dps.last_buff_time = time.time() - 1
         self.assertEqual(combat._choose_switch_target(main_dps, False), healer)
 

@@ -5,10 +5,13 @@ from ok import BaseTask, TaskDisabledException
 
 from src.overworld.controller import HuntAbort, HuntCancelled, HuntController, HuntOptions, HuntState
 from src.overworld.diagnostics import HuntDiagnostics, stationary_localization
+from src.overworld.input_access import require_game_input_access
 from src.overworld.map_data import KuroMapDataProvider
-from src.overworld.navigation import WorldRouteNavigator, WWTaskNavigationBackend
+from src.overworld.navigation import NavigationStatus, WorldRouteNavigator, WWTaskNavigationBackend
+from src.overworld.models import HuntPosition
 from src.overworld.navigation.player_locator import PlayerLocator, SurfaceProfile
 from src.overworld.navigation.image_matcher import HybridMapMatcher, MatcherCalibration
+from src.overworld.navigation.arrow_heading import arrow_heading
 from src.overworld.planner import DryRunRoutePlanner, TravelCostModel, cluster_spawns
 from src.task.BaseCombatTask import BaseCombatTask, CharDeadException
 from src.task.FarmMapTask import create_circle_mask_with_hole
@@ -27,6 +30,7 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
             "Hunt Profile": "",
             "Safe Test Mode": True,
             "Localization Only": True,
+            "Test Walk Only": False,
             "Max Camps": 1,
             "Max Camp Retries": 2,
             "Use Teleport": False,
@@ -42,6 +46,7 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
         self._hunt_cancelled = False
         self.localization_report = None
         self._hunt_matcher = None
+        self.walk_result = None
         self._diagnostic = HuntDiagnostics(self.log_info)
 
     def validate_config(self, key, value):
@@ -54,6 +59,10 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
             return "Only safe surface walking is supported."
 
     def run(self):
+        # Task instances are reused by the executor. A previous run must not
+        # leave a controller/sleep hook active during a new read-only preflight.
+        self.controller = self.navigator = self.hunt_run = self.walk_result = None
+        self.localization_report = None
         # Validate all inputs before any game input. Safe mode remains mandatory
         # throughout controlled one-camp validation.
         for key in self.default_config:
@@ -63,8 +72,15 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
         if not self.config.get("Hunt Profile").strip():
             raise ValueError("Select a calibrated Hunt Profile before starting")
         profile = SurfaceProfile.load(self.config.get("Hunt Profile"))
-        if profile.matcher_calibration_path and not self.config.get("Localization Only", True):
-            raise ValueError("Calibrated hybrid matching is restricted to Localization Only (Test A).")
+        localization_only = self.config.get("Localization Only", True)
+        walk_only = self.config.get("Test Walk Only", False)
+        if not localization_only:
+            if not profile.localization_verified or profile.localization_tolerance_pixels is None:
+                raise ValueError("Movement requires reviewed live localization and a stationary tolerance")
+            if walk_only and profile.test_walk_target is None:
+                raise ValueError("Test Walk Only requires a verified test_walk_target in the Hunt Profile")
+            if not walk_only and not profile.navigation_verified:
+                raise ValueError("Hunting requires a reviewed short walk; run Test Walk Only first")
         if self.config.get("Target Mob").strip() != profile.target_mob:
             raise ValueError("Target Mob must match the verified Hunt Profile")
         image = cv2.imdecode(np.fromfile(profile.image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
@@ -90,6 +106,8 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
                                      diagnostic=self._diagnostic)
         if any(not self.locator.contains(s.coordinate) for s in spawns):
             raise ValueError("Selected spawns are outside the calibrated map image")
+        if walk_only and not localization_only and not self.locator.contains(profile.test_walk_target):
+            raise ValueError("Test walk target is outside the calibrated map image")
         camps = cluster_spawns(spawns, radius=profile.units_per_pixel * 20)
         if len(camps) != 1:
             raise ValueError("Controlled validation requires exactly one verified camp")
@@ -103,20 +121,33 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
                          camp_xy=(camps[0].anchor.x, camps[0].anchor.y),
                          arrival_radius=profile.units_per_pixel * 8,
                          clear_check_radius=profile.units_per_pixel * 16)
-        if self.config.get("Localization Only", True):
+        if localization_only:
             # Test A must not enter task startup, camera targeting, navigation,
             # combat, or input cleanup: none of those inputs are owned here.
             self.controller = None
             self.hunt_run = None
             return self._run_localization_test()
-        backend = WWTaskNavigationBackend(self, self.locator.observe)
+        window = self.executor.device_manager.hwnd_window
+        require_game_input_access(getattr(window, "hwnd", None))
+        report = self._run_localization_test(preflight=True)
+        if report is None:  # Framework cancellation during the read-only phase.
+            return
+        if report["within_tolerance"] is not True:
+            raise ValueError("Stationary localization did not pass; movement was not started")
+        self._check_hunt_cancel()
+        if self.in_combat() or self.enemy_present():
+            raise ValueError("Start movement validation outside combat and enemy aggro")
+        backend = WWTaskNavigationBackend(self, self.locator.observe,
+                                          detour_seconds=1.5, backup_seconds=.5)
         self.navigator = WorldRouteNavigator(
             backend, position_threshold=profile.units_per_pixel * 4,
             distance_threshold=profile.units_per_pixel * 4,
-            max_recovery_attempts=4,  # No utility/grapple in a surface walk-only test.
+            max_recovery_attempts=0 if walk_only else 4,
             cancellation_exceptions=(TaskDisabledException,),
             diagnostic=self._diagnostic,
         )
+        if walk_only:
+            return self._run_walk_test()
         options = HuntOptions(max_camps=self.config.get("Max Camps"),
                               max_retries=self.config.get("Max Camp Retries"),
                               arrival_radius=profile.units_per_pixel * 8)
@@ -151,7 +182,32 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
                 self._diagnostic("task_exit", state=self.hunt_run.state.value, reason=self.hunt_run.reason,
                                  cleanup_success=navigation_released and combat_released)
 
-    def _run_localization_test(self):
+    def _run_walk_test(self):
+        """One bounded segment; combat interrupts instead of handing off to a hunt."""
+        profile = self._hunt_profile
+        target = HuntPosition(profile.state_id, profile.floor_id, profile.test_walk_target)
+        try:
+            self.walk_result = self.navigator.follow_to(
+                target, arrival_threshold=profile.units_per_pixel * 4,
+                timeout=profile.test_walk_timeout, stop_condition=self.cancelled,
+            )
+        finally:
+            released = self.navigator.stop()
+            self._diagnostic("task_exit", mode="test_walk",
+                             state=(self.walk_result.status.value if self.walk_result and released else "FAILED"),
+                             cleanup_success=released)
+            if not released:
+                raise HuntAbort("Test walk input cleanup failed")
+        self.info_set("Hunt State", self.walk_result.status.value)
+        self._diagnostic("test_walk", status=self.walk_result.status.value,
+                         target_xy=(target.coordinate.x, target.coordinate.y),
+                         timeout=profile.test_walk_timeout,
+                         recovery_attempts=self.walk_result.recovery_attempts)
+        if self.walk_result.status not in (NavigationStatus.ARRIVED, NavigationStatus.CANCELLED):
+            raise HuntAbort(f"Test walk stopped: {self.walk_result.status.value}")
+        return self.walk_result
+
+    def _run_localization_test(self, *, preflight=False):
         self.localization_report = None
         confidences = []
 
@@ -178,7 +234,8 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
             reason = ("stationary tolerance passed; absolute accuracy requires landmark review" if result is True
                       else "unstable localization; do not begin movement testing" if result is False
                       else "measurements only; no acceptance tolerance supplied")
-            self._diagnostic("task_exit", state="LOCALIZATION_ONLY", reason=reason)
+            self._diagnostic("localization_preflight" if preflight else "task_exit",
+                             state="LOCALIZATION_ONLY", reason=reason)
             return self.localization_report
         except (TaskDisabledException, HuntCancelled):
             self._diagnostic("task_exit", state="CANCELLED", reason="localization sampling cancelled")
@@ -206,8 +263,12 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
         return (*match.center(), match.confidence)
 
     def _facing(self):
-        angle, match = self.rotate_arrow_and_find(cancel_check=self._check_hunt_cancel)
-        return angle if match is not None and match.confidence >= 0.6 else None
+        angle, evidence = arrow_heading(
+            self.get_box_by_name("arrow").crop_frame(self.frame),
+            self.get_feature_by_name("arrow").mat, self._check_hunt_cancel,
+        )
+        self._diagnostic("heading", **evidence)
+        return angle
 
     def locate(self):
         return self.locator.locate()
@@ -247,7 +308,21 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
             raise HuntAbort("Combat input release failed") from errors[0]
 
     def enemy_present(self):
-        return bool(self.has_health_bar() or self.has_target())
+        return bool(self.has_health_bar() or self.has_target(allow_recovery=False))
+
+    def in_combat(self, target=False):
+        # The general combat detector can retarget and press Escape. Only the
+        # combat owner may do that; navigation/preflight use visual evidence.
+        if self.controller and self.controller.run_state.state is HuntState.COMBAT:
+            return super().in_combat(target=target)
+        return self.enemy_present()
+
+    def sleep(self, timeout):
+        # BaseWWTask.sleep may dismiss monthly-card dialogs. A walk/localization
+        # check must not open that interaction path.
+        if self.controller and self.controller.run_state.state is HuntState.COMBAT:
+            return super().sleep(timeout)
+        return BaseTask.sleep(self, timeout)
 
     def combat_once(self, wait_combat_time=1, raise_if_not_found=False, target=False):
         self._diagnostic("combat_start")
@@ -277,9 +352,9 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
     def sleep_check(self):
         # BaseCombatTask's check can raise on combat ending. Only combat owns
         # this hook while fighting; navigation handles its own interruptions.
-        if self.controller:
+        if self.controller or self.navigator:
             self._check_hunt_cancel()
-            if self.controller.run_state.state is HuntState.COMBAT:
+            if self.controller and self.controller.run_state.state is HuntState.COMBAT:
                 super().sleep_check()
 
     def revive_action(self):

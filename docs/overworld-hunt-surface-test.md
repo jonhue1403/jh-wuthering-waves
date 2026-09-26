@@ -1,5 +1,9 @@
 # Phase 4 surface test
 
+**2026-09-26:** see the [current setup and validation guide](overworld-hunt.md)
+for profile creation, reviewed hybrid movement, and the executable short-walk mode.
+The remaining text preserves the original Phase 4 procedure.
+
 **Phase 4.5 update:** use [the controlled live-validation procedure](overworld-hunt-live-validation.md).
 Localization Only now defaults to true; execution is restricted to exactly
 one generated camp and Max Camps 1 until the live validation is reviewed.

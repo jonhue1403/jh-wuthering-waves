@@ -124,6 +124,8 @@ class TestHuntController(unittest.TestCase):
         result = self.run_hunt(max_retries=0)
         self.assertFalse(result.session.cleared_camps)
         self.assertEqual(1, len(result.session.failed_camps))
+        self.assertEqual(HuntState.FAILED, result.state)
+        self.assertEqual("1 camp(s) failed; 0 cleared", result.reason)
 
     def test_retry_limit_and_failed_camp_does_not_abort_session(self):
         self.navigator.results = [NavigationStatus.STUCK] * 3
@@ -131,7 +133,8 @@ class TestHuntController(unittest.TestCase):
         self.assertEqual([position(100)] * 3 + [position(200)], self.navigator.targets)
         self.assertEqual(1, len(result.session.failed_camps))
         self.assertEqual(1, len(result.session.cleared_camps))
-        self.assertEqual(HuntState.COMPLETE, result.state)
+        self.assertEqual(HuntState.FAILED, result.state)
+        self.assertEqual("1 camp(s) failed; 1 cleared", result.reason)
 
     def test_camp_combat_error_does_not_abort_other_camps(self):
         self.navigator.results = [NavigationStatus.COMBAT]

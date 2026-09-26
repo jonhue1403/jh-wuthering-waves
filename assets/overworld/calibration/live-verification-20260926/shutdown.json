@@ -1,0 +1,29 @@
+{
+  "exit_requested": true,
+  "triggers": [
+    {
+      "class_name": "AutoCombatTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoPickTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoLoginTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoDialogTask",
+      "enabled": true
+    },
+    {
+      "class_name": "FastTravelTask",
+      "enabled": false
+    },
+    {
+      "class_name": "MouseResetTask",
+      "enabled": true
+    }
+  ]
+}

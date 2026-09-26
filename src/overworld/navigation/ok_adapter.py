@@ -18,9 +18,14 @@ class WWTaskNavigationBackend(NavigationBackend[Waypoint]):
         self,
         task,
         observe: Callable[[Waypoint], WaypointObservation | None],
+        *,
+        detour_seconds: float = .5,
+        backup_seconds: float = 0,
     ):
         self.task = task
         self._observe = observe
+        self.detour_seconds = detour_seconds
+        self.backup_seconds = backup_seconds
 
     def next_frame(self) -> None:
         self.task.sleep(0.01)
@@ -66,9 +71,9 @@ class WWTaskNavigationBackend(NavigationBackend[Waypoint]):
             self.task.send_key("space", down_time=0.02, after_sleep=0.1)
             self._short_direction("w")
         elif stage is RecoveryStage.RIGHT_DETOUR:
-            self._short_direction("d")
+            self._detour("d")
         elif stage is RecoveryStage.LEFT_DETOUR:
-            self._short_direction("a")
+            self._detour("a")
         elif stage is RecoveryStage.UTILITY:
             self.task.send_key(self.task.key_config.get("Tool Key", "t"),
                                down_time=0.02, after_sleep=0.1)
@@ -77,9 +82,14 @@ class WWTaskNavigationBackend(NavigationBackend[Waypoint]):
         elif stage is RecoveryStage.REQUEST_RELOCALIZATION:
             self.task.log_info("requesting relocalization after stuck recovery")
 
-    def _short_direction(self, direction: str) -> None:
+    def _detour(self, direction: str) -> None:
+        if self.backup_seconds:
+            self._short_direction("s", self.backup_seconds)
+        self._short_direction(direction, self.detour_seconds)
+
+    def _short_direction(self, direction: str, seconds: float = .5) -> None:
         self.task.send_key_down(direction)
         try:
-            self.task.sleep(0.5)
+            self.task.sleep(seconds)
         finally:
             self.task.send_key_up(direction)

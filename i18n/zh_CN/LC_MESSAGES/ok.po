@@ -1165,8 +1165,8 @@ msgid "Merge Discarded Echoes"
 msgstr "融合已弃置声骸"
 
 msgid ""
-"Must have 1000 discarded Echo to Run, Merge discarded Echoes in full "
-"batches of 100."
+"Must have 1000 discarded Echo to Run, Merge discarded Echoes in full batches"
+" of 100."
 msgstr "运行前必须有1000个已弃置声骸，每批融合100个。"
 
 msgid "Bag Key"
@@ -1193,13 +1193,18 @@ msgstr "已弃置声骸超过1000时融合"
 msgid "Additional Tasks to Run After Daily Task"
 msgstr "每日任务后运行的附加任务"
 
-msgid "Select optional tasks. Nightmare Nest runs before stamina farming to help complete the daily task; the other tasks run afterward."
+msgid ""
+"Select optional tasks. Nightmare Nest runs before stamina farming to help "
+"complete the daily task; the other tasks run afterward."
 msgstr "选择可选任务。梦魇巢穴会在消耗体力前运行，以协助完成每日任务；其他任务将在之后运行。"
 
-msgid "Teleport and Farm 4C Echo requires \"Teleport to Boss\" to be enabled in Farm Echo Task."
+msgid ""
+"Teleport and Farm 4C Echo requires \"Teleport to Boss\" to be enabled in "
+"Farm Echo Task."
 msgstr "选择“传送并刷取4C声骸”时，必须在刷取声骸任务中启用“传送至首领”。"
 
-msgid "Auto Farm all Nightmare Nest requires at least one \"Which to Farm\" option."
+msgid ""
+"Auto Farm all Nightmare Nest requires at least one \"Which to Farm\" option."
 msgstr "选择“自动刷取所有梦魇巢穴”时，“刷取目标”必须至少选择一项。"
 
 msgid "Daily Task Completed"
@@ -1436,7 +1441,8 @@ msgstr "队伍已删除。"
 msgid "Overworld Mob Hunt (Surface Test)"
 msgstr "大世界怪物狩猎（地表测试）"
 
-msgid "Walk through one verified surface area. Requires a calibrated Hunt Profile."
+msgid ""
+"Walk through one verified surface area. Requires a calibrated Hunt Profile."
 msgstr "在已验证的地表区域步行狩猎。需要已校准的狩猎配置文件。"
 
 msgid "Target Mob"
@@ -1465,3 +1471,9 @@ msgstr "仅地表"
 
 msgid "Localization Only"
 msgstr "仅定位"
+
+msgid "JingRan"
+msgstr "景燃"
+
+msgid "Test Walk Only"
+msgstr "仅测试步行"

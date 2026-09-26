@@ -1,0 +1,124 @@
+{
+  "gameplay_runtime": "2.0.5",
+  "installed_runtime": "2.0.7b1",
+  "clean_restart_verified": true,
+  "test_runs": [
+    {
+      "log": "logs\\upgraded-runtime-regression.log",
+      "tests": 159,
+      "passed": true
+    },
+    {
+      "log": "logs\\upgraded-TestChar.log",
+      "tests": 71,
+      "passed": true
+    },
+    {
+      "log": "logs\\upgraded-TestMap.log",
+      "tests": 2,
+      "passed": true
+    },
+    {
+      "log": "logs\\upgraded-TestConfig.log",
+      "tests": 5,
+      "passed": true
+    },
+    {
+      "log": "logs\\upgraded-TestBaseCombatTask.log",
+      "tests": 2,
+      "passed": true
+    },
+    {
+      "log": "logs\\upgraded-TestCustomCharLoader.log",
+      "tests": 8,
+      "passed": true
+    },
+    {
+      "log": "logs\\upgraded-TestCombatCheck.log",
+      "tests": 6,
+      "passed": true
+    },
+    {
+      "log": "logs\\upgraded-TestSkipDialogWideMode.log",
+      "tests": 2,
+      "passed": true
+    }
+  ],
+  "source_sha256": {
+    "src/overworld/controller.py": "e6d9589dfa3cd52e38e8f84b91dcfaf86b6591f43a13a1788cc086733ef6bcc4",
+    "src/overworld/navigation/image_matcher.py": "e2ca9ff1d5c732e6e23d9788f93e0ce62669d0502ac6bcd2e23b01fd0080a0de",
+    "src/overworld/navigation/arrow_heading.py": "77489846d0b137b12c2b0d4b9c056aedae2efe27c0cffc3968a3b7fe5e07a4f3",
+    "src/overworld/navigation/ok_adapter.py": "f1740157fbe1b7bb120012c83857dd84a644976faf9b34cb8fc37fb85474f216",
+    "src/task/HuntMobTask.py": "22b26469960ad1f9d62414c73b012f0c6131eec18258ccb3d1848fb4b38fb9fe",
+    "scripts/register_surface_capture.py": "31ec6ab42134c3719c3ace561bae689d82722554c6ed65f86614332a7f52b5d6",
+    "scripts/build_minimap_reference.py": "bd264fb1511f95c0ac9d1f863879a3ac70201025127b4dbfffcb39b026342d10",
+    "scripts/hunt_live_validation_task.py": "a8a9eb205f235b142e0d378c44a0aa61a41409d0199c7753616c5205bea9311f",
+    "scripts/hunt_calibration_task.py": "33a76ee7ba398809030a5c06096de5fdef9e6427f4549bcbe4b14427bd42b33c"
+  },
+  "total_passed_tests": 255,
+  "pip_check": "No broken requirements found",
+  "restarted_process_id": 27316,
+  "restarted_process_elevated": true,
+  "final_status": {
+    "paused": true,
+    "running": true,
+    "starting": false,
+    "current_task": null,
+    "task_count": 16,
+    "hotkey": "F9"
+  },
+  "restored_triggers": [
+    {
+      "class_name": "AutoCombatTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoPickTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoLoginTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoDialogTask",
+      "enabled": true
+    },
+    {
+      "class_name": "FastTravelTask",
+      "enabled": false
+    },
+    {
+      "class_name": "MouseResetTask",
+      "enabled": true
+    }
+  ],
+  "final_hunt_info": {
+    "Log": "[HUNT] {\"event\": \"task_exit\", \"state\": \"COMPLETE\", \"reason\": \"No remaining locally walkable camps\", \"cleanup_success\": true}",
+    "Hunt State": "COMPLETE",
+    "Current Camp": "",
+    "Cleared Camps": 1,
+    "Failed Camps": 0,
+    "Hunt Position": "-103053.6, -542124.4"
+  },
+  "final_hunt_config": {
+    "Target Mob": "噼啪啪",
+    "Hunt Profile": "Z:\\Game\\jh-wuthering-waves\\assets\\overworld\\calibration\\academy-native-reference-01\\profile.json",
+    "Safe Test Mode": true,
+    "Localization Only": true,
+    "Test Walk Only": false,
+    "Max Camps": 1,
+    "Max Camp Retries": 2,
+    "Use Teleport": false,
+    "Use Motorcycle": false,
+    "Surface Only": true,
+    "Use Liberation": true,
+    "Switch to Healer before and after Combat": true
+  },
+  "live_runtime_checks": [
+    "stationary_localization",
+    "short_walk_arrived",
+    "empty_camp_return_and_clear",
+    "input_cleanup"
+  ]
+}

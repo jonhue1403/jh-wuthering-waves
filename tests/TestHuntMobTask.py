@@ -88,7 +88,9 @@ class TestHuntMobTask(unittest.TestCase):
         runtime = Runtime()
         navigator = Navigator(runtime)
         profile = SurfaceProfile(Path("map.png"), Path("map.db"), "Target", 8, "",
-                                  MapCoordinate(0, 0), 1, (1920, 1080), frozenset({"a"}))
+                                  MapCoordinate(0, 0), 1, (1920, 1080), frozenset({"a"}),
+                                  localization_tolerance_pixels=1, localization_verified=True,
+                                  navigation_verified=True)
         locator = Mock()
         locator.locate.side_effect = runtime.locate
         self.task.config.update({"Target Mob": "Target", "Hunt Profile": "profile.json"})
@@ -106,6 +108,7 @@ class TestHuntMobTask(unittest.TestCase):
         with ExitStack() as stack:
             stack.enter_context(patch.object(WWOneTimeTask, "run"))
             module = "src.task.HuntMobTask."
+            stack.enter_context(patch(module + "require_game_input_access"))
             stack.enter_context(patch(module + "SurfaceProfile.load", return_value=profile))
             stack.enter_context(patch(module + "np.fromfile", return_value=np.zeros(1, dtype=np.uint8)))
             stack.enter_context(patch(module + "cv2.imdecode", return_value=np.zeros((400, 400, 3))))
@@ -123,7 +126,8 @@ class TestHuntMobTask(unittest.TestCase):
                 self.task.mouse_up.assert_not_called()
             self.task.config["Localization Only"] = False
             provider.return_value.query_target_mob_locations.reset_mock()
-            self.task.run()
+            with patch.object(self.task, "_run_localization_test", return_value={"within_tolerance": True}):
+                self.task.run()
             provider.return_value.query_target_mob_locations.assert_called_once_with(
                 "Target", state_id=8, floor_id="")
         self.assertEqual(1, len(self.task.hunt_run.session.cleared_camps))

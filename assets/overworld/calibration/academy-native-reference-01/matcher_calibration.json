@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "scope": "localization_only",
+  "policy": {
+    "reference_pixel_sha256": "9ed8de1fb52e815f0c1b42b99bc3af540bbb88cc8ab3d4d079d6062df313e9d7",
+    "mask_pixel_sha256": "e7af348597509b3a661c24e04865c0c65ec194ce3b256c97727e8b9cc17297ee",
+    "minimap_size": [
+      248,
+      247
+    ],
+    "state_id": 906,
+    "floor_id": "",
+    "score_threshold": 0.7,
+    "distinct_radius": 8,
+    "min_margin": 0.3634031228721142,
+    "min_inliers": 11,
+    "min_coverage": 0.1,
+    "max_geometry_error": 1.481737015915146,
+    "sampling_mode": "sift_phase",
+    "gradient_mode": "bounded64",
+    "feature_mode": "dense"
+  },
+  "validation": {
+    "evidence": "report.json",
+    "thresholds": "Unchanged from base calibration"
+  }
+}

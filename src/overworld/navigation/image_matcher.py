@@ -21,9 +21,17 @@ def pixel_hash(image):
     return hashlib.sha256(image.tobytes()).hexdigest()
 
 
-def gradients(image):
+def gradients(image, mode="raw"):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY).astype(np.float32)
-    return np.dstack((cv2.Sobel(gray, cv2.CV_32F, 1, 0), cv2.Sobel(gray, cv2.CV_32F, 0, 1)))
+    result = np.dstack((cv2.Sobel(gray, cv2.CV_32F, 1, 0), cv2.Sobel(gray, cv2.CV_32F, 0, 1)))
+    if mode == "bounded64":
+        # Bright POI overlays must not dominate terrain edge directions. The
+        # same fixed magnitude cap is applied to every query and gallery pixel.
+        magnitude = np.linalg.norm(result, axis=2, keepdims=True)
+        result *= np.minimum(1, 64 / np.maximum(magnitude, 1e-6))
+    elif mode != "raw":
+        raise ValueError("Unknown gradient representation")
+    return result
 
 
 def correlation(reference, template, mask, method=cv2.TM_CCORR_NORMED):
@@ -60,11 +68,17 @@ class MatcherCalibration:
     min_inliers: int
     min_coverage: float
     max_geometry_error: float
+    sampling_mode: str = "integer"
+    gradient_mode: str = "raw"
+    feature_mode: str = "standard"
 
     def __post_init__(self):
         numeric = (self.score_threshold, self.distinct_radius, self.min_margin,
                    self.min_coverage, self.max_geometry_error)
         if (not all(math.isfinite(v) for v in numeric) or not 0.7 <= self.score_threshold <= 1
+                or self.sampling_mode not in ("integer", "sift_phase")
+                or self.gradient_mode not in ("raw", "bounded64")
+                or self.feature_mode not in ("standard", "dense")
                 or self.distinct_radius <= 0 or not 0 < self.min_margin <= 2
                 or type(self.min_inliers) is not int or self.min_inliers < 3
                 or type(self.state_id) is not int or self.state_id <= 0 or not isinstance(self.floor_id, str)
@@ -114,8 +128,9 @@ class HybridMapMatcher:
             raise ValueError("Matcher calibration does not belong to this reference")
         self.reference = reference
         self.calibration = calibration
-        self.reference_gradients = gradients(reference)
-        self.sift = cv2.SIFT_create()
+        self.reference_gradients = gradients(reference, calibration.gradient_mode)
+        self.sift = (cv2.SIFT_create(nOctaveLayers=5, contrastThreshold=.02)
+                     if calibration.feature_mode == "dense" else cv2.SIFT_create())
         self.reference_keypoints, self.reference_descriptors = self.sift.detectAndCompute(
             cv2.cvtColor(reference, cv2.COLOR_BGR2GRAY), None)
 
@@ -166,7 +181,7 @@ class HybridMapMatcher:
                 or pixel_hash(mask) != self.calibration.mask_pixel_sha256
                 or mini.shape[0] > self.reference.shape[0] or mini.shape[1] > self.reference.shape[1]):
             return LocalizationEvidence(None, None, "gradient_sift", reason="shape_or_mask"), None
-        scores = correlation(self.reference_gradients, gradients(mini), mask)
+        scores = correlation(self.reference_gradients, gradients(mini, self.calibration.gradient_mode), mask)
         peaks = distinct_peaks(scores, self.calibration.minimap_size, self.calibration.distinct_radius, 2)
         if len(peaks) < 2:
             return LocalizationEvidence(None, None, "gradient_sift", reason="no_distinct_comparison"), scores
@@ -177,7 +192,49 @@ class HybridMapMatcher:
         evidence = LocalizationEvidence(tuple(best["pixel_xy"]), best["score"], "gradient_sift",
                                         second_best_score=second["score"], margin=best["score"] - second["score"],
                                         agreement_error=agreement, **feature)
+        if self.calibration.sampling_mode == "sift_phase":
+            return self.refine_phase(mini, mask, evidence)
         return evidence, scores
+
+    def refine_phase(self, mini, mask, integer):
+        """One SIFT-derived fractional grid; never optimize fractional offsets.
+
+        All competing translations use the same interpolated gradient field.
+        Agreement retains the independent INTEGER gradient/SIFT discrepancy,
+        as well as the refined discrepancy, so phase selection cannot make the
+        corroboration gate tautological. Missing phase never falls back.
+        """
+        invalid = replace(integer, confidence=None, second_best_score=None,
+                          margin=None, source="gradient_sift_phase")
+        feature = integer.feature_pixel_xy
+        if feature is None or not all(math.isfinite(v) for v in feature):
+            return invalid, None
+        width, height = self.calibration.minimap_size
+        shift = np.asarray(feature) - [width / 2, height / 2]
+        # OpenCV INTER_LINEAR uses a 1/32-pixel table. Report the actual sampled
+        # grid instead of claiming more positional precision than interpolation.
+        phase = np.rint((shift - np.floor(shift)) * 32) / 32
+        ref_height, ref_width = self.reference.shape[:2]
+        # Exclude all templates requiring interpolation outside the reference;
+        # padding must not contribute even if the query mask would conceal it.
+        yy, xx = np.indices((ref_height - int(phase[1] > 0),
+                             ref_width - int(phase[0] > 0)), dtype=np.float32)
+        if yy.shape[0] < height or yy.shape[1] < width:
+            return invalid, None
+        sampled = cv2.remap(self.reference_gradients, xx + np.float32(phase[0]),
+                            yy + np.float32(phase[1]), cv2.INTER_LINEAR)
+        scores = correlation(sampled, gradients(mini, self.calibration.gradient_mode), mask)
+        peaks = distinct_peaks(scores, (width, height), self.calibration.distinct_radius, 2)
+        if len(peaks) < 2:
+            return invalid, scores
+        best, second = peaks
+        position = np.asarray(best["top_left"]) + phase + [width / 2, height / 2]
+        refined_agreement = float(np.linalg.norm(position - feature))
+        agreement = (max(integer.agreement_error, refined_agreement)
+                     if integer.agreement_error is not None else None)
+        return replace(integer, pixel_xy=tuple(position), confidence=best["score"],
+                       second_best_score=second["score"], margin=best["score"] - second["score"],
+                       agreement_error=agreement, source="gradient_sift_phase"), scores
 
     def match(self, mini, mask):
         evidence, _ = self.measure(mini, mask)

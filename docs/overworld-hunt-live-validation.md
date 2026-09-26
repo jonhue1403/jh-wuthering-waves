@@ -1,5 +1,33 @@
 # Phase 4.5: one-camp validation record and capture requirements
 
+**2026-09-26 implementation update:** upstream `61bfa64` has been integrated.
+The current task adds `Test Walk Only`, reviewed localization/navigation profile
+flags, and a fresh stationary preflight before movement. Reviewed hybrid profiles
+can now enter these controlled movement paths. The previous localization-only
+restriction below records the September 6 implementation. Follow the
+[current setup and validation guide](overworld-hunt.md) for the new sequence.
+No successful live A/B/C result has been observed in this update. Desktop capture
+timed out and activation returned `GetCursorPos: Access is denied`; live validation
+requires restoration of the interactive desktop and a verified starting location.
+
+**2026-09-06 Phase 4.5B offline follow-up:** a SIFT-derived common fractional
+gradient grid accepts 20/20 saved positives and rejects 210/210 query controls,
+including all original negatives. The score floor remains 0.700; the recalibrated
+margin is stricter. Integration is explicit localization-only opt-in; existing
+calibrations and safety settings retain their behavior. See the
+[offline report](../assets/overworld/calibration/subpixel-validation/REPORT.md)
+and [surface-test-03 capture instructions](overworld-hunt-surface-test-03.md).
+Fresh Test A and current layer/full-map review remain pending. No movement or
+Test B was run.
+
+**2026-09-06 fresh capture update:** `surface-test-02` contains ten new WGC
+frames. Frozen hybrid replay rejects 10/10 on gradient score (0.658–0.666,
+required 0.700); Test B was not run. Subpixel sampling sensitivity was identified
+diagnostically, without changing acceptance rules. The camera view also changed
+during capture; current layer and full-map geometry review remain pending.
+See [the fresh capture failure record](../assets/overworld/calibration/surface-test-02/analysis/REPORT.md).
+The remainder below records the original Phase 4.5A baseline and procedure.
+
 Status: **closed-dataset Phase 4.5A passes offline with an opt-in hybrid matcher; no live Test A, B, or C has been observed**.
 The original color matcher still rejects all ten frames. A reference-bound
 gradient/SIFT method accepts 10/10 saved frames and rejects 60/60 constructed
