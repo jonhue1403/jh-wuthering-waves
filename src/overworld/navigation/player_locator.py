@@ -27,6 +27,10 @@ class SurfaceProfile:
     match_threshold: float = 0.7
     localization_tolerance_pixels: float | None = None
     matcher_calibration_path: Path | None = None
+    localization_verified: bool = False
+    navigation_verified: bool = False
+    test_walk_target: MapCoordinate | None = None
+    test_walk_timeout: float = 10.0
 
     @classmethod
     def load(cls, path):
@@ -45,6 +49,10 @@ class SurfaceProfile:
              if data.get("localization_tolerance_pixels") is not None else None),
             ((path.parent / data["matcher_calibration"]).resolve()
              if data.get("matcher_calibration") else None),
+            data.get("localization_verified") is True,
+            data.get("navigation_verified") is True,
+            (MapCoordinate(*data["test_walk_target"]) if data.get("test_walk_target") is not None else None),
+            float(data.get("test_walk_timeout", 10)),
         )
         if (not profile.target_mob or not profile.spawn_ids
                 or not isfinite(profile.units_per_pixel) or profile.units_per_pixel <= 0
@@ -58,6 +66,10 @@ class SurfaceProfile:
             raise ValueError("Localization tolerance must be positive and finite")
         if not profile.image_path.is_file() or not profile.database_path.is_file():
             raise ValueError("Surface profile image or Kuro database is missing")
+        if (not isfinite(profile.test_walk_timeout) or not 1 <= profile.test_walk_timeout <= 30
+                or (profile.test_walk_target is not None and not all(isfinite(v) for v in
+                    (profile.test_walk_target.x, profile.test_walk_target.y)))):
+            raise ValueError("Test walk requires a finite target and a timeout of 1–30 seconds")
         return profile
 
     @property

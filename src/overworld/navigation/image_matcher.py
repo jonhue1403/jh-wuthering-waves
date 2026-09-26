@@ -60,11 +60,13 @@ class MatcherCalibration:
     min_inliers: int
     min_coverage: float
     max_geometry_error: float
+    sampling_mode: str = "integer"
 
     def __post_init__(self):
         numeric = (self.score_threshold, self.distinct_radius, self.min_margin,
                    self.min_coverage, self.max_geometry_error)
         if (not all(math.isfinite(v) for v in numeric) or not 0.7 <= self.score_threshold <= 1
+                or self.sampling_mode not in ("integer", "sift_phase")
                 or self.distinct_radius <= 0 or not 0 < self.min_margin <= 2
                 or type(self.min_inliers) is not int or self.min_inliers < 3
                 or type(self.state_id) is not int or self.state_id <= 0 or not isinstance(self.floor_id, str)
@@ -177,7 +179,49 @@ class HybridMapMatcher:
         evidence = LocalizationEvidence(tuple(best["pixel_xy"]), best["score"], "gradient_sift",
                                         second_best_score=second["score"], margin=best["score"] - second["score"],
                                         agreement_error=agreement, **feature)
+        if self.calibration.sampling_mode == "sift_phase":
+            return self.refine_phase(mini, mask, evidence)
         return evidence, scores
+
+    def refine_phase(self, mini, mask, integer):
+        """One SIFT-derived fractional grid; never optimize fractional offsets.
+
+        All competing translations use the same interpolated gradient field.
+        Agreement retains the independent INTEGER gradient/SIFT discrepancy,
+        as well as the refined discrepancy, so phase selection cannot make the
+        corroboration gate tautological. Missing phase never falls back.
+        """
+        invalid = replace(integer, confidence=None, second_best_score=None,
+                          margin=None, source="gradient_sift_phase")
+        feature = integer.feature_pixel_xy
+        if feature is None or not all(math.isfinite(v) for v in feature):
+            return invalid, None
+        width, height = self.calibration.minimap_size
+        shift = np.asarray(feature) - [width / 2, height / 2]
+        # OpenCV INTER_LINEAR uses a 1/32-pixel table. Report the actual sampled
+        # grid instead of claiming more positional precision than interpolation.
+        phase = np.rint((shift - np.floor(shift)) * 32) / 32
+        ref_height, ref_width = self.reference.shape[:2]
+        # Exclude all templates requiring interpolation outside the reference;
+        # padding must not contribute even if the query mask would conceal it.
+        yy, xx = np.indices((ref_height - int(phase[1] > 0),
+                             ref_width - int(phase[0] > 0)), dtype=np.float32)
+        if yy.shape[0] < height or yy.shape[1] < width:
+            return invalid, None
+        sampled = cv2.remap(self.reference_gradients, xx + np.float32(phase[0]),
+                            yy + np.float32(phase[1]), cv2.INTER_LINEAR)
+        scores = correlation(sampled, gradients(mini), mask)
+        peaks = distinct_peaks(scores, (width, height), self.calibration.distinct_radius, 2)
+        if len(peaks) < 2:
+            return invalid, scores
+        best, second = peaks
+        position = np.asarray(best["top_left"]) + phase + [width / 2, height / 2]
+        refined_agreement = float(np.linalg.norm(position - feature))
+        agreement = (max(integer.agreement_error, refined_agreement)
+                     if integer.agreement_error is not None else None)
+        return replace(integer, pixel_xy=tuple(position), confidence=best["score"],
+                       second_best_score=second["score"], margin=best["score"] - second["score"],
+                       agreement_error=agreement, source="gradient_sift_phase"), scores
 
     def match(self, mini, mask):
         evidence, _ = self.measure(mini, mask)

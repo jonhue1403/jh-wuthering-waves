@@ -1429,3 +1429,6 @@ msgstr "위치 확인만"
 
 msgid "JingRan"
 msgstr "경연"
+
+msgid "Test Walk Only"
+msgstr "이동 테스트만"

@@ -1426,3 +1426,6 @@ msgstr "位置特定のみ"
 
 msgid "JingRan"
 msgstr "景燃"
+
+msgid "Test Walk Only"
+msgstr "歩行テストのみ"

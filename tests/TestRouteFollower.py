@@ -179,6 +179,25 @@ class TestWorldRouteNavigator(unittest.TestCase):
         self.assertEqual(NavigationStatus.CANCELLED, result.status)
         self.assertEqual(1, len(backend.stop_calls))
 
+    def test_arrival_is_failed_when_input_release_fails(self):
+        from unittest.mock import Mock
+        clock = FakeClock()
+        backend = FakeBackend(clock, {"target": [WaypointObservation(0, 0, (0, 0))]})
+        backend.stop = Mock(side_effect=RuntimeError("device disconnected"))
+        result = self.make_navigator(backend, clock).follow_to("target", arrival_threshold=1)
+        self.assertEqual(NavigationStatus.FAILED, result.status)
+        self.assertIn("cleanup", str(result.error))
+
+    def test_cleanup_failure_prevents_stuck_recovery_even_if_later_release_succeeds(self):
+        from unittest.mock import Mock
+        clock = FakeClock()
+        backend = FakeBackend(clock)
+        backend.stop = Mock(side_effect=[RuntimeError("device disconnected"), None])
+        result = self.make_navigator(backend, clock, stuck_window_seconds=0.2).follow_to(
+            "target", arrival_threshold=1, timeout=1)
+        self.assertEqual(NavigationStatus.FAILED, result.status)
+        self.assertEqual([], backend.recovery_calls)
+
 
 class TestWWTaskNavigationBackend(unittest.TestCase):
     def test_stop_releases_tracked_and_possible_movement_controls_and_camera(self):

@@ -1474,3 +1474,6 @@ msgstr "仅定位"
 
 msgid "JingRan"
 msgstr "景燃"
+
+msgid "Test Walk Only"
+msgstr "仅测试步行"

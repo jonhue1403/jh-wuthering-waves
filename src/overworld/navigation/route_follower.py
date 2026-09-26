@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 import time
 from typing import Callable, Generic, Protocol, Sequence, TypeVar
@@ -100,6 +100,7 @@ class WorldRouteNavigator(Generic[Waypoint]):
         self.cancellation_exceptions = cancellation_exceptions
         self.diagnostic = diagnostic or (lambda *args, **kwargs: None)
         self._movement_state = MovementState()
+        self._cleanup_failed = False
 
     def follow_to(
         self,
@@ -153,6 +154,9 @@ class WorldRouteNavigator(Generic[Waypoint]):
         return self._report_result(result)
 
     def _report_result(self, result):
+        if self._cleanup_failed:
+            result = replace(result, status=NavigationStatus.FAILED,
+                             error=RuntimeError("Navigation input cleanup failed"))
         self.diagnostic("navigation_result", status=result.status.value,
                         waypoint=str(result.waypoint), waypoint_index=result.waypoint_index,
                         recovery_attempts=result.recovery_attempts, error=str(result.error or ""))
@@ -169,6 +173,7 @@ class WorldRouteNavigator(Generic[Waypoint]):
             self.diagnostic("navigation_cleanup", success=True)
             return True
         except Exception as error:
+            self._cleanup_failed = True
             # Cleanup must not hide the structured navigation result. The
             # backend is still given the opportunity to release controls.
             self.diagnostic("navigation_cleanup", success=False, error=str(error))
@@ -191,6 +196,7 @@ class WorldRouteNavigator(Generic[Waypoint]):
         if arrival_threshold < 0:
             raise ValueError("arrival threshold cannot be negative")
         started = self.clock()
+        self._cleanup_failed = False
         far_observations = 0
         recovery = StuckRecovery(
             perform=self._recover,
@@ -261,7 +267,9 @@ class WorldRouteNavigator(Generic[Waypoint]):
                 ):
                     self.diagnostic("stuck_detected", distance=observation.distance,
                                     xy=observation.position, recovery_attempts=recovery.attempts)
-                    self.stop()
+                    if not self.stop():
+                        return NavigationResult(NavigationStatus.FAILED, waypoint, current_index,
+                                                 recovery.attempts, RuntimeError("Input cleanup failed"))
                     outcome, _ = recovery.attempt()
                     detector.reset()
                     if outcome is RecoveryOutcome.EXHAUSTED:

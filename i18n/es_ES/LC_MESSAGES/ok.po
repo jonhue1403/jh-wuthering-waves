@@ -1377,3 +1377,6 @@ msgstr "Solo localización"
 
 msgid "JingRan"
 msgstr "Jingran"
+
+msgid "Test Walk Only"
+msgstr "Solo prueba de recorrido"

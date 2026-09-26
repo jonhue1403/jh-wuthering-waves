@@ -261,7 +261,7 @@ class CombatCheck(BaseWWTask):
             return getattr(current_char, 'target_box_short_combat_check', False)
         return False
 
-    def has_target(self, double_check=False):
+    def has_target(self, double_check=False, *, allow_recovery=True):
         threshold = 0.6
         has_name, no_name = self.get_target_names()
         scale = 1.2 if self.is_browser() else 1.1
@@ -282,7 +282,7 @@ class CombatCheck(BaseWWTask):
             best = self.find_best_match_in_box(self.get_box_by_name(has_name).scale(1.1, 2.0),
                                                [has_name, no_name],
                                                threshold=threshold)
-            if best and self.esc_count == 0:
+            if best and self.esc_count == 0 and allow_recovery:
                 if double_check:
                     logger.error(f'try fix bear echo')
                     self.send_key('esc', after_sleep=2)

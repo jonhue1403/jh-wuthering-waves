@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "scope": "localization_only",
+  "policy": {
+    "reference_pixel_sha256": "239a569ad0ef294d836b6623a1046fd155d1a2b62f570f6abee306cb6cb7c8a5",
+    "mask_pixel_sha256": "e7af348597509b3a661c24e04865c0c65ec194ce3b256c97727e8b9cc17297ee",
+    "minimap_size": [
+      248,
+      247
+    ],
+    "state_id": 906,
+    "floor_id": "",
+    "score_threshold": 0.7,
+    "distinct_radius": 8,
+    "min_margin": 0.3634031228721142,
+    "min_inliers": 11,
+    "min_coverage": 1.6324931435287973e-05,
+    "max_geometry_error": 1.481737015915146,
+    "sampling_mode": "sift_phase"
+  },
+  "validation": {
+    "evidence": "results.json",
+    "margin_fit": {
+      "original_train_positive_min": 0.6774536296725273,
+      "original_train_negative_max": 0.04935261607170105
+    },
+    "score_threshold": "0.700 retained and revalidated on combined datasets; no score-only acceptance",
+    "limitations": "Correlated frames at two poses in one reference; fresh layer/absolute geometry unverified; original held-out frames were already used in prior evaluation. No live Test A certification, movement, or Test B."
+  }
+}
