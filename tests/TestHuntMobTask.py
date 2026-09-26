@@ -108,6 +108,7 @@ class TestHuntMobTask(unittest.TestCase):
         with ExitStack() as stack:
             stack.enter_context(patch.object(WWOneTimeTask, "run"))
             module = "src.task.HuntMobTask."
+            stack.enter_context(patch(module + "require_game_input_access"))
             stack.enter_context(patch(module + "SurfaceProfile.load", return_value=profile))
             stack.enter_context(patch(module + "np.fromfile", return_value=np.zeros(1, dtype=np.uint8)))
             stack.enter_context(patch(module + "cv2.imdecode", return_value=np.zeros((400, 400, 3))))

@@ -34,6 +34,8 @@ class TestHuntValidation(unittest.TestCase):
         )
         self.stack = ExitStack()
         self.addCleanup(self.stack.close)
+        self.input_access = self.stack.enter_context(
+            patch("src.task.HuntMobTask.require_game_input_access"))
         self.load = self.stack.enter_context(patch("src.task.HuntMobTask.SurfaceProfile.load",
                                                   return_value=self.profile))
         self.stack.enter_context(patch("src.task.HuntMobTask.np.fromfile", return_value=np.zeros(1)))
@@ -61,6 +63,21 @@ class TestHuntValidation(unittest.TestCase):
         self.assertEqual(10, self.nav.follow_to.call_args.kwargs["timeout"])
         self.assertEqual(MapCoordinate(20, 20), self.nav.follow_to.call_args.args[0].coordinate)
         self.nav.stop.assert_called_once()
+
+    def test_privilege_mismatch_stops_before_preflight_or_inputs(self):
+        self.input_access.side_effect = RuntimeError("game runs as administrator")
+        with self.assertRaisesRegex(RuntimeError, "administrator"):
+            self.task.run()
+        self.preflight.assert_not_called()
+        self.nav_factory.assert_not_called()
+        self.startup.assert_not_called()
+        self.assertEqual([], self.task.executor.interaction.mock_calls)
+
+    def test_localization_does_not_require_input_privileges(self):
+        self.task.config["Localization Only"] = True
+        self.input_access.side_effect = AssertionError("input privileges checked")
+        self.task.run()
+        self.input_access.assert_not_called()
 
     def test_hybrid_can_walk_after_review_and_fresh_preflight(self):
         self.load.return_value = replace(self.profile, matcher_calibration_path=Path("policy.json"))

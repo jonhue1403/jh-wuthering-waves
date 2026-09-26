@@ -12,6 +12,10 @@ installed OK-WW application does **not** include these local changes. Close that
 other instance before starting this checkout or collecting calibration captures.
 Keep the game running on an unlocked desktop. Configure the normal Start/Stop
 shortcut and verify it before movement. All stages start already in the world.
+On Windows, movement also checks the game's process privileges. If the game is
+elevated and this checkout is not, start this checkout with matching privileges.
+The task reports the mismatch before sending inputs; localization-only capture
+remains available. This check does not elevate applications or accept prompts.
 
 ## Prepare the profile
 

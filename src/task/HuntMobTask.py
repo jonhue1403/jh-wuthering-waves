@@ -5,6 +5,7 @@ from ok import BaseTask, TaskDisabledException
 
 from src.overworld.controller import HuntAbort, HuntCancelled, HuntController, HuntOptions, HuntState
 from src.overworld.diagnostics import HuntDiagnostics, stationary_localization
+from src.overworld.input_access import require_game_input_access
 from src.overworld.map_data import KuroMapDataProvider
 from src.overworld.navigation import NavigationStatus, WorldRouteNavigator, WWTaskNavigationBackend
 from src.overworld.models import HuntPosition
@@ -125,6 +126,8 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
             self.controller = None
             self.hunt_run = None
             return self._run_localization_test()
+        window = self.executor.device_manager.hwnd_window
+        require_game_input_access(getattr(window, "hwnd", None))
         report = self._run_localization_test(preflight=True)
         if report is None:  # Framework cancellation during the read-only phase.
             return

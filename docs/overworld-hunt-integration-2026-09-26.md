@@ -90,6 +90,16 @@ No movement test or hunt has run, and no review flags have been enabled.
 The separately installed application is not this checkout; use the repository's
 `main.py` for this feature.
 
+After two user-requested restart/retry checks, the new Codex desktop, task, and
+computer-control helper processes remained unelevated while the game stayed
+elevated. Escape still did not close the map. Added a read-only process-token
+check before movement preflight to report this mismatch explicitly. It also
+stops when the target process cannot be checked, closes query handles, and leaves
+localization-only mode available. It does not launch elevated processes or
+interact with permission prompts. The actual game window reproduced the new
+diagnostic. The 26 focused input-access, task-validation, and task-wiring tests
+pass (`logs/hunt-input-access-tests.log`); these include four newly added tests.
+
 Still required:
 
 1. Fresh stationary captures and same-position full-map/layer evidence.
