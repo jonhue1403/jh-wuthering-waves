@@ -87,13 +87,21 @@ passes. **255 regression tests passed on the upgraded runtime**: 159 hunt,
 navigation, calibration, heading, and integration tests; 71 character tests;
 and 25 map, configuration, combat, loader, and wide-dialog tests, with Qt suites
 run in separate processes. Logs and counts are listed in `verification.json`.
-Its clean restart verification against the running game is still outstanding.
+Clean restart verification also passed using the **built-in HuntMobTask** with no
+custom tasks installed: ten fresh localization readings, a short walk returning
+ARRIVED, and a return/clear run with one cleared camp and zero failed camps.
+This post-upgrade camp was already empty; combat itself was not repeated after
+the runtime upgrade. See `upgraded-runtime-events.jsonl`.
 Background-task preferences were restored after requesting framework exit, and
 both old project Python processes and the old local web server were verified shut
-down before beginning the upgrade. Temporary custom tasks were removed.
+down before beginning the upgrade. Temporary custom tasks were removed. The new
+project process was confirmed elevated, and its live task results were verified
+through the local API and persisted diagnostics.
 
 The built-in Hunt task is configured with the reviewed local profile and defaults
-back to **Localization Only=true**. The reference covers a local exterior area;
+back to **Localization Only=true**. Final API verification confirmed the executor
+paused, no current task, and all six background-task settings restored to their
+previous values. The reference covers a local exterior area;
 it is not a world-wide map, obstacle planner, dynamic layer detector, or assurance
 that an enemy has respawned. Repeat combat after respawn and broader route trials
 remain necessary before unattended use is justified.

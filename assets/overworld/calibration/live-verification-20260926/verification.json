@@ -1,7 +1,7 @@
 {
   "gameplay_runtime": "2.0.5",
   "installed_runtime": "2.0.7b1",
-  "clean_restart_verified": false,
+  "clean_restart_verified": true,
   "test_runs": [
     {
       "log": "logs\\upgraded-runtime-regression.log",
@@ -56,5 +56,69 @@
     "scripts/hunt_calibration_task.py": "33a76ee7ba398809030a5c06096de5fdef9e6427f4549bcbe4b14427bd42b33c"
   },
   "total_passed_tests": 255,
-  "pip_check": "No broken requirements found"
+  "pip_check": "No broken requirements found",
+  "restarted_process_id": 27316,
+  "restarted_process_elevated": true,
+  "final_status": {
+    "paused": true,
+    "running": true,
+    "starting": false,
+    "current_task": null,
+    "task_count": 16,
+    "hotkey": "F9"
+  },
+  "restored_triggers": [
+    {
+      "class_name": "AutoCombatTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoPickTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoLoginTask",
+      "enabled": true
+    },
+    {
+      "class_name": "AutoDialogTask",
+      "enabled": true
+    },
+    {
+      "class_name": "FastTravelTask",
+      "enabled": false
+    },
+    {
+      "class_name": "MouseResetTask",
+      "enabled": true
+    }
+  ],
+  "final_hunt_info": {
+    "Log": "[HUNT] {\"event\": \"task_exit\", \"state\": \"COMPLETE\", \"reason\": \"No remaining locally walkable camps\", \"cleanup_success\": true}",
+    "Hunt State": "COMPLETE",
+    "Current Camp": "",
+    "Cleared Camps": 1,
+    "Failed Camps": 0,
+    "Hunt Position": "-103053.6, -542124.4"
+  },
+  "final_hunt_config": {
+    "Target Mob": "噼啪啪",
+    "Hunt Profile": "Z:\\Game\\jh-wuthering-waves\\assets\\overworld\\calibration\\academy-native-reference-01\\profile.json",
+    "Safe Test Mode": true,
+    "Localization Only": true,
+    "Test Walk Only": false,
+    "Max Camps": 1,
+    "Max Camp Retries": 2,
+    "Use Teleport": false,
+    "Use Motorcycle": false,
+    "Surface Only": true,
+    "Use Liberation": true,
+    "Switch to Healer before and after Combat": true
+  },
+  "live_runtime_checks": [
+    "stationary_localization",
+    "short_walk_arrived",
+    "empty_camp_return_and_clear",
+    "input_cleanup"
+  ]
 }
