@@ -16,6 +16,11 @@ On Windows, movement also checks the game's process privileges. If the game is
 elevated and this checkout is not, start this checkout with matching privileges.
 The task reports the mismatch before sending inputs; localization-only capture
 remains available. This check does not elevate applications or accept prompts.
+For an elevated game, right-click `run-local.cmd` in this repository and choose
+**Run as administrator**, then handle the Windows prompt yourself. This starts
+the repository's local Python app without automatically starting a hunt.
+Codex's desktop-control helper may remain unelevated; in that case start tests
+manually in the project app while Codex reads captures and logs.
 
 ## Prepare the profile
 

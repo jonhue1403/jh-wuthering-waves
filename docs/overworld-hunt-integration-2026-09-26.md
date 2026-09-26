@@ -100,6 +100,16 @@ interact with permission prompts. The actual game window reproduced the new
 diagnostic. The 26 focused input-access, task-validation, and task-wiring tests
 pass (`logs/hunt-input-access-tests.log`); these include four newly added tests.
 
+The user's subsequent normal game launch created a new process, but it remained
+elevated and did not respond to the desktop-control M input. Read-only resource
+inspection found `requestedExecutionLevel level="requireAdministrator"` in both
+`Client-Win64-Shipping.exe` and `Wuthering Waves.exe`; the launcher itself uses
+`asInvoker`. No compatibility elevation override was found for these paths in
+the queried user/machine AppCompat Layers keys. Normal launch therefore does
+not remove the game's elevation requirement. Added `run-local.cmd` so the user
+can start this checkout as administrator through the normal Windows action.
+This does not elevate Codex or prove that live tests have passed.
+
 Still required:
 
 1. Fresh stationary captures and same-position full-map/layer evidence.
