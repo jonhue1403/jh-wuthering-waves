@@ -22,6 +22,14 @@ the repository's local Python app without automatically starting a hunt.
 Codex's desktop-control helper may remain unelevated; in that case start tests
 manually in the project app while Codex reads captures and logs.
 
+Alternatively, close the Qt app and run `run-local-web.cmd` with the same
+privileges as the game. It uses the built-in web interface on `127.0.0.1` and
+opens the browser; it does not automatically start a hunt. The browser mode
+requires FastAPI and Uvicorn, as declared by the framework's web extra:
+`./.venv/Scripts/python.exe -m pip install "fastapi>=0.115.0" "uvicorn[standard]>=0.30.0"`.
+The existing `main_web.py` embedded-window mode remains the default; `--browser`
+selects a normal browser and does not require pywebview.
+
 ## Prepare the profile
 
 Use a north-up reference at the live minimap's pixel scale and the same game
