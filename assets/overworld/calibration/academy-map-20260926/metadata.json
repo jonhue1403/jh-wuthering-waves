@@ -1,0 +1,115 @@
+{
+  "capture_timestamp": "2026-09-26T03:20:19.611219+00:00",
+  "calibration_profile": "academy-map-20260926",
+  "interval_requested_ms": 500,
+  "frames_requested": 10,
+  "frame_count": 10,
+  "frame_dimensions": {
+    "width": 2560,
+    "height": 1440
+  },
+  "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod",
+  "complete": true,
+  "frames": [
+    {
+      "filename": "stationary_001.png",
+      "capture_timestamp": "2026-09-26T03:20:19.628217+00:00",
+      "elapsed_seconds": 0.016653899918310344,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_002.png",
+      "capture_timestamp": "2026-09-26T03:20:20.130486+00:00",
+      "elapsed_seconds": 0.5189224999630824,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_003.png",
+      "capture_timestamp": "2026-09-26T03:20:20.630131+00:00",
+      "elapsed_seconds": 1.018567799939774,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_004.png",
+      "capture_timestamp": "2026-09-26T03:20:21.147791+00:00",
+      "elapsed_seconds": 1.5362268999451771,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_005.png",
+      "capture_timestamp": "2026-09-26T03:20:21.663977+00:00",
+      "elapsed_seconds": 2.052413099911064,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_006.png",
+      "capture_timestamp": "2026-09-26T03:20:22.180879+00:00",
+      "elapsed_seconds": 2.5693140999646857,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_007.png",
+      "capture_timestamp": "2026-09-26T03:20:22.663530+00:00",
+      "elapsed_seconds": 3.051966099999845,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_008.png",
+      "capture_timestamp": "2026-09-26T03:20:23.181312+00:00",
+      "elapsed_seconds": 3.569748199894093,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_009.png",
+      "capture_timestamp": "2026-09-26T03:20:23.680292+00:00",
+      "elapsed_seconds": 4.068728199927136,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    },
+    {
+      "filename": "stationary_010.png",
+      "capture_timestamp": "2026-09-26T03:20:24.182172+00:00",
+      "elapsed_seconds": 4.570609099930152,
+      "frame_dimensions": {
+        "width": 2560,
+        "height": 1440
+      },
+      "capture_backend": "ok.device.capture_methods.windows_graphics.WindowsGraphicsCaptureMethod"
+    }
+  ]
+}

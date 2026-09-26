@@ -65,9 +65,30 @@ Capture failed with `FrameArrived timed out`; the recovery attempt returned
 `GetCursorPos failed: Access is denied. (0x80070005)` during window activation.
 No game movement, combat, or profile verification was performed by this task.
 
-The interactive desktop must be available before proceeding. Any login or system
-permission prompt needs the user to handle it. The separately installed OK-WW
-v3.6.7 window is not this checkout; use the repository's `main.py` for this feature.
+On resuming with the desktop available, WGC successfully captured ten fresh
+2560×1440 frames at approximately 500 ms intervals. Metadata and an unchanged
+historical-reference replay are in
+`assets/overworld/calibration/surface-test-03-20260926/`. All ten frames were
+rejected by the old reference/calibration. This confirms that the historical
+profile cannot be reused at the current location; it does not identify the new
+map layer. The original PNGs remain local.
+
+The user closed the separate installed OK-WW v3.6.7 application, and window
+enumeration confirmed its absence. The user manually opened the map, identifying
+Startorch Academy. Ten full-map frames were saved in `academy-map-20260926`.
+The four visible Academy beacon correspondences (database state 906, floor 30)
+failed the preselected three-full-map-pixel accuracy limit: the held-out error
+was 16.25 pixels. No profile was created from this fit; the player's floor is
+still unverified. See that capture directory's `calibration-check.json`.
+
+Desktop-control M/Escape and map-close inputs produced no visible response.
+Read-only Windows token queries confirmed that the game process is elevated,
+while the repository Python process is not. This privilege mismatch explains
+the input blocker; desktop control needs a compatible privilege level before
+movement can be tested. The user must handle application elevation themselves.
+No movement test or hunt has run, and no review flags have been enabled.
+The separately installed application is not this checkout; use the repository's
+`main.py` for this feature.
 
 Still required:
 

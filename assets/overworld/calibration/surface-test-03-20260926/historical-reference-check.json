@@ -1,0 +1,259 @@
+{
+  "purpose": "Fresh stationary frames tested against unchanged historical reference; this does not establish the current map layer or world coordinates.",
+  "reference": "assets\\overworld\\calibration\\surface-test-01\\analysis\\reference_candidate.png",
+  "calibration": "assets\\overworld\\calibration\\subpixel-validation\\matcher_calibration.json",
+  "accepted": 0,
+  "count": 10,
+  "frames": [
+    {
+      "filename": "stationary_001.png",
+      "sha256": "81287eb65a3ec6529768fc37e5b76a0401fbc492cf7ae904e74dc53884000158",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.08618845045566559,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.06233463063836098,
+        "margin": 0.02385381981730461,
+        "feature_pixel_xy": [
+          263.6871795654297,
+          410.1028366088867
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.35949952909436,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_002.png",
+      "sha256": "86afe2b6294a6a88bab090bc96c4cd3df8193122459e7330d4f2b1195b301679",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.08623858541250229,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.062454257160425186,
+        "margin": 0.023784328252077103,
+        "feature_pixel_xy": [
+          263.6871795654297,
+          410.1028289794922
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.3594919525649,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_003.png",
+      "sha256": "8d81af3c37a44938e50a4cff94f7c7d24fff90a62d780372f0547b893d564562",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.08626560866832733,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.06257274001836777,
+        "margin": 0.023692868649959564,
+        "feature_pixel_xy": [
+          263.68724060058594,
+          410.101806640625
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.35846952495598,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_004.png",
+      "sha256": "e5ec58b4f0027d3d88371b1826de6ea0190bc1b680c816f468d8241e41698f60",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.0864778384566307,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.0623842291533947,
+        "margin": 0.024093609303236008,
+        "feature_pixel_xy": [
+          263.6889114379883,
+          410.1075134277344
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.3639404314414,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_005.png",
+      "sha256": "78459644057aeb3ed777522a655c170885b2d8eba66477d862a82b57ccae734e",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.08644317835569382,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.06246885284781456,
+        "margin": 0.023974325507879257,
+        "feature_pixel_xy": [
+          263.6871643066406,
+          410.10418701171875
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.3608423680379,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_006.png",
+      "sha256": "cdf9cda83d353e226d8afb2b5ab3b427604495faa8b9a0e6d0f1c847263171c8",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.0864277109503746,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.06256309896707535,
+        "margin": 0.023864611983299255,
+        "feature_pixel_xy": [
+          263.6871795654297,
+          410.1028366088867
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.35949952909436,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_007.png",
+      "sha256": "ac900b14190d3930a5612ceae3d2ace86d8517ee36863cfb04808e3ab955816b",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.08649053424596786,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.06277288496494293,
+        "margin": 0.023717649281024933,
+        "feature_pixel_xy": [
+          263.6872100830078,
+          410.10292053222656
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.35957928458964,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_008.png",
+      "sha256": "415e85032c79138e7f14f53d4e13ba9169c55fce6aa1c66c61cd57bd2939e884",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.08590415120124817,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.06241177022457123,
+        "margin": 0.02349238097667694,
+        "feature_pixel_xy": [
+          263.68721771240234,
+          410.10292053222656
+        ],
+        "feature_matches": 4,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.3595783880081,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_009.png",
+      "sha256": "d070709633c2dd727133d919a5acbedb3730fc2de841a662912a33e037d798a3",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.0861506536602974,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.06256438791751862,
+        "margin": 0.023586265742778778,
+        "feature_pixel_xy": [
+          263.6872253417969,
+          410.10291290283203
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.3595699148971,
+        "feature_coverage": 0.0
+      }
+    },
+    {
+      "filename": "stationary_010.png",
+      "sha256": "261f710b20571c450ea0b4fd7eb4efacd46611ade305ac39b38ac3d0b2762fdf",
+      "evidence": {
+        "pixel_xy": [
+          285.6875,
+          230.09375
+        ],
+        "confidence": 0.08617155998945236,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_support,feature_coverage,signals_disagree",
+        "second_best_score": 0.06256909668445587,
+        "margin": 0.02360246330499649,
+        "feature_pixel_xy": [
+          263.68721771240234,
+          410.10292053222656
+        ],
+        "feature_matches": 3,
+        "feature_inliers": 1,
+        "geometry_error": 0.0,
+        "agreement_error": 181.3595783880081,
+        "feature_coverage": 0.0
+      }
+    }
+  ]
+}

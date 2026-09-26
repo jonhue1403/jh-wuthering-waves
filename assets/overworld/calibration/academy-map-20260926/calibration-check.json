@@ -1,0 +1,122 @@
+{
+  "status": "rejected_no_profile_created",
+  "observed_map_label": "Startorch Academy",
+  "source_frame": "stationary_001.png",
+  "source_sha256": "48da9ae9822079ce665b03de83d1758c05942e7ab74b0d1e6d3b2a0aa9207a0c",
+  "database": "Z:/Game/wuwa-map/map_items.db",
+  "database_access": "read_only",
+  "state_id": 906,
+  "landmarks": [
+    {
+      "id": "1451330794856591360",
+      "image_xy": [
+        1480.0,
+        149.5
+      ],
+      "kuro_xy": [
+        -76292.0,
+        -559746.0
+      ],
+      "role": "fit",
+      "floor_id": "30"
+    },
+    {
+      "id": "1451331483355787264",
+      "image_xy": [
+        1642.5,
+        178.0
+      ],
+      "kuro_xy": [
+        -67028.0,
+        -558398.0
+      ],
+      "role": "fit",
+      "floor_id": "30"
+    },
+    {
+      "id": "1451332783044767744",
+      "image_xy": [
+        2214.5,
+        283.5
+      ],
+      "kuro_xy": [
+        -37920.0,
+        -552959.0
+      ],
+      "role": "fit",
+      "floor_id": "30"
+    },
+    {
+      "id": "1451334233370193920",
+      "image_xy": [
+        1795.5,
+        419.0
+      ],
+      "kuro_xy": [
+        -59000.0,
+        -546500.0
+      ],
+      "role": "held_out",
+      "floor_id": "30"
+    }
+  ],
+  "pixel_measurement": "Largest HSV component bounding-box center in visually identified beacon ROI, hue 85..110, saturation 80..255, value 150..255.",
+  "landmark_rois_xywh": [
+    [
+      1460,
+      117,
+      35,
+      63
+    ],
+    [
+      1625,
+      144,
+      35,
+      69
+    ],
+    [
+      2198,
+      247,
+      35,
+      74
+    ],
+    [
+      1778,
+      385,
+      36,
+      70
+    ]
+  ],
+  "fit_units_per_full_map_pixel": 51.85502649572742,
+  "fit_origin": [
+    -152663.42546923,
+    -567595.47372963
+  ],
+  "landmark_residual_full_map_pixels": [
+    7.45201571,
+    8.96148188,
+    2.12711929,
+    16.25180064
+  ],
+  "acceptance_limit_full_map_pixels": 3,
+  "reason": "Landmark residuals exceed the preselected accuracy limit. Visible layered beacon coordinates do not support a sufficiently accurate uniform transform. Current player floor remains unverified.",
+  "terrain_fit": {
+    "source": "surface-test-03-20260926/stationary_001.png",
+    "minimap_box_xywh": [
+      48,
+      38,
+      248,
+      247
+    ],
+    "unique_correspondences": 20,
+    "ransac_inliers": 10,
+    "map_pixels_per_minimap_pixel": 2.670038362838823,
+    "max_residual_full_map_pixels": 2.670281572696908,
+    "limitation": "Single frame fit; not live localization certification."
+  },
+  "input_diagnostic": {
+    "game_process_elevated": true,
+    "repository_python_elevated": false,
+    "observed": "Desktop-control M/Escape and map-close click caused no visible response; user could open map manually. Separate installed OK-WW closed and its absence verified."
+  }
+}
