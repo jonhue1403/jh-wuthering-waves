@@ -28,6 +28,13 @@
 
 ### [English](docs/en/index.md) | 中文说明 | [繁體中文](docs/zh-TW/index.md) | [日本語](docs/ja/index.md)
 
+### Android prototype (this fork)
+
+The [Android companion](android/README.md) runs capture, local image matching and
+calibrated touch routines on the phone without a running PC. It includes an
+on-device touch lab. **Mobile daily farming and combat are not yet verified.**
+See the [device-validation guide](docs/android-prototype.md) before testing.
+
 **演示与教程:** [![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)](https://youtu.be/h6P1KWjdnB4)
 
 ---

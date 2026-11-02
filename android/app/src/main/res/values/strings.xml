@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">JH WuWa Mobile</string>
+    <string name="accessibility_label">JH WuWa touch control</string>
+    <string name="accessibility_description">Performs the taps and swipes you start in your selected game or the touch lab. Checks which app is active and stops a routine when you leave it. Screen images stay on this phone. Enable this only when you want to use the companion.</string>
+</resources>
