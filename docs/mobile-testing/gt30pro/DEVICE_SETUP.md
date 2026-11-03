@@ -23,7 +23,7 @@
 
 The physical test device was discovered over USB and verified through hardware and system properties:
 
-- **ADB Serial Number:** `143382554J102386`
+- **ADB Serial Number:** `[REDACTED_SERIAL]` (Discovered dynamically at runtime)
 - **Manufacturer:** `INFINIX`
 - **Product Model:** `Infinix X6873` (Infinix GT 30 Pro)
 - **Product Board / Hardware:** `X6873-OP`
@@ -32,7 +32,7 @@ The physical test device was discovered over USB and verified through hardware a
 - **XOS Flavor:** XOS 16.3
 - **Display Resolution:** 1224 × 2720 pixels
 - **Display Density:** 480 dpi
-- **USB PnP Instance ID:** `USB\VID_0E8D&PID_201D\143382554J102386`
+- **USB Device ID:** Discovered dynamically via ADB PnP enumeration
 
 ---
 
@@ -43,7 +43,7 @@ ADB was acquired directly from Google's official platform-tools repository:
 ```powershell
 Invoke-WebRequest -Uri "https://dl.google.com/android/repository/platform-tools-latest-windows.zip" -OutFile "$env:TEMP\platform-tools.zip"
 Expand-Archive -Path "$env:TEMP\platform-tools.zip" -DestinationPath "$env:LOCALAPPDATA\Android" -Force
-[Environment]::SetEnvironmentVariable("Path", "$([Environment]::GetEnvironmentVariable('Path', 'User'));C:\Users\User\AppData\Local\Android\platform-tools", "User")
+[Environment]::SetEnvironmentVariable("Path", "$([Environment]::GetEnvironmentVariable('Path', 'User'));$env:LOCALAPPDATA\Android\platform-tools", "User")
 ```
 
 ### 3.2 MobileRun Local Framework Installation
@@ -55,15 +55,15 @@ uv tool install --python 3.12 mobilerun
 ### 3.3 MobileRun Portal Deployment
 The Portal service APK (v0.7.28) was deployed to the GT 30 Pro:
 ```powershell
-mobilerun setup -d 143382554J102386
-mobilerun ping -d 143382554J102386
+mobilerun setup
+mobilerun ping
 ```
 Result: `Portal is installed and accessible.`
 
 ### 3.4 Target Application Deployment
 The signed debug prototype was downloaded from GitHub Actions Run `41485496391` on branch `feat/android-on-device-prototype` (PR #3) and installed:
 ```powershell
-adb -s 143382554J102386 install -r android-artifact/app-debug.apk
+adb install -r android-artifact/app-debug.apk
 ```
 Package details verified on device:
 - Package: `com.jh.wuwa.mobile`

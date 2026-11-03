@@ -14,13 +14,26 @@ from typing import Any, Dict, List, Optional, Tuple
 EVIDENCE_DIR = Path(__file__).resolve().parent / "evidence"
 EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
 
-DEFAULT_SERIAL = "143382554J102386"
 APP_PACKAGE = "com.jh.wuwa.mobile"
 MAIN_ACTIVITY = "com.jh.wuwa.MainActivity"
 TOUCH_LAB_ACTIVITY = "com.jh.wuwa.TouchLabActivity"
 GAME_PACKAGE = "com.kurogame.wutheringwaves.global"
 ACCESSIBILITY_SERVICE_COMPONENT = "com.jh.wuwa.mobile/com.jh.wuwa.runtime.AutomationAccessibilityService"
 CAPTURE_SERVICE_COMPONENT = "com.jh.wuwa.mobile/com.jh.wuwa.runtime.CaptureService"
+
+
+def discover_serial() -> str:
+    if os.environ.get("ANDROID_SERIAL"):
+        return os.environ["ANDROID_SERIAL"].strip()
+    adb = shutil.which("adb") or os.path.expandvars(r"%LOCALAPPDATA%\Android\platform-tools\adb.exe")
+    res = subprocess.run([adb, "devices", "-l"], capture_output=True, text=True, errors="replace")
+    for line in res.stdout.splitlines():
+        line = line.strip()
+        if line and not line.startswith("List of devices"):
+            parts = line.split()
+            if len(parts) >= 2 and parts[1] == "device":
+                return parts[0]
+    return "UNKNOWN_DEVICE"
 
 
 @dataclass
@@ -33,6 +46,7 @@ class TestResult:
     expected: str
     actual: str
     status: str  # PASS, FAIL, BLOCKED, NOT RUN
+    category: str = "PHYSICAL PASS"  # PHYSICAL PASS, PHYSICAL FAIL, BLOCKED, STATIC REVIEW, SOFTWARE UNIT TEST
     evidence: List[str] = field(default_factory=list)
     failure_classification: Optional[str] = None
     duration_s: float = 0.0
@@ -43,8 +57,8 @@ class TestResult:
 
 
 class DeviceHarness:
-    def __init__(self, serial: str = DEFAULT_SERIAL):
-        self.serial = serial
+    def __init__(self, serial: Optional[str] = None):
+        self.serial = serial or discover_serial()
         self.adb_bin = self._find_adb()
         self.mobilerun_bin = self._find_mobilerun()
         self.env = os.environ.copy()
@@ -121,7 +135,7 @@ class DeviceHarness:
         wm_size = self.adb_shell("wm size")
         wm_density = self.adb_shell("wm density")
         return {
-            "serial": self.serial,
+            "serial": "[REDACTED_SERIAL]",
             "manufacturer": manufacturer,
             "model": model,
             "android_version": release,
@@ -198,6 +212,12 @@ class DeviceHarness:
                 timeout=10.0,
             )
         return dest_path
+
+    def rel_path(self, p: Path) -> str:
+        try:
+            return str(p.relative_to(EVIDENCE_DIR.parent)).replace("\\", "/")
+        except Exception:
+            return f"evidence/{p.name}"
 
     def tap(self, x: int, y: int) -> bool:
         code, _, _ = self.mobilerun_cmd(["device", "tap", str(x), str(y)])

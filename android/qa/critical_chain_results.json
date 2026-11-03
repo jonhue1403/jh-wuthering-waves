@@ -1,0 +1,237 @@
+{
+  "timestamp": "2026-11-03T18:20:53.317781",
+  "target_model": "Infinix GT 30 Pro (Infinix X6873)",
+  "android_version": "16",
+  "consecutive_runs": 3,
+  "all_three_runs_passed": true,
+  "runs": [
+    {
+      "run_index": 1,
+      "timestamp": "2026-11-03T18:06:40.180665",
+      "assertions": {
+        "accessibility_bound": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "capture_service_active": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "touch_lab_entered": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "C02_single_tap": {
+          "expected": "target_taps > 0",
+          "actual": "target_taps = 1",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run1_01_single_tap_20261103_180749.png"
+        },
+        "C03_swipe": {
+          "expected": "move_events > 0",
+          "actual": "move_events = 29",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run1_02_swipe_20261103_180809.png"
+        },
+        "C04_two_fingers": {
+          "expected": "max_fingers >= 2",
+          "actual": "max_fingers = 2",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run1_03_two_fingers_20261103_180828.png"
+        },
+        "C05_three_visual_taps": {
+          "expected": "target_taps == 5 (exactly +3)",
+          "actual": "target_taps = 5",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run1_04_visual_taps_20261103_180855.png"
+        },
+        "C07_stop_and_return": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "B04_frames_advancing": {
+          "expected": "frame_count > 0",
+          "actual": "frame_count = 202",
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "B07_capture_recovery": {
+          "expected": "Capture stops cleanly then resumes cleanly",
+          "actual": "stopped=True, resumed=True",
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        }
+      },
+      "all_passed": true,
+      "baseline": {
+        "taps": 0,
+        "fingers": 0,
+        "move": 0
+      }
+    },
+    {
+      "run_index": 2,
+      "timestamp": "2026-11-03T18:11:07.894693",
+      "assertions": {
+        "accessibility_bound": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "capture_service_active": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "touch_lab_entered": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "C02_single_tap": {
+          "expected": "target_taps > 0",
+          "actual": "target_taps = 1",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run2_01_single_tap_20261103_181241.png"
+        },
+        "C03_swipe": {
+          "expected": "move_events > 0",
+          "actual": "move_events = 30",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run2_02_swipe_20261103_181301.png"
+        },
+        "C04_two_fingers": {
+          "expected": "max_fingers >= 2",
+          "actual": "max_fingers = 2",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run2_03_two_fingers_20261103_181320.png"
+        },
+        "C05_three_visual_taps": {
+          "expected": "target_taps == 5 (exactly +3)",
+          "actual": "target_taps = 5",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run2_04_visual_taps_20261103_181346.png"
+        },
+        "C07_stop_and_return": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "B04_frames_advancing": {
+          "expected": "frame_count > 0",
+          "actual": "frame_count = 221",
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "B07_capture_recovery": {
+          "expected": "Capture stops cleanly then resumes cleanly",
+          "actual": "stopped=True, resumed=True",
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        }
+      },
+      "all_passed": true,
+      "baseline": {
+        "taps": 0,
+        "fingers": 0,
+        "move": 0
+      }
+    },
+    {
+      "run_index": 3,
+      "timestamp": "2026-11-03T18:15:56.952770",
+      "assertions": {
+        "accessibility_bound": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "capture_service_active": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "touch_lab_entered": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "C02_single_tap": {
+          "expected": "target_taps > 0",
+          "actual": "target_taps = 1",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run3_01_single_tap_20261103_181727.png"
+        },
+        "C03_swipe": {
+          "expected": "move_events > 0",
+          "actual": "move_events = 30",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run3_02_swipe_20261103_181748.png"
+        },
+        "C04_two_fingers": {
+          "expected": "max_fingers >= 2",
+          "actual": "max_fingers = 2",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run3_03_two_fingers_20261103_181807.png"
+        },
+        "C05_three_visual_taps": {
+          "expected": "target_taps == 5 (exactly +3)",
+          "actual": "target_taps = 5",
+          "passed": true,
+          "category": "PHYSICAL PASS",
+          "evidence": "evidence/run3_04_visual_taps_20261103_181836.png"
+        },
+        "C07_stop_and_return": {
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "B04_frames_advancing": {
+          "expected": "frame_count > 0",
+          "actual": "frame_count = 219",
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        },
+        "B07_capture_recovery": {
+          "expected": "Capture stops cleanly then resumes cleanly",
+          "actual": "stopped=True, resumed=True",
+          "passed": true,
+          "category": "PHYSICAL PASS"
+        }
+      },
+      "all_passed": true,
+      "baseline": {
+        "taps": 0,
+        "fingers": 0,
+        "move": 0
+      }
+    }
+  ]
+}

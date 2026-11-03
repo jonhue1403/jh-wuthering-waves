@@ -9,7 +9,7 @@ This directory contains repeatable, physical-device automation scripts for testi
 1. **Host PC:** Windows 11 with Python 3.12/3.13 and `uv`.
 2. **Android Platform-Tools (ADB):** In PATH or at `%LOCALAPPDATA%\Android\platform-tools\adb.exe`.
 3. **MobileRun CLI:** Installed via `uv tool install --python 3.12 mobilerun`.
-4. **Physical Device:** Infinix GT 30 Pro connected over USB with USB debugging authorized (`143382554J102386`).
+4. **Physical Device:** Infinix GT 30 Pro connected over USB with USB debugging authorized (discovered dynamically or configured via `$env:ANDROID_SERIAL`).
 5. **App APK:** `com.jh.wuwa.mobile` installed on device.
 
 ---
@@ -17,6 +17,9 @@ This directory contains repeatable, physical-device automation scripts for testi
 ## Structure
 
 - `harness.py`: Core QA device controller, MobileRun wrapper, UI inspector, screenshot/evidence collector, OpenVINO OCR canvas reader, and metric logger.
+- `run_critical_chain.py`: Dedicated 3-consecutive-run runner verifying the critical physical chain (accessibility -> capture -> advancing frames -> tap -> swipe -> dual-pointer -> 3 visual taps -> stop -> capture recovery) with strict OCR counter assertions.
+- `validate_assertions.py`: Machine-readable consistency and integrity auditor generating `assertion_consistency_report.json`.
+- `generate_reconciled_results.py`: Results synthesizer generating non-contradictory `qa_results.json`.
 - `test_group_a_installation_ui.py`: Group A tests (A01 - A08) for installation, viewport, layout adaptation, scrolling, and restart stability.
 - `test_group_b_permissions_capture.py`: Group B tests (B01 - B08) for AccessibilityService binding, MediaProjection capture, orientation changes, and security guards.
 - `test_group_c_touch_lab.py`: Group C tests (C01 - C10) for native TouchLabView interactions, taps, swipes, dual-finger multi-touch, 3 visual taps, and lifecycle cancels.
