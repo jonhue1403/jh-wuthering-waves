@@ -132,3 +132,33 @@ The extra test checks DailyTask's documented CLI index. The root also reports a
 successful registered queue preview on Python 3.12; that read-only preview is
 separate from game/input/live acceptance and is documented in its runtime
 evidence. No new live gates or live PASS claims follow from this addendum.
+
+## Saved-image fixture and full-CI addendum
+
+The reviewer inspected the narrow saved-image fixture fix: only
+`type(backend) is DoNothingInteraction` for the installed framework bypasses
+operational ownership checks. The installed class performs no input. Subclasses,
+lookalike names and `__class__` spoofing do not qualify; switching to an
+input-capable backend restores operational guards. The persistent Story Watch
+latch is not reset by the bypass. No material finding remains in this change.
+
+On Python 3.12, the reviewer independently executed **17 adapter tests and 2
+TestMap tests**, all passing. TestMap used the actual `run_test.py` runner and
+saved-image/no-op framework harness. These tests sent no game input. The console
+emitted encoding-related logging errors under its legacy encoding, separately
+from the successful test exits; final runs use UTF-8.
+
+The reviewer read and checked the root agent's complete CI-mode local result at
+`logs/core-routes/full-ci-verification/results.json`: exact clean source
+`8bf903c8d277a3e2545d6976d0dbf99225ec1cfe`, **76 modules, 797 collected tests,
+zero failed or empty modules**. This is root-executed full-suite evidence,
+distinct from the reviewer's targeted 19-test execution and earlier selected
+45-module runs.
+
+The root reused the owner's existing Pages-on-PR workflow fix, original commit
+`221cc7fd` cherry-picked as `4786e64b`, to avoid requiring GitHub Pages setup for
+a fork's PR documentation validation. The root reports a strict local MkDocs
+build and hosted Docs run `42492457660` passed on `8bf903c8`; hosted Windows run
+`42492457688` was still running when this addendum was written. This record does
+not infer its eventual result. Documentation/CI success does not qualify actual
+game input, claims, story segments, camp combat or routes.

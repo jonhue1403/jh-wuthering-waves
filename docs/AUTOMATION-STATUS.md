@@ -71,3 +71,30 @@ After this documentation-only checkpoint, the final-head verification command is
 `.\.venv\Scripts\python.exe scripts/verify_core_routes.py --routes --output logs/core-routes/delivery-head-verification`.
 Its persisted results identify the final handoff SHA; it does not change source
 or promote any live gate. The primary checkout remains clean at b3dc536f.
+
+## Full CI-discovery checkpoint
+
+Clean implementation SHA `8bf903c8d277a3e2545d6976d0dbf99225ec1cfe` passed
+**797 tests across all 76 tests/*.py modules** on Python 3.12.14 / ok-script
+3.0.4, with zero failed or empty modules. Command:
+`.\.venv\Scripts\python.exe scripts/verify_core_routes.py --all --output logs/core-routes/full-ci-verification`.
+See [the complete module evidence](evidence/2026-11-08-full-ci-verification.json).
+The 45-module targeted counts above are earlier subsets, not additional tests.
+
+Hosted CI exposed a fixture compatibility regression in TestMap. The fix accepts
+only the framework's exact effect-free DoNothingInteraction type, including
+saved-image helpers and simulated consuming-task regressions. Real backends,
+subclasses, lookalikes and class-spoofing objects retain operational ownership
+and resource gates. Independent review found no material issue and separately
+ran 17 adapter plus 2 TestMap regressions. No game input was sent by these tests.
+
+The owner's existing commit 221cc7fd was reused as 4786e64b so PR documentation
+builds do not configure GitHub Pages. Two historical calibration report links
+now point to pinned source blobs for strict site builds. Local strict MkDocs
+build and hosted Documentation run 42492457660 pass. Pages was not enabled and
+no site was deployed. Hosted Windows checks are reported separately in the PR.
+
+The delivery-head all-module rerun is saved at
+`logs/core-routes/delivery-all-verification/results.json`; it identifies the
+final handoff SHA after this documentation-only record. Worktrees are clean,
+primary work is preserved, and no owned game-control runtime remains running.
