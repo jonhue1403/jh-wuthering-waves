@@ -229,9 +229,14 @@ def guarded_run(function):
     def run(self, *args, **kwargs):
         if not is_runtime(self):
             return function(self, *args, **kwargs)
-        from src.automation.input_guard import install_input_guard
+        from src.automation.input_guard import install_input_guard, is_effect_free_interaction
         session = get_session(self)
         install_input_guard(self, session)
+        # Saved-image tests use the library's exact effect-free backend. Their
+        # direct callbacks/run methods have no operational input or spending to
+        # own. Task-level story checks still read the same session semantics.
+        if is_effect_free_interaction(self.executor.interaction):
+            return function(self, *args, **kwargs)
         # The control task must remain usable to cancel/resume a stopped session.
         if type(self).__name__ == 'AutomationSessionTask':
             return function(self, *args, **kwargs)

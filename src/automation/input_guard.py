@@ -9,6 +9,16 @@ INPUT_METHODS = frozenset(('click', 'middle_click', 'right_click', 'send_key',
     'scroll', 'input_text', 'back', 'activate', 'on_run'))
 
 
+def is_effect_free_interaction(backend):
+    """Only the installed framework's exact no-op backend is a fixture boundary.
+
+    Exact type identity deliberately excludes lookalike names, subclasses that
+    may override delivery, and proxies advertising a different ``__class__``.
+    """
+    from ok.device.interaction_methods.do_nothing import DoNothingInteraction
+    return type(backend) is DoNothingInteraction
+
+
 def validate_observation(task, *, require_input_access=False, previous_sequence=None):
     """Validate an actual captured frame and the capture/input window binding."""
     capture = task.executor.interaction.capture
@@ -205,7 +215,8 @@ def install_input_guard(task, session):
         else:
             owner = getattr(executor, 'device_manager', executor)
         backend = getattr(owner, 'interaction', None)
-        if backend is not None and not isinstance(backend, GuardedInteraction):
+        if (backend is not None and not is_effect_free_interaction(backend)
+                and not isinstance(backend, GuardedInteraction)):
             owner.interaction = GuardedInteraction(
                 backend, session,
                 lambda: validate_observation(task, require_input_access=True),

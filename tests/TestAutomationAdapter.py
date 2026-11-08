@@ -10,10 +10,11 @@ import unittest
 from unittest.mock import Mock, patch
 
 from ok.task.TaskExecutor import TaskExecutor
+from ok.device.interaction_methods.do_nothing import DoNothingInteraction
 
 from src.automation.input_guard import (GuardedInteraction, install_input_guard,
-                                        validate_observation)
-from src.automation.session import Session, SessionStopped
+                                        is_effect_free_interaction, validate_observation)
+from src.automation.session import Session, SessionStopped, guarded_run
 
 
 class FakeFocusBackend:
@@ -123,6 +124,57 @@ class TestAutomationAdapter(unittest.TestCase):
         self.assertIs(self.executor.interaction.wrapped, self.backend)
         install_input_guard(self.task, self.session)
         self.assertEqual(len(self.session._release), 1)
+
+    def test_actual_framework_noop_remains_unwrapped_for_saved_image_callbacks(self):
+        fixture_backend = DoNothingInteraction(self.capture)
+        self.executor.device_manager.interaction = fixture_backend
+        install_input_guard(self.task, self.session)
+        self.assertIs(self.executor.interaction, fixture_backend)
+        self.assertEqual(self.session._release, [])
+        self.assertIsNone(self.session.owner)
+        # TestMap.load_stars calls inherited input directly outside task.run().
+        self.executor.interaction.click(10, 10)
+        self.executor.interaction.send_key_down('w')
+
+    def test_actual_noop_run_avoids_operational_lease_and_consumption_gate_only(self):
+        fixture_backend = DoNothingInteraction(self.capture)
+        self.executor.device_manager.interaction = fixture_backend
+        self.session.enter_story_watch()
+        self.session.pause('offline fixture has no operational lease')
+        def fixture_run(task):
+            task.executor.interaction.click(10, 10)
+            return 'fixture branch exercised'
+        FixtureTask = type('MergeEchoTask', (), {'run': guarded_run(fixture_run)})
+        task = FixtureTask()
+        task._executor = task.executor = self.executor
+        task.hwnd = self.window
+        self.assertEqual(task.run(), 'fixture branch exercised')
+        self.assertIsNone(self.session.owner)
+        self.assertTrue(self.session.story_locked)
+        self.assertFalse(self.session.allow_story_skip())
+        # Switching back to an input-capable backend restores all operative gates.
+        self.executor.device_manager.interaction = self.backend
+        with self.assertRaisesRegex(SessionStopped, 'valuable-item consumption'):
+            task.run()
+        self.assertEqual(self.backend.events, [])
+
+    def test_noop_bypass_rejects_names_subclasses_and_class_spoofing(self):
+        Lookalike = type('DoNothingInteraction', (FakeFocusBackend,), {})
+        class OverriddenNoop(DoNothingInteraction):
+            def click(self, *args, **kwargs):
+                raise AssertionError('An overridden backend is not effect-free')
+        class ClassSpoof:
+            @property
+            def __class__(self):
+                return DoNothingInteraction
+        for backend in (self.backend, Lookalike(self.capture), OverriddenNoop(self.capture), ClassSpoof()):
+            with self.subTest(backend=type(backend).__name__):
+                self.assertFalse(is_effect_free_interaction(backend))
+        self.executor.device_manager.interaction = Lookalike(self.capture)
+        install_input_guard(self.task, self.session)
+        self.assertIsInstance(self.executor.interaction, GuardedInteraction)
+        with self.assertRaisesRegex(SessionStopped, 'No activity owns'):
+            self.executor.interaction.click(1, 1)
 
     def test_wraps_current_job_override_only_on_its_executor_thread(self):
         job_backend = FakeFocusBackend(self.capture)

@@ -24,6 +24,7 @@ TestFeatureSet TestTacet TestWorld TestCharacterCodeTab'''.split()
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--routes', action='store_true')
+    parser.add_argument('--all', action='store_true', help='Reproduce CI discovery of every tests/*.py module')
     parser.add_argument('--output', default='logs/core-routes/verification')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
@@ -31,7 +32,8 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     sha = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip()
     dirty = subprocess.check_output(['git', 'status', '--porcelain'], cwd=root, text=True).strip()
-    modules = MODULES + (['TestMaterialRoute', 'TestBoundedRouteTask'] if args.routes else [])
+    modules = ([p.stem for p in sorted((root / 'tests').glob('*.py')) if p.stem != '__init__']
+               if args.all else MODULES + (['TestMaterialRoute', 'TestBoundedRouteTask'] if args.routes else []))
     results = []
     environment = dict(os.environ, PYTHONIOENCODING='utf-8', ONEDNN_MAX_CPU_ISA='AVX2')
     for module in modules:
@@ -52,7 +54,9 @@ def main():
         print(json.dumps(result), flush=True)
         (output / 'results.json').write_text(json.dumps({'sha': sha, 'dirty_at_start': bool(dirty),
             'python': sys.executable, 'results': results}, indent=2), encoding='utf-8')
-    return int(any(r['exit_code'] or not r['tests'] for r in results))
+    # CI also visits utility modules with no unittest cases. Preserve their zero
+    # count explicitly; never include them in a measured test total.
+    return int(any(r['exit_code'] or (not r['tests'] and not args.all) for r in results))
 
 
 if __name__ == '__main__':
