@@ -27,13 +27,21 @@ incorporated with their owning source changes.
 
 ## Framework and dependency contract
 
-The primary `.venv` contains ok-script 2.0.7b1. It was not upgraded. The candidate
-has its own `.venv`, created through the primary repository interpreter, with
-the exact upstream `requirements.txt` pins installed: ok-script 3.0.4,
-ok-pyside-minimal 6.12.0.post2, onnxocr-ppocrv5 0.0.23 and the remaining lockfile
-dependencies. `pip check` passes. Python is 3.13 on this machine; the upstream
-lockfile's generated-header Python 3.12 label is provenance, not a claim that
-this verification ran on 3.12.
+The primary `.venv` contains ok-script 2.0.7b1 and Python 3.13. It was not
+upgraded. The isolated candidate initially used Python 3.13 for its measured
+462-test run and read-only MCP preview. After reading the contribution guide's
+Python 3.12 support requirement, its own `.venv` was recreated on the installed
+Python 3.12.14 interpreter. The earlier candidate environment is retained as
+`.venv313`; it contains no user environment changes. The final supported-runtime
+check uses the standard candidate `.venv` with the exact upstream
+`requirements.txt` pins: ok-script 3.0.4, ok-pyside-minimal 6.12.0.post2,
+onnxocr-ppocrv5 0.0.23 and all remaining lockfile dependencies. Final-head
+per-process results identify the actual Python/runtime. These are separate
+measurements; Python 3.13 results are not presented as Python 3.12 verification.
+
+New registrations are appended after inherited task entries so the documented
+numeric CLI entry `-t 1` continues to select DailyTask. Existing user config and
+custom-character migration paths remain those supplied by upstream.
 
 Actual installed API inspection matters: TaskExecutor.interaction is read-only
 and selects device-manager or executor-thread job overrides. The guard wraps
