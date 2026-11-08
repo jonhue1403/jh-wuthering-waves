@@ -4,7 +4,14 @@ Branch: `codex/core-and-routes-20261108`.
 Worktree: `Z:\Game\jh-ww-core-routes-20261108`.
 Overall: **LIVE_VERIFICATION_PENDING**; no release or merge.
 
-Latest live continuation: privilege parity and bounded map input verified;
+Latest continuation, 9 November: Story Watch was deferred by the user after the
+quest opened a separate Tactical Hologram activity. Native preparation reached
+the academy beacon. Correcting an offline/runtime minimap crop mismatch allowed
+ten fresh live stationary samples to pass (0.04419-pixel spread); walk/combat
+qualification remains pending. Spending stays disabled and no-skip stays active.
+See [latest continuation](evidence/2026-11-09-pr4-live-continuation.md).
+
+Previous 8 November checkpoint: privilege parity and bounded map input verified;
 Story Watch guard/cancellation/persistence checks passed on the elevated runtime.
 The current camp reference and fresh calibration replay failed localization;
 no camp movement/combat or complete story segment is qualified. Spending stays

@@ -7,7 +7,14 @@ localization only. No paid API is required or enabled.
 
 ## Observed local conditions
 
-Latest continuation: the authorized elevated candidate resolved the privilege
+9 November update: Story Watch is deferred by user request; the chosen quest
+opened a separate combat activity. Native travel reached the academy beacon.
+An offline/runtime crop mismatch was corrected and ten fresh stationary live
+samples passed within the unchanged tolerance. Independent pose/world validation,
+version qualification and the bounded walk/combat loop remain pending. Spending
+stays off. See [latest evidence](evidence/2026-11-09-pr4-live-continuation.md).
+
+Previous 8 November continuation: the authorized elevated candidate resolved the privilege
 mismatch and a covered-window guard defect. Map open/return input and live
 Story Watch guard checks passed. Current single-camp localization rejected all
 ten fresh stationary samples in offline replay; walk/combat remains blocked.
