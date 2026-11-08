@@ -34,6 +34,7 @@ class Session:
         self.thread = None
         self.deadline = 0
         self.epoch = 0
+        self.read_only_depth = 0
         self._lock = threading.RLock()
         self._release = []
         self._process_lock = None
@@ -245,9 +246,19 @@ def guarded_run(function):
         if session.story_locked and type(self).__name__ in (
                 'AutoDialogTask', 'AutoPickTask', 'AutoCombatTask', 'FastTravelTask', 'AutoLoginTask'):
             return False
-        if session.story_locked and type(self).__name__ not in ('StoryWatchTask',):
+        read_only_hunt = False
+        if session.story_locked and type(self).__name__ == 'HuntMobTask':
+            from src.task.HuntMobTask import HuntMobTask
+            read_only_hunt = (type(self) is HuntMobTask and self.config.get('Localization Only') is True)
+        if session.story_locked and type(self).__name__ not in ('StoryWatchTask',) and not read_only_hunt:
             raise SessionStopped('STORY_WATCH suspends incompatible tasks; select mode explicitly')
         seconds = session.resource_profile.get('max_seconds', 600)
         with session.activity(type(self).__name__, seconds=seconds):
-            return function(self, *args, **kwargs)
+            if read_only_hunt:
+                session.read_only_depth += 1
+            try:
+                return function(self, *args, **kwargs)
+            finally:
+                if read_only_hunt:
+                    session.read_only_depth -= 1
     return run

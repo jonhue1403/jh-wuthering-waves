@@ -7,6 +7,14 @@ localization only. No paid API is required or enabled.
 
 ## Observed local conditions
 
+Latest continuation: the authorized elevated candidate resolved the privilege
+mismatch and a covered-window guard defect. Map open/return input and live
+Story Watch guard checks passed. Current single-camp localization rejected all
+ten fresh stationary samples in offline replay; walk/combat remains blocked.
+The runtime is paused in the world with no-skip active and spending profile `{}`.
+See [current live evidence](evidence/2026-11-08-pr4-live-session.md). The bullets
+below describe the earlier read-only checkpoint, not the current privilege state.
+
 - Read-only desktop inspection showed the English quest menu, “Shades of
   Battle”, “Talk to Ceshi”, 1329 m. No input was issued by that inspection.
 - The existing privilege checker, with game HWND 17045030, reported that the

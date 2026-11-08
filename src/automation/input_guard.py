@@ -24,8 +24,14 @@ def validate_observation(task, *, require_input_access=False, previous_sequence=
     capture = task.executor.interaction.capture
     window = task.hwnd
     capture_window = getattr(capture, 'hwnd_window', None)
-    if not window or not window.exists or not window.visible:
+    if not window or not window.exists:
         raise SessionStopped('Target game window unavailable')
+    # HwndWindow.visible means foreground in ok-script 3.0.4. WGC/PostMessage
+    # support covered windows; require a real, shown, non-minimized target.
+    if not window.visible:
+        import win32gui
+        if not win32gui.IsWindowVisible(window.hwnd) or win32gui.IsIconic(window.hwnd):
+            raise SessionStopped('Target game window hidden or minimized')
     if capture_window is None or capture_window.hwnd != window.hwnd:
         raise SessionStopped('Capture and input target windows differ')
     timestamp = getattr(capture, '_jh_frame_timestamp', None)
@@ -136,6 +142,8 @@ class GuardedInteraction:
                 release = name in ('send_key_up', 'mouse_up')
                 if not release:
                     self.session.check()
+                    if self.session.read_only_depth:
+                        raise SessionStopped('Read-only activity forbids game input')
                     if self.session.owner is None:
                         raise SessionStopped('No activity owns game input')
                     if foreground_backend and not self.wrapped.hwnd_window.is_foreground():

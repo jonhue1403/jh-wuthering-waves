@@ -1,0 +1,768 @@
+{
+  "sha": "8f4d505c4876ecf8f4ffdff8cca29086538b56b9",
+  "dirty_at_start": true,
+  "python": "Z:\\Game\\jh-ww-core-routes-20261108\\.venv\\Scripts\\python.exe",
+  "results": [
+    {
+      "module": "test_autopick_abyss",
+      "exit_code": 0,
+      "tests": 14,
+      "seconds": 0.906
+    },
+    {
+      "module": "test_extract_issue_log",
+      "exit_code": 0,
+      "tests": 11,
+      "seconds": 0.984
+    },
+    {
+      "module": "test_hsin",
+      "exit_code": 0,
+      "tests": 31,
+      "seconds": 1.594
+    },
+    {
+      "module": "test_install_dependencies",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.656
+    },
+    {
+      "module": "test_phrolova_switch",
+      "exit_code": 0,
+      "tests": 15,
+      "seconds": 0.703
+    },
+    {
+      "module": "test_rover",
+      "exit_code": 0,
+      "tests": 18,
+      "seconds": 0.657
+    },
+    {
+      "module": "test_suoming",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 0.718
+    },
+    {
+      "module": "test_suoming_heavy",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 0.75
+    },
+    {
+      "module": "test_tacet_elimination",
+      "exit_code": 0,
+      "tests": 21,
+      "seconds": 0.907
+    },
+    {
+      "module": "TestAbyssRestart",
+      "exit_code": 0,
+      "tests": 15,
+      "seconds": 0.718
+    },
+    {
+      "module": "TestArrowHeading",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 1.063
+    },
+    {
+      "module": "TestAutoCombatTask",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 0.797
+    },
+    {
+      "module": "TestAutomationAdapter",
+      "exit_code": 0,
+      "tests": 19,
+      "seconds": 0.89
+    },
+    {
+      "module": "TestAutomationSession",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.75
+    },
+    {
+      "module": "TestAutoPickTask",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 1.0
+    },
+    {
+      "module": "TestBaseCombatTask",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.657
+    },
+    {
+      "module": "TestBoundedRouteTask",
+      "exit_code": 0,
+      "tests": 8,
+      "seconds": 0.89
+    },
+    {
+      "module": "TestCalibrationCapture",
+      "exit_code": 0,
+      "tests": 13,
+      "seconds": 1.031
+    },
+    {
+      "module": "TestCD",
+      "exit_code": 0,
+      "tests": 1,
+      "seconds": 7.219
+    },
+    {
+      "module": "TestChar",
+      "exit_code": 0,
+      "tests": 74,
+      "seconds": 6.328
+    },
+    {
+      "module": "TestCharacterCodeTab",
+      "exit_code": 0,
+      "tests": 38,
+      "seconds": 5.5
+    },
+    {
+      "module": "TestCombatCheck",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 3.594
+    },
+    {
+      "module": "TestCon",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 2.969
+    },
+    {
+      "module": "TestConfig",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 0.672
+    },
+    {
+      "module": "TestConfirm",
+      "exit_code": 0,
+      "tests": 1,
+      "seconds": 1.609
+    },
+    {
+      "module": "TestCultivationTask",
+      "exit_code": 0,
+      "tests": 22,
+      "seconds": 1.047
+    },
+    {
+      "module": "TestCustomCharLoader",
+      "exit_code": 0,
+      "tests": 26,
+      "seconds": 1.266
+    },
+    {
+      "module": "TestDeathReentry",
+      "exit_code": 0,
+      "tests": 12,
+      "seconds": 0.765
+    },
+    {
+      "module": "TestDomainRecoveryLoop",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.625
+    },
+    {
+      "module": "TestDouling",
+      "exit_code": 0,
+      "tests": 10,
+      "seconds": 2.485
+    },
+    {
+      "module": "TestEcho",
+      "exit_code": 0,
+      "tests": 1,
+      "seconds": 7.531
+    },
+    {
+      "module": "TestEnchaneEcho",
+      "exit_code": 0,
+      "tests": 3,
+      "seconds": 2.687
+    },
+    {
+      "module": "TestEnhanceEchoStatusBox",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.657
+    },
+    {
+      "module": "TestFarmEcho",
+      "exit_code": 0,
+      "tests": 1,
+      "seconds": 1.828
+    },
+    {
+      "module": "TestFarmEchoPickup",
+      "exit_code": 0,
+      "tests": 3,
+      "seconds": 0.797
+    },
+    {
+      "module": "TestFarmEchoTaskEchoRate",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.796
+    },
+    {
+      "module": "TestFarmEchoTeleport",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 0.86
+    },
+    {
+      "module": "TestFeatureSet",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 1.234
+    },
+    {
+      "module": "TestForte",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 2.031
+    },
+    {
+      "module": "TestGameLauncher",
+      "exit_code": 0,
+      "tests": 12,
+      "seconds": 0.86
+    },
+    {
+      "module": "TestHuntController",
+      "exit_code": 0,
+      "tests": 16,
+      "seconds": 0.672
+    },
+    {
+      "module": "TestHuntDiagnostics",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.859
+    },
+    {
+      "module": "TestHuntInputAccess",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.656
+    },
+    {
+      "module": "TestHuntMobTask",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.86
+    },
+    {
+      "module": "TestHuntPlayerLocator",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.672
+    },
+    {
+      "module": "TestHuntProfileSetup",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.765
+    },
+    {
+      "module": "TestHuntValidation",
+      "exit_code": 0,
+      "tests": 15,
+      "seconds": 0.969
+    },
+    {
+      "module": "TestHybridMapMatcher",
+      "exit_code": 0,
+      "tests": 15,
+      "seconds": 2.984
+    },
+    {
+      "module": "TestKey",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 1.594
+    },
+    {
+      "module": "TestLevitator",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 1.609
+    },
+    {
+      "module": "TestMap",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 8.5
+    },
+    {
+      "module": "TestMaterialRoute",
+      "exit_code": 0,
+      "tests": 18,
+      "seconds": 0.907
+    },
+    {
+      "module": "TestMergeEchoTask",
+      "exit_code": 0,
+      "tests": 14,
+      "seconds": 1.031
+    },
+    {
+      "module": "TestMouseResetImport",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 0.672
+    },
+    {
+      "module": "TestMouseResetTask",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.656
+    },
+    {
+      "module": "TestMultiAccountConfig",
+      "exit_code": 0,
+      "tests": 35,
+      "seconds": 2.203
+    },
+    {
+      "module": "TestMultiAccountDailyTask",
+      "exit_code": 0,
+      "tests": 8,
+      "seconds": 0.828
+    },
+    {
+      "module": "TestNightmareNestTask",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.781
+    },
+    {
+      "module": "TestOCR",
+      "exit_code": 0,
+      "tests": 1,
+      "seconds": 3.672
+    },
+    {
+      "module": "TestOneTimeCombatRestart",
+      "exit_code": 0,
+      "tests": 3,
+      "seconds": 0.891
+    },
+    {
+      "module": "TestOverworldMobHunt",
+      "exit_code": 0,
+      "tests": 10,
+      "seconds": 0.797
+    },
+    {
+      "module": "TestResourceClaims",
+      "exit_code": 0,
+      "tests": 11,
+      "seconds": 0.656
+    },
+    {
+      "module": "TestResourceGoals",
+      "exit_code": 0,
+      "tests": 32,
+      "seconds": 1.64
+    },
+    {
+      "module": "TestResourceRoutineTask",
+      "exit_code": 0,
+      "tests": 10,
+      "seconds": 0.891
+    },
+    {
+      "module": "TestRocciaCombat",
+      "exit_code": 0,
+      "tests": 10,
+      "seconds": 1.922
+    },
+    {
+      "module": "TestRouteFollower",
+      "exit_code": 0,
+      "tests": 14,
+      "seconds": 0.656
+    },
+    {
+      "module": "TestRuntimeQualification",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.906
+    },
+    {
+      "module": "TestScheduleSupport",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.688
+    },
+    {
+      "module": "TestSkipDialogConfirm",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.703
+    },
+    {
+      "module": "TestSkipDialogWideMode",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 3.141
+    },
+    {
+      "module": "TestStoryWatch",
+      "exit_code": 0,
+      "tests": 18,
+      "seconds": 0.797
+    },
+    {
+      "module": "TestSubpixelMapMatcher",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 1.671
+    },
+    {
+      "module": "TestTacet",
+      "exit_code": 0,
+      "tests": 1,
+      "seconds": 1.563
+    },
+    {
+      "module": "TestTeamEvaluation",
+      "exit_code": 0,
+      "tests": 14,
+      "seconds": 0.719
+    },
+    {
+      "module": "TestWaitLogin",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.64
+    },
+    {
+      "module": "TestWorld",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 1.61
+    }
+  ],
+  "description": "Working-tree verification of accompanying PR4 live-input changes on base SHA; not an exact-clean-commit run.",
+  "localization_replay": {
+    "offline_clean": false,
+    "registration": {
+      "scale": 0.808546763032737,
+      "offset": [
+        -532.1143744825881,
+        3.1086849290154532
+      ],
+      "limit_pixels": 2,
+      "unique_pairs": 139,
+      "training_inliers": 13,
+      "held_out_total": 47,
+      "held_out_support": 6,
+      "held_out_supported_max_error": 0.24263839020033107,
+      "rotation_degrees": 0.013638076952647116
+    },
+    "minimap_geometry": {
+      "scale": 1.4303441606391916,
+      "offset": [
+        1093.7016556656813,
+        542.2633355631519
+      ],
+      "limit_pixels": 3,
+      "unique_pairs": 14,
+      "training_inliers": 8,
+      "held_out_total": 5,
+      "held_out_support": 4,
+      "held_out_supported_max_error": 0.3729933783591561,
+      "rotation_degrees": -0.36370582777990146
+    },
+    "world_origin": [
+      -65348.688425784385,
+      -527151.6565753664
+    ],
+    "units_per_pixel": 88.62852653500427,
+    "inputs_sha256": {
+      "assets\\overworld\\calibration\\surface-test-01\\full_map_position.png": "888a6b31129ed10f36f73d0899f2c30c7b89eae7a71292c5d3d0380c921377c3",
+      "logs\\live-pr4\\calibration-current\\full_map_position.png": "b382a8cb8eaef5f03eac95aa547bd7f019a4ed8dc402e92eda8d2af744b289ca",
+      "logs\\live-pr4\\calibration-current\\stationary_001.png": "b7812109c0dd0bf70d85b638a9feb5173d895bcfbc49a577a664bd5d825e0edf",
+      "logs\\live-pr4\\calibration-current\\stationary_002.png": "a8c33e8368be7884e38c875b918f026bba3b6513f2fad75bdd6ff5e6d825f693",
+      "logs\\live-pr4\\calibration-current\\stationary_003.png": "2b9b575abae42709a3b57905c34444b880d9fb7d765ebba66e33541b0f0a0eea",
+      "logs\\live-pr4\\calibration-current\\stationary_004.png": "157a97f3828bb1adb8426971df5c205cc36a89847cb588df4b71e3036b7ef90f",
+      "logs\\live-pr4\\calibration-current\\stationary_005.png": "4e1a1b93d574e883ebbf5276ebfc054d909ea1daa2bea9bafe1fc81499f252a9",
+      "logs\\live-pr4\\calibration-current\\stationary_006.png": "34a20fa90c9bcd9aa28e8a7a5cfaf2d3c39ad3cf16409db96acc683bef0bf4ac",
+      "logs\\live-pr4\\calibration-current\\stationary_007.png": "a0bce991be3ab865102273f171cb99c8fc9ea862b980a7c06a6d4490c2a1c938",
+      "logs\\live-pr4\\calibration-current\\stationary_008.png": "f3032f4f81dc0c2c764df44d38e20c9b0710207fe37c71ed526503aa87d6d333",
+      "logs\\live-pr4\\calibration-current\\stationary_009.png": "6afc26e3479a498bef895d140611b9d1255e61bbbb64185ef72ee0a4818bb7b1",
+      "logs\\live-pr4\\calibration-current\\stationary_010.png": "fc144c2bb8c9e83f0accea929a90ad5303cfef595d669e2e0ff7e6b799353146"
+    },
+    "policy": {
+      "reference_pixel_sha256": "ce9dc0d9de5196eebd3ae6ffc26837962db2ed2807c6c897407ee87a53d1c719",
+      "mask_pixel_sha256": "e7af348597509b3a661c24e04865c0c65ec194ce3b256c97727e8b9cc17297ee",
+      "minimap_size": [
+        248,
+        247
+      ],
+      "state_id": 906,
+      "floor_id": "",
+      "score_threshold": 0.7,
+      "distinct_radius": 8,
+      "min_margin": 0.3634031228721142,
+      "min_inliers": 11,
+      "min_coverage": 0.1,
+      "max_geometry_error": 1.481737015915146,
+      "sampling_mode": "sift_phase",
+      "gradient_mode": "bounded64",
+      "feature_mode": "dense"
+    },
+    "rows": [
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_001.png",
+        "kind": "positive",
+        "pixel_xy": [
+          889.34375,
+          502.15625
+        ],
+        "confidence": 0.14467012882232666,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage,signals_disagree",
+        "second_best_score": 0.08908754587173462,
+        "margin": 0.05558258295059204,
+        "feature_pixel_xy": [
+          894.332836151123,
+          499.1508026123047
+        ],
+        "feature_matches": 61,
+        "feature_inliers": 18,
+        "geometry_error": 1.3857937552326736,
+        "agreement_error": 6.046244054681771,
+        "feature_coverage": 0.009706377778310736
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_002.png",
+        "kind": "positive",
+        "pixel_xy": [
+          888.71875,
+          502.625
+        ],
+        "confidence": 0.1534394919872284,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage",
+        "second_best_score": 0.09615586698055267,
+        "margin": 0.05728362500667572,
+        "feature_pixel_xy": [
+          888.7280044555664,
+          502.6121940612793
+        ],
+        "feature_matches": 59,
+        "feature_inliers": 16,
+        "geometry_error": 0.5346152933537177,
+        "agreement_error": 0.6698978615112654,
+        "feature_coverage": 0.01571094182147407
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_003.png",
+        "kind": "positive",
+        "pixel_xy": [
+          889.28125,
+          502.15625
+        ],
+        "confidence": 0.142368882894516,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage,signals_disagree",
+        "second_best_score": 0.08696518838405609,
+        "margin": 0.0554036945104599,
+        "feature_pixel_xy": [
+          894.2667465209961,
+          499.1681213378906
+        ],
+        "feature_matches": 60,
+        "feature_inliers": 15,
+        "geometry_error": 1.4028091430664062,
+        "agreement_error": 5.97981234432443,
+        "feature_coverage": 0.008099018487952107
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_004.png",
+        "kind": "positive",
+        "pixel_xy": [
+          889.40625,
+          502.25
+        ],
+        "confidence": 0.14917755126953125,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage,feature_geometry,signals_disagree",
+        "second_best_score": 0.0891048014163971,
+        "margin": 0.060072749853134155,
+        "feature_pixel_xy": [
+          894.4067916870117,
+          499.25211334228516
+        ],
+        "feature_matches": 61,
+        "feature_inliers": 18,
+        "geometry_error": 1.641268163465111,
+        "agreement_error": 6.065004322371608,
+        "feature_coverage": 0.01094860861959526
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_005.png",
+        "kind": "positive",
+        "pixel_xy": [
+          888.75,
+          502.59375
+        ],
+        "confidence": 0.15498508512973785,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage",
+        "second_best_score": 0.09434808790683746,
+        "margin": 0.06063699722290039,
+        "feature_pixel_xy": [
+          888.7371139526367,
+          502.59109115600586
+        ],
+        "feature_matches": 59,
+        "feature_inliers": 18,
+        "geometry_error": 1.2631161920988876,
+        "agreement_error": 0.6469140813173203,
+        "feature_coverage": 0.021896754525020486
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_006.png",
+        "kind": "positive",
+        "pixel_xy": [
+          889.3125,
+          502.15625
+        ],
+        "confidence": 0.13547895848751068,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage,signals_disagree",
+        "second_best_score": 0.09011723846197128,
+        "margin": 0.0453617200255394,
+        "feature_pixel_xy": [
+          894.3223304748535,
+          499.1712341308594
+        ],
+        "feature_matches": 49,
+        "feature_inliers": 16,
+        "geometry_error": 1.4452361829012894,
+        "agreement_error": 6.027364102654606,
+        "feature_coverage": 0.008225730024627318
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_007.png",
+        "kind": "positive",
+        "pixel_xy": [
+          889.3125,
+          502.09375
+        ],
+        "confidence": 0.15084968507289886,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage,signals_disagree",
+        "second_best_score": 0.08857519179582596,
+        "margin": 0.062274493277072906,
+        "feature_pixel_xy": [
+          894.3191070556641,
+          499.1003723144531
+        ],
+        "feature_matches": 56,
+        "feature_inliers": 17,
+        "geometry_error": 1.4269578305456188,
+        "agreement_error": 6.058113616003347,
+        "feature_coverage": 0.008202144019995881
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_008.png",
+        "kind": "positive",
+        "pixel_xy": [
+          888.75,
+          502.625
+        ],
+        "confidence": 0.15483838319778442,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage",
+        "second_best_score": 0.09485738724470139,
+        "margin": 0.05998099595308304,
+        "feature_pixel_xy": [
+          888.7355651855469,
+          502.6217041015625
+        ],
+        "feature_matches": 54,
+        "feature_inliers": 15,
+        "geometry_error": 0.39029202485277026,
+        "agreement_error": 0.6756047372498908,
+        "feature_coverage": 0.015711310581391576
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_009.png",
+        "kind": "positive",
+        "pixel_xy": [
+          889.21875,
+          502.21875
+        ],
+        "confidence": 0.1392553299665451,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage,feature_geometry,signals_disagree",
+        "second_best_score": 0.09634053707122803,
+        "margin": 0.04291479289531708,
+        "feature_pixel_xy": [
+          894.2040023803711,
+          499.2279357910156
+        ],
+        "feature_matches": 46,
+        "feature_inliers": 15,
+        "geometry_error": 1.5301589965820312,
+        "agreement_error": 5.896268375306553,
+        "feature_coverage": 0.008138361986075779
+      },
+      {
+        "name": "logs\\live-pr4\\calibration-current\\stationary_010.png",
+        "kind": "positive",
+        "pixel_xy": [
+          888.75,
+          502.625
+        ],
+        "confidence": 0.15259461104869843,
+        "source": "gradient_sift_phase",
+        "accepted": false,
+        "reason": "gradient_score,ambiguous_peak,feature_coverage",
+        "second_best_score": 0.09435586631298065,
+        "margin": 0.05823874473571777,
+        "feature_pixel_xy": [
+          888.7413558959961,
+          502.6269302368164
+        ],
+        "feature_matches": 62,
+        "feature_inliers": 16,
+        "geometry_error": 1.0203561542952284,
+        "agreement_error": 0.6781875067934079,
+        "feature_coverage": 0.01565987715828033
+      }
+    ],
+    "limitations": "Correlated frames per pose; no completed live walk, layer detector, or combat verification.",
+    "negative_count": 90,
+    "negative_accepted": 0
+  }
+}

@@ -100,8 +100,13 @@ class StoryWatchTask(BaseCombatTask):
         frame_id = getattr(capture, '_jh_frame_sequence', timestamp)
         window = self.hwnd
         capture_window = getattr(capture, 'hwnd_window', None)
-        correct_window = bool(window and window.exists and window.visible and capture_window
-                              and capture_window.hwnd == window.hwnd)
+        from src.automation.input_guard import validate_observation
+        from src.automation.session import SessionStopped
+        try:
+            validate_observation(self)
+            correct_window = True
+        except SessionStopped:
+            correct_window = False
         return StoryObservation(screen, self._story_objective, self.config.get("Observed Game Version", ""),
                                 timestamp if timestamp is not None else float('-inf'),
                                 str(frame_id) if frame_id is not None else '', correct_window, marker)

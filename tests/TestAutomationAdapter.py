@@ -81,6 +81,43 @@ class FakeCondition:
 
 
 class TestAutomationAdapter(unittest.TestCase):
+    def test_story_lock_allows_read_only_hunt_but_refuses_hunt_movement(self):
+        from src.task.HuntMobTask import HuntMobTask
+
+        self.session.enter_story_watch()
+        def observe(task):
+            self.assertTrue(self.session.story_locked)
+            self.assertFalse(self.session.allow_story_skip())
+            task.config['Localization Only'] = False
+            with self.assertRaisesRegex(SessionStopped, 'Read-only activity'):
+                task.executor.interaction.send_key_down('w')
+            return 'localization only'
+        task = HuntMobTask.__new__(HuntMobTask)
+        task._executor = self.executor
+        task.config = {'Localization Only': True}
+        with patch.object(HuntMobTask, 'run', guarded_run(observe)):
+            self.assertEqual('localization only', task.run())
+            self.assertEqual(0, self.session.read_only_depth)
+            with self.assertRaises(SessionStopped):
+                task.run()
+
+        FakeHunt = type('HuntMobTask', (), {'run': guarded_run(observe)})
+        fake = FakeHunt()
+        fake._executor = fake.executor = self.executor
+        fake.config = {'Localization Only': True}
+        with self.assertRaises(SessionStopped):
+            fake.run()
+        self.assertEqual([], self.backend.events)
+
+    def test_covered_window_can_be_observed_but_minimized_or_hidden_cannot(self):
+        self.window.visible = False
+        with patch('win32gui.IsWindowVisible', return_value=True), patch('win32gui.IsIconic', return_value=False):
+            self.assertEqual(1, validate_observation(self.task))
+        for shown, minimized in ((False, False), (True, True)):
+            with patch('win32gui.IsWindowVisible', return_value=shown), patch('win32gui.IsIconic', return_value=minimized):
+                with self.assertRaises(SessionStopped):
+                    validate_observation(self.task)
+
     def setUp(self):
         self.session = Session()
         self.window = SimpleNamespace(hwnd=2718, exists=True, visible=True)

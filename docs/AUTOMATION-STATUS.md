@@ -4,6 +4,15 @@ Branch: `codex/core-and-routes-20261108`.
 Worktree: `Z:\Game\jh-ww-core-routes-20261108`.
 Overall: **LIVE_VERIFICATION_PENDING**; no release or merge.
 
+Latest live continuation: privilege parity and bounded map input verified;
+Story Watch guard/cancellation/persistence checks passed on the elevated runtime.
+The current camp reference and fresh calibration replay failed localization;
+no camp movement/combat or complete story segment is qualified. Spending stays
+disabled and the runtime is paused with no-skip active. Accompanying changes
+passed 799 tests across 76 modules and independent Terra source review. See
+[live session evidence](evidence/2026-11-08-pr4-live-session.md); checkpoints below
+retain their original source/test/runtime scope.
+
 Offline implementation covers A–C, single-camp runtime gates and the separate
 bounded route extension. Reachable registered tasks provide session controls,
 goal/routine preview, Chinese Guidebook cultivation, Story Watch, one-camp hunt
