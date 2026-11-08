@@ -20,7 +20,8 @@ from src.task.task_icons import task_icon
 
 class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
     EXECUTORS = {**{cls: (module, cls) for module, cls in INHERITED_ACTIVITIES.values()},
-                 'CultivationTask': ('src.task.CultivationTask', 'CultivationTask')}
+                 'CultivationTask': ('src.task.CultivationTask', 'CultivationTask'),
+                 'BoundedRouteTask': ('src.task.BoundedRouteTask', 'BoundedRouteTask')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -85,6 +86,14 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         overrides = dict(overrides)
         if name == 'CultivationTask' and queued_goals:
             overrides['Preview Only'] = False
+        if name == 'BoundedRouteTask' and queued_goals:
+            if len(queued_goals) != 1:
+                raise ResourcePolicyError('A bounded material route supports one explicit material target')
+            overrides['User Material Target'] = queued_goals[0].required
+            from src.overworld.material_route import MaterialRoute
+            route = MaterialRoute.load(overrides.get('Route Manifest', task.config.get('Route Manifest', '')))
+            if queued_goals[0].name not in (route.material_id, route.inventory_reader['item_text']):
+                raise ResourcePolicyError('Reviewed route material does not match the queued material')
         if any(k not in task.default_config for k in overrides):
             raise ResourcePolicyError('Unknown inherited task configuration key')
         additional = overrides.get('Additional Tasks to Run After Daily Task',

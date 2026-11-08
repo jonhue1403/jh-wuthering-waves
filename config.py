@@ -286,6 +286,7 @@ config = {
         ["src.task.ChangeEchoTask", "ChangeEchoTask"],
         ["src.task.GardenTask", "GardenTask"],
         ["src.task.HuntMobTask", "HuntMobTask"],
+        ["src.task.BoundedRouteTask", "BoundedRouteTask"],
         ["src.task.TacetEliminationTask", "TacetEliminationTask"],
         # ["src.task.DiagnosisTask", "DiagnosisTask"],
     ], 'trigger_tasks': [
