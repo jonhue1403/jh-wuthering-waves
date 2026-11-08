@@ -5,7 +5,7 @@ from typing import List
 
 import cv2
 import numpy as np
-from ok import Box, get_bounding_box
+from ok import Box, get_bounding_box, Logger
 from src.task.BaseCombatTask import BaseCombatTask
 from src.task.BaseWWTask import calculate_angle_clockwise
 from src.task.WWOneTimeTask import WWOneTimeTask

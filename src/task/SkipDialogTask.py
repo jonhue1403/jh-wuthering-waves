@@ -1,6 +1,7 @@
 from ok import TriggerTask, Logger
 from src.task.SkipBaseTask import SkipBaseTask
 from src.task.task_icons import task_icon
+from src.automation.session import get_session
 
 logger = Logger.get_logger(__name__)
 
@@ -9,13 +10,15 @@ class AutoDialogTask(TriggerTask, SkipBaseTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.default_config = {'_enabled': True}
+        self.default_config = {'_enabled': False}
         self.skip = None
         self.trigger_interval = 0.5
         self.name = "⏭️ Skip Dialog during Quests"
         self.icon = task_icon('skip-dialog')
 
     def run(self):
+        if not get_session(self).allow_story_skip():
+            return False
         if self.scene.in_team(self.in_team_and_world):
             return
         if self.check_skip():
@@ -24,6 +27,8 @@ class AutoDialogTask(TriggerTask, SkipBaseTask):
             return
 
     def skip_message(self):
+        if not get_session(self).allow_story_skip():
+            return False
         if self.find_one('message', horizontal_variance=0.15):
             if message_dialog := self.find_one('message_dialog', vertical_variance=0.4, horizontal_variance=0.2):
                 click = message_dialog.copy(y_offset=2.5 * message_dialog.height)

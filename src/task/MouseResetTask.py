@@ -29,7 +29,9 @@ class MouseResetTask(TriggerTask):
 
     def post_mouse_reset(self, delay):
         if self.enabled:
-            self.handler.post(self.mouse_reset, delay, remove_existing=True)
+            from src.automation.session import get_session, is_runtime
+            action = get_session(self).queued_action(self.mouse_reset) if is_runtime(self) else self.mouse_reset
+            self.handler.post(action, delay, remove_existing=True)
 
     def mouse_reset(self):
         if not self.enabled or self.is_browser():
@@ -50,6 +52,8 @@ class MouseResetTask(TriggerTask):
                     + (current_position[1] - self.mouse_pos[1]) ** 2
                 )
                 if distance > 200 and close_to_center:
+                    from src.automation.input_guard import input_checkpoint
+                    input_checkpoint(self)
                     logger.info(f'move mouse back {self.mouse_pos}')
                     win32api.SetCursorPos(self.mouse_pos)
                     self.mouse_pos = self.mouse_pos

@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import Mock, call
 
 from src.task.BaseWWTask import BaseWWTask
+from src.automation.session import get_session
 
 
 class TestSkipDialogConfirm(unittest.TestCase):
@@ -11,6 +12,8 @@ class TestSkipDialogConfirm(unittest.TestCase):
         self.task.find_one = Mock()
         self.task.click = Mock()
         self.task.sleep = Mock()
+        # These regressions exercise an explicitly opted-in compatible mode.
+        get_session(self.task).select_mode('NORMAL', safe_state=True)
 
     def test_clicks_checkbox_then_confirm(self):
         confirm = object()

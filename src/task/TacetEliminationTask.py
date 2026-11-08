@@ -181,12 +181,16 @@ class TacetEliminationTask(WWOneTimeTask, BaseWWTask):
 
         # The event's drag control reads the real cursor during a drag.
         # Normal event buttons continue to use the configured interaction.
+        from src.automation.input_guard import input_checkpoint
+        input_checkpoint(self)
         interaction = self.executor.interaction
         if hasattr(interaction, 'hwnd_window'):
             interaction.hwnd_window.bring_to_front()
             if not self.wait_until(interaction.hwnd_window.is_foreground, time_out=2):
                 raise RuntimeError(self.tr('Cannot focus the game window; board dragging stopped'))
-            drag = PynputInteraction(interaction.capture, interaction.hwnd_window)
+            from src.automation.input_guard import guard_backend, input_checkpoint
+            input_checkpoint(self)
+            drag = guard_backend(self, PynputInteraction(interaction.capture, interaction.hwnd_window))
             if not smooth:
                 drag.swipe(int(first[0] * self.width), int(first[1] * self.height),
                            int(last[0] * self.width), int(last[1] * self.height), 600)
@@ -340,12 +344,16 @@ class TacetEliminationTask(WWOneTimeTask, BaseWWTask):
     def foreground_click(self, box):
         from ok.device.interaction_methods.pynput import PynputInteraction
 
+        from src.automation.input_guard import input_checkpoint
+        input_checkpoint(self)
         interaction = self.executor.interaction
         window = interaction.hwnd_window
         window.bring_to_front()
         if not self.wait_until(window.is_foreground, time_out=2):
             raise RuntimeError(self.tr('Cannot focus the game window; clicking stopped'))
-        click = PynputInteraction(interaction.capture, window)
+        from src.automation.input_guard import guard_backend, input_checkpoint
+        input_checkpoint(self)
+        click = guard_backend(self, PynputInteraction(interaction.capture, window))
         click.click(int(box.x + box.width / 2), int(box.y + box.height / 2), down_time=.1)
         self.reset_scene()
 
@@ -357,12 +365,15 @@ class TacetEliminationTask(WWOneTimeTask, BaseWWTask):
             return
         from ok.device.interaction_methods.pynput import PynputInteraction
 
+        from src.automation.input_guard import input_checkpoint
+        input_checkpoint(self)
         interaction = self.executor.interaction
         window = interaction.hwnd_window
         window.bring_to_front()
         if not self.wait_until(window.is_foreground, time_out=2):
             raise RuntimeError(self.tr('Cannot focus the game window to return to the stage list'))
-        PynputInteraction(interaction.capture, window).send_key('esc', down_time=.1)
+        from src.automation.input_guard import guard_backend
+        guard_backend(self, PynputInteraction(interaction.capture, window)).send_key('esc', down_time=.1)
         self.reset_scene()
         if not self.wait_until(lambda: not on_details(), time_out=5):
             raise RuntimeError(self.tr('Failed to return to the stage list'))

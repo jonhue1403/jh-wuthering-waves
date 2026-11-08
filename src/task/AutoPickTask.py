@@ -5,6 +5,7 @@ from ok import TriggerTask
 from src.task.AutoCombatTask import AutoCombatTask
 from src.task.BaseWWTask import BaseWWTask, f_white_color
 from src.task.task_icons import task_icon
+from src.automation.session import get_session
 
 logger = Logger.get_logger(__name__)
 
@@ -23,6 +24,8 @@ class AutoPickTask(TriggerTask, BaseWWTask):
         })
 
     def send_fs(self):
+        if get_session(self).story_locked:
+            return False
         self.scene.reset_abyss_start()
         # if self.debug:
         #     self.screenshot('pick_up', show_box=True)
@@ -34,6 +37,8 @@ class AutoPickTask(TriggerTask, BaseWWTask):
         self.sleep(0.2)
 
     def run(self):
+        if get_session(self).story_locked:
+            return False
         if not self.scene.in_team(self.in_team_and_world):
             self.scene.reset_abyss_start()
             return

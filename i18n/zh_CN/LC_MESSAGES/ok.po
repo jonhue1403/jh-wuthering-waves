@@ -2238,3 +2238,291 @@ msgstr "仅定位"
 
 msgid "Test Walk Only"
 msgstr "仅测试步行"
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Automation Session Controls"
+msgstr "自动化会话控制"
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Preview budgets, pause, cancel, take over, or explicitly choose a compatible"
+" mode."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Operation"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Preview"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Max Waveplates"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Max Claims"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Max Seconds"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Minimum Waveplates"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Identity Profile"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Journal Path"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "configs/automation-actions.json"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"NORMAL explicitly permits skipping only on a fresh safe world screen. "
+"STORY_WATCH stays locked after stopping."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Reviewed current-game account/server/reset OCR profile; no PC-date "
+"scheduling key."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Explicit shared spend cap. Zero blocks spending; reserve/refills/premium are"
+" forbidden."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Resource Goal and Routine Queue"
+msgstr "材料目标与日常队列"
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Preview labelled goals and bounded daily/weekly plans; execute only "
+"qualified source profiles."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Plan Path"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Preview Only"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Maximum Activities"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Reconcile Pending Only"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Explicit JSON goals, source mappings, observed identity profiles and shared "
+"budgets."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Default true: show unresolved mappings and resource limits without game "
+"input."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "1..3 dispatches through existing registered tasks per invocation."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Read fresh matching identity, inventory and current balance; never issue a "
+"claim."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Cultivation Resource Farm"
+msgstr "培养材料刷取"
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Farm Resonator Ascension Materials for the selected Guidebook cultivation "
+"target. Simplified Chinese, 16:9. Uses current Waveplates only."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Collect Optional Echo"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Read verified Guidebook goals/inventory without entering or spending. "
+"只预览，不消耗。"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Calibrated OCR profile for fresh account/server/cycle identity; live "
+"qualification required."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Explicit current-Waveplate allowance shared across this observed reset "
+"cycle. 0 blocks spending."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Explicit maximum claims; 0 blocks spending."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Maximum execution seconds, including combat and recognition."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Required current balance after each claim; reserve/refills are forbidden."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Story Watch"
+msgstr "剧情观看"
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Watch dialogue without skipping; pause at unknown objectives or choices. "
+"剧情观看，不跳过对话。"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Story Profile"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Observed Game Version"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Allow Reviewed Neutral Choice"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Recording Required"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Reviewed segment JSON with real screenshot hashes. 已审核剧情片段。"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Version read from the running game during qualification; never infer from "
+"the PC date."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Only the exact neutral choice recorded in a reviewed profile may be "
+"selected."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Require an existing recorder's verified status, output and enforced limits; "
+"never starts/stops recording."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Material Route (Reviewed Surface)"
+msgstr "材料路线（已审核地表）"
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Preview a reviewed route, then qualify localization before bounded "
+"execution."
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "Route Manifest"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "User Material Target"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Reviewed route with observed segments and material/inventory evidence. "
+"已审核路线。"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid ""
+"Explicit user target inventory, not an assumed native goal. 用户明确填写的库存目标。"
+msgstr ""
+
+# JH task names translated; configuration/help intentionally use
+# English/bilingual source fallback pending locale review.
+msgid "No capture, movement, combat or spending. 仅预览，无输入。"
+msgstr ""

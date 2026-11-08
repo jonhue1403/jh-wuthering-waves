@@ -9,6 +9,7 @@ import numpy as np
 from config import config
 from ok.test.TaskTestCase import TaskTestCase
 from src.task.SkipDialogTask import AutoDialogTask
+from src.automation.session import Session
 
 config['debug'] = True
 
@@ -16,6 +17,14 @@ config['debug'] = True
 class TestSkipDialogWideMode(TaskTestCase):
     task_class = AutoDialogTask
     config = config
+
+    def setUp(self):
+        super().setUp()
+        # Isolate policy from persisted user settings; screenshot regressions
+        # simulate explicit NORMAL-mode opt-in, rather than silently enabling it.
+        session = Session()
+        self.task.executor._jh_session = session
+        session.select_mode('NORMAL', safe_state=True)
 
     def test_finds_skip_dialog_icons_with_frame_processor(self):
         cases = (

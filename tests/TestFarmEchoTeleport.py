@@ -49,15 +49,15 @@ class TestFarmEchoTeleport(unittest.TestCase):
     def test_weekly_challenge_confirms_low_waveplate_popup_before_team_screen(self):
         task = make_task({'Teleport to Boss': 'Weekly Challenge', 'Which Weekly Boss to Teleport': 2},
                          is_team=True)
-        task.wait_click_skip_dialog_confirm = Mock()
+        task.wait_confirm_challenge_action = Mock()
         steps = Mock()
-        for name in ('click_configured_boss_level', 'click', 'wait_click_skip_dialog_confirm', 'click_team_challenge'):
+        for name in ('click_configured_boss_level', 'click', 'wait_confirm_challenge_action', 'click_team_challenge'):
             steps.attach_mock(getattr(task, name), name)
 
         self.assertTrue(task.teleport_to_configured_boss())
 
         self.assertEqual([call.click_configured_boss_level(), call.click(0.880, 0.911, after_sleep=2),
-                          call.wait_click_skip_dialog_confirm(time_out=1), call.click_team_challenge()],
+                          call.wait_confirm_challenge_action('start', time_out=1), call.click_team_challenge()],
                          steps.mock_calls)
 
     def test_reentry_from_f_confirms_low_waveplate_popup_before_starting(self):
@@ -65,14 +65,14 @@ class TestFarmEchoTeleport(unittest.TestCase):
         task.wait_until = Mock(return_value=True)
         task.send_key = Mock()
         task.init_parameters = Mock()
-        task.wait_click_skip_dialog_confirm = Mock()
+        task.wait_confirm_challenge_action = Mock()
         steps = Mock()
-        for name in ('click', 'wait_click_skip_dialog_confirm', 'wait_in_team_and_world'):
+        for name in ('click', 'wait_confirm_challenge_action', 'wait_in_team_and_world'):
             steps.attach_mock(getattr(task, name), name)
 
         task.enter_configured_boss_realm_from_f()
 
-        self.assertEqual([call.click(0.880, 0.911, after_sleep=2), call.wait_click_skip_dialog_confirm(time_out=1),
+        self.assertEqual([call.click(0.880, 0.911, after_sleep=2), call.wait_confirm_challenge_action('start', time_out=1),
                           call.click(0.908, 0.919, after_sleep=5), call.wait_in_team_and_world(time_out=120)],
                          steps.mock_calls)
 

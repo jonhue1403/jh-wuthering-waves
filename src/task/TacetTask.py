@@ -102,7 +102,8 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
                     return None
                 else:
                     self.click_relative(0.640, 0.851, hcenter=True, after_sleep=0.2)
-                    self.wait_click_skip_dialog_confirm()
+                    if not self.wait_confirm_challenge_action('restart'):
+                        raise RuntimeError('Unrecognized challenge restart confirmation')
                 must_use -= used
 
     def not_enough_stamina(self, back=True):

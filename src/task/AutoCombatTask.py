@@ -5,6 +5,7 @@ from src.char.CharFactory import char_names
 from src.scene.WWScene import WWScene
 from src.task.BaseCombatTask import BaseCombatTask, NotInCombatException, CharDeadException
 from src.task.task_icons import task_icon
+from src.automation.session import get_session
 
 logger = Logger.get_logger(__name__)
 
@@ -60,6 +61,8 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
         logger.info(f'warm_up_char_features loaded {len(char_names)} character templates')
 
     def run(self):
+        if get_session(self).story_locked:
+            return False
         if self._reset_combat_on_run:
             self.reset_auto_combat('auto combat restarted')
         try:
@@ -69,6 +72,8 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
             raise
 
     def run_auto_combat(self):
+        if get_session(self).story_locked:
+            return False
         self.warm_up_char_features()
         ret = False
         if not self.scene.in_team(self.in_team_and_world):

@@ -7,6 +7,8 @@ from src.Labels import Labels
 from src.task.BaseWWTask import BaseWWTask
 from src.task.WWOneTimeTask import WWOneTimeTask
 from src.task.task_icons import task_icon
+from src.automation.weekly import WeeklyActivityAdapter
+from src.automation.resource_policy import UncertainReceipt
 
 logger = Logger.get_logger(__name__)
 
@@ -21,6 +23,9 @@ class GardenTask(WWOneTimeTask, BaseWWTask):
         self.group_name = 'Daily Activities'
         self.group_icon = task_icon('category-daily')
         self.description = "Detect and click garden actions until the task is stopped."
+        self.default_config.update({'Weekly Activity Profile': ''})
+        self.config_description.update({'Weekly Activity Profile':
+            'Current Fantasies Weekly Activity calibration. Empty pauses; historical Remnant Crystal claim flow is disabled.'})
         self.garden_features = [
             label.value for label in Labels
             if label.value.startswith("garden_")
@@ -37,7 +42,8 @@ class GardenTask(WWOneTimeTask, BaseWWTask):
         if self.is_weekly_garden_completed():
             self.log_info(self.tr('Garden task completed; limit reached'), notify=True)
             return
-        self.click(0.246, 0.486, after_sleep=1)
+        if not self._weekly_activity.enter_garden():
+            return
         while True:
             self.sleep(0.1)
             target = self.find_best_garden_feature()
@@ -77,26 +83,23 @@ class GardenTask(WWOneTimeTask, BaseWWTask):
                         self.click(garden_back, after_sleep=1)
                         if self.wait_feature('garden_start_game', settle_time=1, time_out=5):
                             self.back(after_sleep=1)
-                        if self.wait_book('gray_book_quest', time_out=30):
-                            self.click(0.927, 0.893, after_sleep=2)
-                            self.click(0.927, 0.893, after_sleep=1)
+                        self.open_garden_weekly_page()
+                        if not self.is_weekly_garden_completed():
+                            raise UncertainReceipt('Garden returned without verified Weekly Activity completion')
                         break
                     else:
                         self.click(garden_restart, after_sleep=1)
                 self.sleep(0.2)
-        self.log_info(self.tr('Garden task completed; limit reached'), notify=True)
+        self.log_info('Weekly Activity progress verified; reward claim requires a separately qualified receipt screen', notify=True)
 
     def open_garden_weekly_page(self):
-        self.openF2Book('gray_book_quest')
-        self.sleep(1)
-        self.click(0.343, 0.129, after_sleep=1)
-        self.click(0.927, 0.893, after_sleep=3)
-        self.click(0.927, 0.893, after_sleep=2)
+        self._weekly_activity = WeeklyActivityAdapter(self, self.config.get('Weekly Activity Profile', ''))
+        self._weekly_activity.open()
 
     def is_weekly_garden_completed(self):
-        current = self.ocr(0.102, 0.793, 0.284, 0.956, match=self.GARDEN_TARGET_POINTS)
-        self.log_info(self.tr('Garden current: {current}').format(current=current))
-        return bool(current)
+        current, target = self._weekly_activity.observe_progress()
+        self.info_set('Weekly Activity progress', f'{current}/{target}')
+        return current >= target
 
     def is_garden_done(self, texts):
         text = " ".join(str(getattr(box, "name", box)) for box in texts)

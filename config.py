@@ -269,6 +269,10 @@ config = {
     'launcher_error_log_file': 'logs/launcher_error.log',
     'version': version,
     'onetime_tasks': [  # tasks to execute
+        ["src.task.AutomationSessionTask", "AutomationSessionTask"],
+        ["src.task.ResourceRoutineTask", "ResourceRoutineTask"],
+        ["src.task.CultivationTask", "CultivationTask"],
+        ["src.task.StoryWatchTask", "StoryWatchTask"],
         ["src.task.DailyTask", "DailyTask"],
         ["src.task.FarmEchoTask", "FarmEchoTask"],
         ["src.task.NightmareNestTask", "NightmareNestTask"],

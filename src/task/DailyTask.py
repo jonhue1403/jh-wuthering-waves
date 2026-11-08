@@ -113,7 +113,7 @@ class DailyTask(WWOneTimeTask, BaseCombatTask):
             except Exception as e:
                 self.log_error(self.tr('NightmareNestTask Failed'), e)
                 self.screenshot('NightmareNestTask')
-                self.ensure_main(time_out=180)
+                raise
             finally:
                 # 还原 ensure_main，防范实例状态污染
                 self.get_task_by_class(NightmareNestTask).__dict__.pop('ensure_main', None)
@@ -185,7 +185,7 @@ class DailyTask(WWOneTimeTask, BaseCombatTask):
         except Exception as e:
             self.log_error(self.tr('GardenTask Failed'), e)
             self.screenshot('GardenTask')
-            self.ensure_main(time_out=180)
+            raise  # A failed/unknown weekly state must propagate to the coordinator.
 
     def check_discarded_echo(self):
         self.info_set('current task', 'check discarded echo')

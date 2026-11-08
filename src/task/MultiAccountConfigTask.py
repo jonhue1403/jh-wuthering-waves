@@ -43,6 +43,8 @@ class MultiAccountConfigTask(MultiAccountDailyTask):
                 and x >= 1 and y >= 1
                 and isinstance(self.executor.interaction, PostMessageInteraction)):
             position = self.executor.interaction.capture.get_abs_cords(x, y)
+            from src.automation.input_guard import input_checkpoint
+            input_checkpoint(self)
             win32api.SetCursorPos((int(position[0]), int(position[1])))
             self.sleep(0.2)
         return super().click(x, y, *args, **kwargs)

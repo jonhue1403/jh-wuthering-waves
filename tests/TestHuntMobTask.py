@@ -9,6 +9,7 @@ from ok import TaskDisabledException
 from src.overworld.controller import HuntAbort, HuntCancelled, HuntController, HuntState
 from src.overworld.models import MapCoordinate
 from src.overworld.navigation.player_locator import SurfaceProfile
+from src.overworld.qualification import RuntimeQualification
 from src.overworld.navigation import NavigationStatus, WorldRouteNavigator
 from src.task.BaseCombatTask import BaseCombatTask, CharDeadException
 from src.task.HuntMobTask import HuntMobTask
@@ -109,6 +110,11 @@ class TestHuntMobTask(unittest.TestCase):
             stack.enter_context(patch.object(WWOneTimeTask, "run"))
             module = "src.task.HuntMobTask."
             stack.enter_context(patch(module + "require_game_input_access"))
+            # This wiring test supplies a reviewed qualification; a separate
+            # runtime-binding suite checks that missing/stale evidence refuses
+            # movement before any game input.
+            stack.enter_context(patch(module + "RuntimeQualification.load",
+                                      return_value=Mock(spec=RuntimeQualification)))
             stack.enter_context(patch(module + "SurfaceProfile.load", return_value=profile))
             stack.enter_context(patch(module + "np.fromfile", return_value=np.zeros(1, dtype=np.uint8)))
             stack.enter_context(patch(module + "cv2.imdecode", return_value=np.zeros((400, 400, 3))))

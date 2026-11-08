@@ -387,7 +387,7 @@ class FarmEchoTask(WWOneTimeTask, BaseCombatTask):
         self.click(0.880, 0.911, after_sleep=2)
         # 结晶波片(含备用)不足时, 进队伍界面前会弹「无法获取奖励, 是否继续进入」;
         # 勾选本次登录不再提示并确认, 刷声骸不需要领奖励. 弹窗点击后立即出现, 不弹时只多等 1 秒
-        self.wait_click_skip_dialog_confirm(time_out=1)
+        self.wait_confirm_challenge_action('start', time_out=1)
 
     def handle_boss_restart_after_treasure(self):
         self._has_treasure = True
