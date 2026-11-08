@@ -34,6 +34,9 @@ class DomainTask(WWOneTimeTask, BaseCombatTask):
         if not self.wait_in_team_and_world(time_out=max(self.teleport_timeout, 120), raise_if_not_found=False):
             return False
         self.sleep(0.5)
+        if self.realm_entry_at_heal_point:
+            logger.info('revive_action: left realm at heal point, skip teleport')
+            return True
         self.revive_at_tower_and_heal()
         return True
 
@@ -53,10 +56,11 @@ class DomainTask(WWOneTimeTask, BaseCombatTask):
     def farm_domain_with_recovery_loop(self, must_use, teleport_into_domain_once, max_recovery_retries=3):
         """包装副本刷取循环：死亡恢复后自动从 F2 重新进入，并限制重试次数。"""
         recovery_retries = 0
+        self.realm_entry_at_heal_point = False
         while True:
             current, _, total = self.open_F2_book_and_get_stamina()
             if total < self.stamina_once or total < must_use or (must_use == 0 and current < self.stamina_once):
-                self.log_info('not enough stamina', notify=True)
+                self.log_info(self.tr('not enough stamina'), notify=True)
                 self.back()
                 return
             teleport_into_domain_once()
@@ -66,11 +70,12 @@ class DomainTask(WWOneTimeTask, BaseCombatTask):
                 return
             recovery_retries += 1
             if recovery_retries >= max_recovery_retries:
-                self.log_info(f'farm_domain: exceeded recovery retries ({max_recovery_retries}), stop farming',
+                self.log_info(self.tr('farm_domain: exceeded recovery retries ({max_recovery_retries}), stop farming').format(max_recovery_retries=max_recovery_retries),
                               notify=True)
                 self.make_sure_in_world()
                 return
-            self.log_info('farm_domain: death recovered, re-enter from F2 book')
+            self.log_info(self.tr('farm_domain: death recovered, re-enter from F2 book'))
+            self.realm_entry_at_heal_point = True  # 恢复后站在信标上, 从 F2 直接进本
             self.sleep(1)
 
     def farm_in_domain(self, must_use=0):
@@ -79,7 +84,7 @@ class DomainTask(WWOneTimeTask, BaseCombatTask):
         第二项在死亡提前退出时仍会带上本局内已扣过的额度，供外层恢复循环继续传参。
         """
         if self.stamina_once <= 0:
-            raise RuntimeError('"self.stamina_once" must be override')
+            raise RuntimeError(self.tr('"self.stamina_once" must be override'))
         self.info_incr('used stamina', 0)
         while True:
             self.walk_until_f(time_out=4, backward_time=0, raise_if_not_found=True)
@@ -90,7 +95,7 @@ class DomainTask(WWOneTimeTask, BaseCombatTask):
                 self.walk_to_treasure()
                 self.pick_f(handle_claim=False)
             except (NotInCombatException, CharDeadException):
-                self.log_info('farm_in_domain: death recovered, exiting domain')
+                self.log_info(self.tr('farm_in_domain: death recovered, exiting domain'))
                 self.make_sure_in_world()
                 return False, must_use
             can_continue, used = self.use_stamina(once=self.stamina_once, must_use=must_use)
@@ -98,21 +103,11 @@ class DomainTask(WWOneTimeTask, BaseCombatTask):
             must_use -= used
             self.sleep(4)
             if not can_continue:
-                self.log_info("used all stamina")
+                self.log_info(self.tr('used all stamina'))
                 break
             self.click(0.68, 0.84, after_sleep=1)  # farm again
-            if confirm := self.wait_feature(
-                    ['confirm_btn_hcenter_vcenter', 'confirm_btn_highlight_hcenter_vcenter'],
-                    raise_if_not_found=False,
-                    threshold=0.6,
-                    time_out=2):
-                self.click(0.49, 0.55, after_sleep=0.5)  # 点击不再提醒
-                self.click(confirm, after_sleep=0.5)
-                self.wait_click_feature(
-                    ['confirm_btn_hcenter_vcenter', 'confirm_btn_highlight_hcenter_vcenter'],
-                    relative_x=-1, raise_if_not_found=False,
-                    threshold=0.6,
-                    time_out=1)
+            if not self.wait_confirm_challenge_action('restart'):
+                raise RuntimeError('Unrecognized challenge restart confirmation')
             self.wait_in_team_and_world(time_out=self.teleport_timeout)
             self.sleep(1)
         #

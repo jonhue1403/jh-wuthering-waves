@@ -8,6 +8,9 @@ import config
 
 class TestCalculatePcExePath(unittest.TestCase):
 
+    def test_documented_daily_cli_task_index_remains_one(self):
+        self.assertEqual(['src.task.DailyTask', 'DailyTask'], config.config['onetime_tasks'][0])
+
     def test_none_path_uses_most_recently_run_executable(self):
         expected = r"C:\Games\Wuthering Waves.exe"
 

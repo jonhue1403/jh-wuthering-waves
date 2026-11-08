@@ -1,7 +1,7 @@
-
 from ok import Logger
 from src.task.BaseCombatTask import BaseCombatTask, CharRevivedException
 from src.task.WWOneTimeTask import WWOneTimeTask
+from src.task.task_icons import task_icon
 
 logger = Logger.get_logger(__name__)
 
@@ -12,11 +12,14 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
         super().__init__(*args, **kwargs)
         self.description = "Farms the selected Tacet Suppression, until no stamina. Must be able to teleport (F2)."
         self.name = "🌊 Tacet Suppression"
+        self.icon = task_icon('tacet')
+        self.group_name = 'Daily Activities'
+        self.group_icon = task_icon('category-daily')
         self.support_schedule_task = True
         default_config = {
             'Which Tacet Suppression to Farm': 1,  # starts with 1
         }
-        self.structure = [2, 5, 5, 7]
+        self.structure = [4, 5, 5, 7]
         self.total_number = sum(self.structure)
         self.target_enemy_time_out = 10
         default_config.update(self.default_config)
@@ -32,9 +35,11 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
             4: [],
             5: [],
             6: [],
-            7: [["a", 0.3]],
-            8: [["d", 0.6]],
-            9: [["a", 1.5], ["w", 3], ["a", 2.5]],
+            7: [],
+            8: [],
+            9: [["a", 0.3]],
+            10: [["d", 0.6]],
+            11: [["a", 1.5], ["w", 3], ["a", 2.5]],
         }
         self.stamina_once = 60
 
@@ -44,7 +49,7 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
         self.wait_in_team_and_world(esc=True)
         self.farm_tacet()
 
-    def farm_tacet(self, daily=False, used_stamina=0, config=None):
+    def farm_tacet(self, daily=False, used_stamina=0, config=None, max_recovery_retries=3):
         if config is None:
             config = self.config
         if daily:
@@ -52,6 +57,8 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
         else:
             must_use = 0
         self.info_incr('used stamina', 0)
+        recovery_retries = 0
+        self.realm_entry_at_heal_point = False
         while True:
             self.sleep(1)
             self.openF2Book("gray_book_boss")
@@ -68,13 +75,23 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
             self.click_team_challenge()
             while True:
                 self.wait_in_team_and_world(time_out=120)
-                self.combat_once(target=True)
+                try:
+                    self.combat_once(target=True)
+                except CharRevivedException:
+                    recovery_retries += 1
+                    if recovery_retries >= max_recovery_retries:
+                        self.log_info(self.tr('farm_tacet: exceeded recovery retries ({max_recovery_retries}), stop farming').format(max_recovery_retries=max_recovery_retries),
+                                      notify=True)
+                        return None
+                    self.log_info(self.tr('farm_tacet: death recovered, re-enter from F2 book'))
+                    self.realm_entry_at_heal_point = True  # 恢复后站在信标上, 从 F2 直接进本
+                    break
                 self.walk_to_treasure()
                 self.pick_f(handle_claim=False)
                 self.sleep(2)
                 if not self.has_claim_stamina():
                     self.esc_cancel()
-                    self.log_info('is not claim treasure, restart challenge')
+                    self.log_info(self.tr('is not claim treasure, restart challenge'))
                     continue
                 can_continue, used = self.use_stamina(once=self.stamina_once, must_use=must_use)
                 self.info_incr('used stamina', used)
@@ -85,16 +102,17 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
                     return None
                 else:
                     self.click_relative(0.640, 0.851, hcenter=True, after_sleep=0.2)
-                    self.wait_click_skip_dialog_confirm()
+                    if not self.wait_confirm_challenge_action('restart'):
+                        raise RuntimeError('Unrecognized challenge restart confirmation')
                 must_use -= used
 
     def not_enough_stamina(self, back=True):
-        self.log_info(f"used all stamina")
+        self.log_info(self.tr('used all stamina'))
         if back:
             self.back(after_sleep=1)
 
     def teleport_to_tacet(self, index):
         self.info_set('Teleport to Tacet Suppression', index)
         if index >= self.total_number:
-            raise IndexError(f'Index out of range, max is {self.total_number}')
+            raise IndexError(self.tr('Index out of range, max is {total_number}').format(total_number=self.total_number))
         return self.click_on_book_target(index + 1, self.total_number, self.structure)

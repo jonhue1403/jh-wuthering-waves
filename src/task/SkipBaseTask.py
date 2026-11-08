@@ -4,6 +4,7 @@ import time
 from ok import Logger
 
 from src.task.BaseWWTask import BaseWWTask, convert_bw, convert_dialog_icon
+from src.automation.session import get_session
 
 logger = Logger.get_logger(__name__)
 
@@ -19,6 +20,8 @@ class SkipBaseTask(BaseWWTask):
         pass
 
     def skip_confirm(self):
+        if not get_session(self).allow_story_skip():
+            return False
         if self.click_skip_dialog_confirm():
             self.confirm_dialog_checked = True
             return True
@@ -35,22 +38,32 @@ class SkipBaseTask(BaseWWTask):
             return True
 
     def find_skip(self):
-        return self.find_one('skip_dialog', horizontal_variance=0.02, threshold=0.75,
-                             frame_processor=convert_dialog_icon) or self.find_one('skip_dialog_new',
+        if not get_session(self).allow_story_skip():
+            return None
+        return self.find_one('skip_dialog', horizontal_variance=0.02, threshold=0.85,
+                             use_gray_scale=True) or self.find_one('skip_dialog_new',
                                                                                    threshold=0.75,
                                                                                    frame_processor=convert_dialog_icon)
 
     def try_click_skip(self):
+        if not get_session(self).allow_story_skip():
+            return False
         skipped = False
         while skip := self.find_skip():
+            if not get_session(self).allow_story_skip():
+                return skipped
             logger.info('Click Skip Dialog')
             self.click_box(skip, after_sleep=0.2)
             skipped = True
         return skipped
 
     def check_skip(self):
+        if not get_session(self).allow_story_skip():
+            return False
         if self.try_click_skip():
             return self.wait_until(self.skip_confirm, time_out=3, raise_if_not_found=False)
+        # Retry a confirmation left open after the initial wait timed out.
+        return self.skip_confirm()
 
 
 dialog_white_color = {

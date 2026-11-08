@@ -155,6 +155,11 @@ class HuntController:
         try:
             self._state(HuntState.INITIALIZE)
             while True:
+                self._check_cancel()
+                goal_reached = getattr(self.runtime, "goal_reached", None)
+                if goal_reached is not None and goal_reached():
+                    run.reason = "Observed material inventory reached target"
+                    break
                 self._locate(layer)
                 self._state(HuntState.PLAN)
                 plan = self.planner.plan(target, spawns, session=run.session)
@@ -207,6 +212,11 @@ class HuntController:
                     # camp. Store it before announcing or marking completion.
                     run.session.set_current_position(position)
                     run.session.mark_cleared(camp.camp_id)
+                    camp_cleared = getattr(self.runtime, "camp_cleared", None)
+                    if camp_cleared is not None:
+                        # A clear is not a reward. Qualified material routes reread
+                        # inventory here and propagate unknown/failed receipts.
+                        camp_cleared(camp, run)
                     run.replan_reason = "camp clear verified"
                     self._state(HuntState.CLEARED, camp)
             if run.session.failed_camps:

@@ -30,6 +30,19 @@ WIDE_MODE_UI_SCALE = 0.75
 class BaseWWTask(BaseTask):
     map_zoomed = False
 
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        from src.automation.session import guarded_run
+        if 'run' in cls.__dict__:
+            cls.run = guarded_run(cls.run)
+
+    def after_init(self, *args, **kwargs):
+        super().after_init(*args, **kwargs)
+        from src.automation.session import get_session, is_runtime
+        if is_runtime(self):
+            from src.automation.input_guard import install_input_guard
+            install_input_guard(self, get_session(self))
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.monthly_card_config = self.get_global_config('Monthly Card Config')
@@ -59,7 +72,7 @@ class BaseWWTask(BaseTask):
 
     def zoom_map(self, esc=True):
         if not self.map_zoomed:
-            self.log_info('zoom map to max')
+            self.log_info(self.tr('zoom map to max'))
             self.map_zoomed = True
             self.send_key('m', after_sleep=1)
             self.click_relative(0.94, 0.33, after_sleep=0.5)
@@ -243,7 +256,7 @@ class BaseWWTask(BaseTask):
                 last_target = treasure_icon
             if last_target is None:
                 next_direction = self.opposite_direction(last_direction)
-                self.log_info('find_function not found, change to opposite direction')
+                self.log_info(self.tr('find_function not found, change to opposite direction'))
             else:
                 x, y = last_target.center()
                 y = max(0, y - self.height_of_screen(y_offset))
@@ -275,11 +288,11 @@ class BaseWWTask(BaseTask):
                     self.send_key_down(next_direction)
             if running:
                 if not self.find_one('on_the_wall', threshold=0.7):
-                    self.log_info('not on the wall, stop running')
+                    self.log_info(self.tr('not on the wall, stop running'))
                     self.mouse_up(key='right')
             else:
                 if next_direction == 'w' and self.find_one('on_the_wall', threshold=0.7):
-                    self.log_info('on the wall, start running')
+                    self.log_info(self.tr('on the wall, start running'))
                     running = True
                     self.mouse_down(key='right')
                     self.sleep(0.1)
@@ -412,55 +425,137 @@ class BaseWWTask(BaseTask):
         if not boxes:
             self.screenshot('stamina_error')
             return -1, -1, -1
-        current = 0
-        back_up = 0
+        import unicodedata
+        currents = []
+        reserves = []
         for box in boxes:
-            if match := stamina_re.search(box.name):
-                current = int(match.group(1))
-            elif match := number_re.search(box.name):
-                back_up = int(match.group(1))
+            text = re.sub(r'\s+', '', unicodedata.normalize('NFKC', box.name))
+            if match := re.fullmatch(r'([0-9]{1,4})/([0-9]{1,4})', text):
+                value, maximum = int(match[1]), int(match[2])
+                if maximum <= 0 or value > maximum:
+                    return -1, -1, -1
+                currents.append(value)
+            elif re.fullmatch(r'[0-9]{1,4}', text):
+                reserves.append(int(text))
+            else:
+                return -1, -1, -1
+        if len(currents) != 1 or len(reserves) != 1:
+            return -1, -1, -1
+        current, back_up = currents[0], reserves[0]
         self.info_set('current_stamina', current)
         self.info_set('back_up_stamina', back_up)
         return current, back_up, current + back_up
 
-    def use_stamina(self, once=60, must_use=0):
-        self.sleep(1)
-        current, back_up, total = self.get_stamina()
-        if current >= once * 2:
-            used = once * 2
-            use_double = True
-            logger.info(f"当前体力大于等于双倍, {current} >= {once * 2}")
-        elif must_use > once and total >= once * 2:
-            used = once * 2
-            use_double = True
-            logger.info(f"当前加备用大于日常剩余所需, 使用双倍, {must_use} >= {once} and {total} >= {once * 2}")
-        else:
-            used = once
-            use_double = False
-            logger.info(f"使用单倍体力")
-        if use_double:
-            btn = self.click_dialog_right_button()
-        else:
-            btn = self.click_dialog_left_button()
-        if self.wait_feature('gem_add_stamina', horizontal_variance=0.4, vertical_variance=0.05,
-                             time_out=2, settle_time=0.5):  # 看是否需要使用备用体力
-            self.click_relative(0.70, 0.71, hcenter=True, after_sleep=1)  # 点击确认
-            self.click_relative(0.70, 0.71, hcenter=True, after_sleep=1)
-            self.back(after_sleep=1)
-            self.click(btn, after_sleep=1)
+    def get_stamina_claim_cost(self):
+        """Read the observed cost, never substitute the caller's expectation."""
+        import unicodedata
+        pattern = re.compile(r'(?:领取奖励需消耗|消耗|Cost[:：]?)\s*(\d+)\s*(?:点结晶波片|结晶波片|Waveplates)', re.I)
+        values = []
+        for box in self.ocr(0.2, 0.35, 0.8, 0.65):
+            match = pattern.fullmatch(unicodedata.normalize('NFKC', box.name).strip())
+            if match:
+                values.append(int(match[1]))
+        return values[0] if len(values) == 1 else None
 
-        current -= used
-        must_use -= used
-        total -= used
-        if total < once:
-            logger.info(f"current stamina: {current} not enough to continue")
-            can_continue = False
-        elif must_use <= 0 and current < once:
-            can_continue = False
-            logger.info(f"current stamina: {current} must_use completed, no need to use back_up")
+    def get_stamina_claim_result(self):
+        """Actual result-screen balance; a vanished modal is insufficient."""
+        import unicodedata
+        pattern = re.compile(r'(?:剩余|Remaining(?:\s+Waveplates)?[:：]?)\s*(\d{1,7})', re.I)
+        values = []
+        for box in self.ocr(0.4, 0.85, 0.8, 0.98):
+            match = pattern.fullmatch(unicodedata.normalize('NFKC', box.name).strip())
+            if match:
+                values.append(int(match[1]))
+        return values[0] if len(values) == 1 else None
+
+    def use_stamina(self, once=60, must_use=0, force_single=False,
+                    allow_reserve=False, before_confirm=None):
+        """One durable claim attempt, followed only by bounded result observation.
+
+        The inventory-aware caller owns its receipt via before_confirm. Inherited
+        tasks get a debit-only journal entry, which never implies a reward receipt.
+        """
+        from src.automation.resource_policy import (
+            ActionJournal, ResourceBudget, ResourcePolicyError, UncertainReceipt, verify_debit)
+        from src.automation.session import get_session
+        from src.automation.identity import observe_identity
+        if allow_reserve:
+            raise ResourcePolicyError('Reserve/refill execution is not qualified')
+        if type(once) is not int or once <= 0:
+            raise ResourcePolicyError('Explicit positive expected claim cost required')
+        if self.next_frame() is None:
+            raise ResourcePolicyError('Fresh claim capture unavailable')
+        current, reserve, _ = self.get_stamina()
+        cost = self.get_stamina_claim_cost()
+        split = bool(self.find_one('claim_stamina_sign'))
+        if cost != once:
+            raise ResourcePolicyError('Unknown, unreadable or conflicting claim cost; no confirmation sent')
+        used = once * 2 if split and not force_single and current >= once * 2 else once
+        if current < used or reserve < 0:
+            raise ResourcePolicyError('Insufficient current Waveplates or unreadable reserve; refill forbidden')
+        # A second capture immediately before confirmation catches changed OCR,
+        # account/window state, or a newly appeared refill modal.
+        if self.next_frame() is None:
+            raise ResourcePolicyError('Fresh claim capture unavailable')
+        fresh_current, fresh_reserve, _ = self.get_stamina()
+        if (fresh_current, fresh_reserve) != (current, reserve) or self.get_stamina_claim_cost() != cost:
+            raise UncertainReceipt('Claim observations changed or conflict; stop before spending')
+        if self.find_one('gem_add_stamina'):
+            raise ResourcePolicyError('Refill prompt under no-reserve policy; confirmation forbidden')
+        journal = None
+        action_id = None
+        if before_confirm is not None:
+            before_confirm(used, current, reserve)
         else:
-            can_continue = True
-        return can_continue, used
+            session = get_session(self)
+            ledger = getattr(self, '_resource_ledger', None) or getattr(session, 'resource_ledger', None)
+            elapsed = 0
+            if ledger is not None:
+                from dataclasses import replace
+                ledger.check_time()
+                budget, journal = ledger.budget, ledger.journal
+                identity = replace(ledger.identity, activity=type(self).__name__)
+                elapsed = ledger.clock() - ledger.started
+            else:
+                profile = session.resource_profile
+                budget = ResourceBudget(**{key: profile.get(key, 0) for key in (
+                    'max_spend', 'max_runs', 'max_seconds', 'minimum_balance')})
+                identity = observe_identity(self, profile.get('identity_profile', ''), type(self).__name__)
+                journal = ActionJournal(profile.get('journal_path', 'configs/automation-actions.json'))
+            if ledger is not None:
+                action_id = ledger.prepare_spend(used, current, activity=type(self).__name__)
+            else:
+                action_id = journal.prepare(identity, budget, cost=used, current=current,
+                                            inventory={}, receipt_kind='spend', elapsed=elapsed)
+        try:
+            # Last-moment reserve guard applies to every inherited claim path.
+            if self.find_one('gem_add_stamina'):
+                raise UncertainReceipt('Refill appeared after preparation; no confirmation sent')
+            if split and used == once:
+                self.click_dialog_left_button()
+            else:
+                self.click_dialog_right_button()
+            previous = None
+            def result_observed():
+                nonlocal previous
+                if self.next_frame() is None:
+                    return False
+                if self.find_one('gem_add_stamina'):
+                    raise UncertainReceipt('Unexpected refill modal; never confirm it')
+                value = self.get_stamina_claim_result()
+                stable = value is not None and value == previous
+                previous = value
+                return stable
+            if not self.wait_until(result_observed, time_out=12, raise_if_not_found=False):
+                raise UncertainReceipt('Claim result not observed; do not repeat confirmation')
+            verify_debit(current, previous, used)
+            if journal:
+                journal.confirm_spend(action_id, current=previous)
+            return previous >= once, used
+        except BaseException as error:
+            if journal and action_id:
+                journal.uncertain(action_id, str(error))
+            raise
 
     def send_key_and_wait_f(self, direction, raise_if_not_found, time_out, running=False, target_text=None,
                             check_combat=False):
@@ -480,7 +575,7 @@ class BaseWWTask(BaseTask):
             self.mouse_up(key='right')
         if not f_found:
             if raise_if_not_found:
-                raise CannotFindException('cant find the f to enter')
+                raise CannotFindException(self.tr('cant find the f to enter'))
             else:
                 logger.warning(f"can't find the f to enter")
                 return False
@@ -511,7 +606,7 @@ class BaseWWTask(BaseTask):
             self.mouse_up(key='right')
 
         if raise_if_not_found and not result:
-            raise Exception('wait condition failed while walking')
+            raise Exception(self.tr('wait condition failed while walking'))
         return result
 
     def is_moving(self):
@@ -526,7 +621,8 @@ class BaseWWTask(BaseTask):
             return True
 
     def has_claim_stamina(self):
-        return not self.in_team()[0] and self.find_one('claim_stamina_sign')
+        return not self.in_team()[0] and (self.find_one('claim_stamina_sign') or
+                                          self.get_stamina_claim_cost() is not None)
 
     def has_claim(self):
         return not self.in_team()[0] and self.find_one('claim_cancel_button_hcenter_vcenter', horizontal_variance=0.05,
@@ -603,10 +699,10 @@ class BaseWWTask(BaseTask):
         return bool(dialog_3_dots)
 
     def walk_to_treasure(self, send_f=True, raise_if_not_found=True):
-        self.log_info('start walk_to_treasure')
+        self.log_info(self.tr('start walk_to_treasure'))
         if not self.walk_to_box(self.find_treasure_icon, end_condition=self.find_f_with_claim_text):
             if not self.walk_to_box(self.find_treasure_icon, end_condition=self.find_f_with_text):
-                raise Exception(f'can not walk to treasure!')
+                raise Exception(self.tr('can not walk to treasure!'))
         if send_f:
             self.walk_until_f(time_out=2, backward_time=0, raise_if_not_found=raise_if_not_found)
         self.sleep(1)
@@ -625,7 +721,7 @@ class BaseWWTask(BaseTask):
             max_echo_count = max(max_echo_count, len(echos))
             self.log_debug(f'max_echo_count {max_echo_count}')
             if echos:
-                self.log_info(f'yolo found echo {echos}')
+                self.log_info(self.tr('yolo found echo {echos}').format(echos=echos))
                 # return self.walk_to_box(self.find_echos, time_out=15, end_condition=self.pick_echo), max_echo_count > 1
                 return self.walk_to_yolo_echo(update_function=update_function, time_out=time_out), max_echo_count > 1
             if use_color:
@@ -719,7 +815,7 @@ class BaseWWTask(BaseTask):
         if not self.logged_in:
             time_out = 600
         if not self.wait_until(lambda: self.is_main(esc=esc), time_out=time_out, raise_if_not_found=False):
-            raise Exception('Please start in game world and in team!')
+            raise Exception(self.tr('Please start in game world and in team!'))
         self.sleep(0.5)
         self.info_set('current task', f'in main esc={esc}')
 
@@ -746,7 +842,7 @@ class BaseWWTask(BaseTask):
             self.handle_monthly_card()
             if login_close := self.find_one('login_close', horizontal_variance=0.15, vertical_variance=0.1):
                 self.click(login_close, after_sleep=1)
-                self.log_info('关闭公告!')
+                self.log_info(self.tr('Close the notice!'))
                 return False
             texts = self.ocr(log=self.debug)
 
@@ -764,32 +860,32 @@ class BaseWWTask(BaseTask):
                     if login and not self.find_boxes(texts, boundary=login_box,
                                                      match="+86"):
                         self.click(login, after_sleep=1)
-                        self.log_info('点击登录按钮!')
+                        self.log_info(self.tr('Click the Login button!'))
                 return False
             if agree := self.find_boxes(texts, boundary=login_box, match="同意"):
                 self.log_debug(f'found agree {agree}')
                 if self.find_boxes(texts, boundary=login_box, match=re.compile("隐私")):
                     self.click(agree, after_sleep=1)
-                    self.log_info('点击同意按钮!')
+                    self.log_info(self.tr('Click the Agree button!'))
                 return False
             if self.find_boxes(texts, match=[re.compile("游戏即将重启"), re.compile('遊戲即將重啟')]):
                 self.sleep(0.2)
-                self.log_info('游戏更新成功, 游戏即将重启')
+                self.log_info(self.tr('Game update completed; the game will restart'))
                 self.click(self.find_boxes(texts, match=["确认", "確認"]), after_sleep=60)
                 result = self.start_device()
-                self.log_info(f'start_device end {result}')
+                self.log_info(self.tr('start_device end {result}').format(result=result))
                 self.sleep(30)
                 return False
 
             if start := self.find_boxes(texts, boundary='bottom_right', match=["开始游戏", re.compile("进入游戏")]):
                 if not self.find_boxes(texts, boundary='bottom_right', match=LOGIN_TEXTS):
                     self.click(start)
-                    self.log_info(f'点击开始游戏! {start}')
+                    self.log_info(self.tr('Click Start Game! {start}').format(start=start))
                     return False
             if switch_login := self.find_one(Labels.switch_account, vertical_variance=0.1, threshold=0.7):
                 if boxes := self.find_boxes(texts, boundary=self.box_of_screen(0.37, 0.63, 0.63, 0.99, hcenter=True,
                                                                                vcenter=True)):
-                    self.log_info(f'wait_login {switch_login} {boxes}')
+                    self.log_info(self.tr('wait_login {switch_login} {boxes}').format(switch_login=switch_login, boxes=boxes))
                     self.click_relative(0.503, 0.926, hcenter=True, vcenter=True, after_sleep=3)
                     return False
 
@@ -852,7 +948,7 @@ class BaseWWTask(BaseTask):
         box = self.get_box_by_name('box_minimap')
         target = self.find_one(feature, box=box, threshold=threshold)
         if not target:
-            self.log_info(f'Can not find {feature} on minimap')
+            self.log_info(self.tr('Can not find {feature} on minimap').format(feature=feature))
             return None
         else:
             self.log_debug(f'found {box} on minimap')
@@ -861,7 +957,7 @@ class BaseWWTask(BaseTask):
         direction_angle = calculate_angle_clockwise(box, target)
         my_angle = self.get_my_angle()
         to_turn = self.get_angle_between(my_angle, direction_angle)
-        self.log_info(f'angle: {my_angle}, to_turn: {to_turn}')
+        self.log_info(self.tr('angle: {my_angle}, to_turn: {to_turn}').format(my_angle=my_angle, to_turn=to_turn))
         return to_turn
 
     def _stop_movement(self, current_direction):
@@ -915,7 +1011,7 @@ class BaseWWTask(BaseTask):
 
         # 4. Change direction if needed
         if current_direction != new_direction:
-            self.log_info(f'changed direction {angle} {current_direction} -> {new_direction}')
+            self.log_info(self.tr('changed direction {angle} {current_direction} -> {new_direction}').format(angle=angle, current_direction=current_direction, new_direction=new_direction))
             if current_direction:
                 self.mouse_up(key='right')
                 self.send_key_up(current_direction)
@@ -962,7 +1058,7 @@ class BaseWWTask(BaseTask):
         # self.screenshot('monthly_card1')
         if monthly_card is not None:
             # self.screenshot('monthly_card1')
-            self.log_info('monthly_card found click')
+            self.log_info(self.tr('monthly_card found click'))
             self.click_relative(0.50, 0.89)
             self.sleep(2)
             # self.screenshot('monthly_card2')
@@ -993,7 +1089,7 @@ class BaseWWTask(BaseTask):
         self.sleep(0.5)
 
     def open_boss_book(self, name, after_sleep=2):
-        self.log_info(f'open_boss_book {name}')
+        self.log_info(self.tr('open_boss_book {name}').format(name=name))
         x = 0.24
         self.sleep(0.4)
         if name == 'ningsu':
@@ -1012,7 +1108,7 @@ class BaseWWTask(BaseTask):
             self.click_relative(0.356, 0.882, after_sleep=after_sleep)
             y = 0.86
         else:
-            raise Exception(f'unknown_lang {name}')
+            raise Exception(self.tr('unknown_lang {name}').format(name=name))
         self.click_relative(x, y, after_sleep=after_sleep, name=name)
 
     def openF2Book(self, feature="gray_book_all_monsters"):
@@ -1020,12 +1116,12 @@ class BaseWWTask(BaseTask):
             self.reset_to_false('opening book')
         self.ensure_main()
         book_key = self.key_config.get('Guidebook Key', self.key_config.get('索拉指南', 'f2'))
-        self.log_info(f'click {book_key} to open the book')
+        self.log_info(self.tr('click {book_key} to open the book').format(book_key=book_key))
         if self.in_team_and_world():
             self.send_key(book_key, after_sleep=4)
-            self.log_info(f'send {book_key} key to open')
+            self.log_info(self.tr('send {book_key} key to open').format(book_key=book_key))
         if self.in_team_and_world():
-            self.log_info('send f2 key mouse key to open the book')
+            self.log_info(self.tr('send f2 key mouse key to open the book'))
             self.send_key_down('alt')
             self.sleep(0.05)
             self.click_relative(0.77, 0.05)
@@ -1034,8 +1130,8 @@ class BaseWWTask(BaseTask):
             self.sleep(4)
         gray_book_boss = self.wait_book(feature)
         if not gray_book_boss:
-            self.log_error("can't find gray_book_boss, make sure f2 is the hotkey for book", notify=True)
-            raise Exception("can't find gray_book_boss, make sure f2 is the hotkey for book")
+            self.log_error(self.tr("can't find gray_book_boss, make sure f2 is the hotkey for book"), notify=True)
+            raise Exception(self.tr("can't find gray_book_boss, make sure f2 is the hotkey for book"))
         self.sleep(2)
         self.click_box(gray_book_boss, after_sleep=1.5)
         return gray_book_boss
@@ -1069,6 +1165,9 @@ class BaseWWTask(BaseTask):
             time_out=1)
 
     def click_skip_dialog_confirm(self):
+        from src.automation.session import get_session
+        if not get_session(self).allow_story_skip():
+            return False
         skip_dialog_confirm = self.find_one(
             ['confirm_btn_hcenter_vcenter', 'confirm_btn_highlight_hcenter_vcenter'],
             horizontal_variance=0.1,
@@ -1114,9 +1213,43 @@ class BaseWWTask(BaseTask):
             raise_if_not_found=False,
         )
 
+    def wait_confirm_challenge_action(self, action='restart', time_out=3):
+        """A challenge confirmation has its own observed semantic contract.
+
+        It never clicks the narrative skip checkbox or unlocks story skipping.
+        Unknown modals stop instead of being classified by their button shape.
+        """
+        from src.automation.session import get_session
+        session = get_session(self)
+        if session.story_locked or session.mode != 'NORMAL' or session.state != 'READY':
+            return False
+        patterns = {
+            'restart': re.compile(r'重新挑战|Restart Challenge', re.I),
+            'start': re.compile(r'开始挑战|进入挑战|Start Challenge|Enter Challenge|无法获取奖励|Unable to obtain rewards', re.I),
+        }
+        if action not in patterns:
+            raise ValueError('Unsupported challenge confirmation action')
+        def confirm_observed():
+            if self.next_frame() is None:
+                return False
+            if self.in_team_and_world():
+                return True
+            if not self.ocr(.2, .25, .8, .7, match=patterns[action]):
+                return False
+            # A dialog/cutscene marker is incompatible with farming confirmation.
+            if self.find_one(['btn_dialog_eye', 'btn_dialog_3dots', 'message_dialog']):
+                return False
+            confirm = self.find_one(['confirm_btn_hcenter_vcenter', 'confirm_btn_highlight_hcenter_vcenter'])
+            if not confirm:
+                return False
+            self.click(confirm)
+            return True
+        return bool(self.wait_until(confirm_observed, time_out=time_out, raise_if_not_found=False))
+
     def click_team_challenge(self):
         self.wait_click_feature('team_start_challenge', raise_if_not_found=True, click_after_delay=0.5, after_sleep=1)
-        self.wait_click_skip_dialog_confirm()
+        if not self.wait_confirm_challenge_action('start'):
+            raise CannotFindException('Challenge start confirmation is unknown; stopped without narrative skip')
 
     def wait_click_travel(self):
         self.wait_until(self.click_traval_button, raise_if_not_found=True, time_out=10)
@@ -1137,7 +1270,7 @@ class BaseWWTask(BaseTask):
             self.send_key('esc')
             self.sleep(1)
             if not self.in_team()[0]:
-                raise Exception('must be in game world and in teams')
+                raise Exception(self.tr('must be in game world and in teams'))
         return True
 
     def _find_book_scroll_top(self):
@@ -1196,7 +1329,7 @@ class BaseWWTask(BaseTask):
                 btns = self.find_feature('boss_proceed', box=self.box_of_screen(0.9113, 0.229, 0.9613, 0.861),
                                          threshold=0.8)
         if not btns:
-            raise Exception("can't find boss_proceed")
+            raise Exception(self.tr("can't find boss_proceed"))
         if target_index > -1:
             if target_index < len(btns):
                 target = btns[target_index]
@@ -1211,7 +1344,7 @@ class BaseWWTask(BaseTask):
                 btns = self.find_feature('boss_proceed', box=self.box_of_screen(0.9113, 0.229, 0.9613, 0.861),
                                          threshold=0.8)
                 if not btns:
-                    raise Exception("can't find boss_proceed after scroll")
+                    raise Exception(self.tr("can't find boss_proceed after scroll"))
                 target = max(btns, key=lambda box: box.y)
         else:
             target = max(btns, key=lambda box: box.y)
@@ -1312,6 +1445,24 @@ def convert_dialog_icon(cv_image):
     match_mask = cv2.inRange(cv_image, lower_icon_white, upper_icon_white)
     output_image = cv2.cvtColor(match_mask, cv2.COLOR_GRAY2BGR)
     return output_image
+
+
+def isolate_gua_strokes(image):
+    """
+    Keeps the white strokes of Buling's hexagram glyphs (卦象 艮/震) and drops the colored halo behind them.
+
+    A pixel's minimum channel is only high when the pixel is close to white, and the top-hat keeps thin
+    bright strokes while removing the smooth glow, so plain and highlighted glyphs look the same.
+
+    Args:
+        image (np.array): The input BGR image from OpenCV.
+
+    Returns:
+        np.array: Single channel 8-bit stroke map.
+    """
+    gray = image.min(axis=2) if image.ndim == 3 else image
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+    return cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, kernel)
 
 
 def binarize_for_matching(image, threshold=244):

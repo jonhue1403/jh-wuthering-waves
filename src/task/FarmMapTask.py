@@ -5,7 +5,7 @@ from typing import List
 
 import cv2
 import numpy as np
-from ok import Box, get_bounding_box
+from ok import Box, get_bounding_box, Logger
 from src.task.BaseCombatTask import BaseCombatTask
 from src.task.BaseWWTask import calculate_angle_clockwise
 from src.task.WWOneTimeTask import WWOneTimeTask
@@ -15,6 +15,9 @@ from src.overworld.navigation import (
     WorldRouteNavigator,
     WWTaskNavigationBackend,
 )
+from src.task.task_icons import task_icon
+
+logger = Logger.get_logger(__name__)
 
 
 class BigMap(WWOneTimeTask, BaseCombatTask):
@@ -38,7 +41,7 @@ class BigMap(WWOneTimeTask, BaseCombatTask):
         self.diamond = self.find_one('big_map_diamond', threshold=0.7, frame=self.big_map_frame,
                                      box=Box(0, 0, self.big_map_frame.shape[1], self.big_map_frame.shape[0]))
         if not self.diamond:
-            raise Exception('Need be in the map screen and have a diamond as the starting point!')
+            raise Exception(self.tr('Need be in the map screen and have a diamond as the starting point!'))
         self.stars = self.find_feature('big_map_star', threshold=0.7, frame=self.big_map_frame,
                                        box=Box(0, 0, self.big_map_frame.shape[1], self.big_map_frame.shape[0]))
         all_star_len = len(self.stars)
@@ -50,9 +53,9 @@ class BigMap(WWOneTimeTask, BaseCombatTask):
         #     init_my_box = self.my_box.crop_frame(self.frame)
         #     self.screenshot('init_my_box', frame=init_my_box)
         if len(self.stars) <= 2:
-            raise Exception('Need be in the map screen and have a path of at least 3 stars!')
+            raise Exception(self.tr('Need be in the map screen and have a path of at least 3 stars!'))
 
-        self.log_info(f'Loaded {len(self.stars)} from {all_star_len + 1} Stars', notify=True)
+        self.log_info(self.tr('Loaded {loaded} from {total} Stars').format(loaded=len(self.stars), total=all_star_len + 1), notify=True)
 
         # self.click(self.diamond, after_sleep=1)
         # self.wait_click_travel()
@@ -104,7 +107,7 @@ class BigMap(WWOneTimeTask, BaseCombatTask):
                                    screenshot=screenshot)
         # in_big_maps = self.find_feature(frame=frame, template=mat, threshold=0.01, box=self.bounding_box)
         if not in_big_map:
-            raise RuntimeError('can not find my cords on big map!')
+            raise RuntimeError(self.tr('can not find my cords on big map!'))
         self.log_debug(f'found in_big_map: {in_big_map}')
         if self.debug and in_big_map:
             self.draw_boxes('stars', self.stars)
@@ -154,6 +157,7 @@ class FarmMapTask(BigMap):
         super().__init__(*args, **kwargs)
         self.description = "Farm world map with a marked path of stars (diamond as the starting point), start in the map screen"
         self.name = "🗺️ Farm Map with Star Path"
+        self.icon = task_icon('map')
         self.max_star_distance = 1000
         self._has_health_bar = False
         self._route_navigator = WorldRouteNavigator(
@@ -185,7 +189,7 @@ class FarmMapTask(BigMap):
                     continue
                 star, distance, _ = self.find_direction_angle()
                 if not star:
-                    self.log_info('cannot find any stars, stop farming', notify=True)
+                    self.log_info(self.tr('cannot find any stars, stop farming'), notify=True)
                     break
                 result = self._route_navigator.follow_to(
                     star,

@@ -34,6 +34,10 @@ class TestHuntValidation(unittest.TestCase):
         )
         self.stack = ExitStack()
         self.addCleanup(self.stack.close)
+        # These tests exercise later stationary/navigation preconditions after a
+        # reviewed runtime gate. Missing/stale sidecars are tested separately.
+        self.stack.enter_context(patch('src.task.HuntMobTask.RuntimeQualification.load',
+                                      return_value=Mock(assert_compatible=Mock())))
         self.input_access = self.stack.enter_context(
             patch("src.task.HuntMobTask.require_game_input_access"))
         self.load = self.stack.enter_context(patch("src.task.HuntMobTask.SurfaceProfile.load",

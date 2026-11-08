@@ -13,12 +13,27 @@ from unittest.mock import patch
 
 import cv2
 import numpy as np
+from ok.feature.FeatureSet import FeatureSet
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from scripts.analyze_surface_test_a import read_image, sha256, fit_scale_offset
 from src.overworld.navigation.image_matcher import HybridMapMatcher, MatcherCalibration, pixel_hash
 from src.task.FarmMapTask import create_circle_mask_with_hole
+
+
+def extract_minimaps(frames):
+    """Use the runtime's split-template geometry, including scaling rounding."""
+    features = FeatureSet(False, None, 0, 0, template_folder=str(ROOT / "assets/templates"))
+    bounds, minis = None, []
+    for frame in frames:
+        box = features.get_box_by_name(frame, "box_minimap")
+        current = (box.x, box.y, box.width, box.height)
+        if bounds is not None and current != bounds:
+            raise ValueError("Calibration captures must share minimap geometry")
+        bounds = current
+        minis.append(box.crop_frame(frame))
+    return minis, bounds
 
 
 def register(source, target, source_mask=None, target_mask=None, limit=3):
@@ -65,6 +80,11 @@ def register(source, target, source_mask=None, target_mask=None, limit=3):
 
 
 def main(capture, validation_captures=()):
+    output = capture / "dense-bounded-gradient"
+    output.mkdir(exist_ok=True)
+    # Failed recertification must not leave an older sidecar usable.
+    (output / "matcher_calibration.json").unlink(missing_ok=True)
+    (output / "report.json").unlink(missing_ok=True)
     old = ROOT / "assets/overworld/calibration/surface-test-01"
     prior = json.loads((old / "analysis/test_a_results.json").read_text(encoding="utf-8"))
     old_path, new_path = old / "full_map_position.png", capture / "full_map_position.png"
@@ -79,20 +99,19 @@ def main(capture, validation_captures=()):
         extra = sorted(directory.glob("stationary_*.png"))
         assert len(extra) == 10
         paths.extend(extra)
-    minis = [read_image(p)[38:285, 48:296] for p in paths]
+    minis, minimap_bounds = extract_minimaps([read_image(p) for p in paths])
     mask = create_circle_mask_with_hole(minis[0])
     image_scale, _, mini_registration = register(minis[0], full, mask, map_mask)
     size = tuple(math.ceil(n / image_scale) for n in full.shape[1::-1])
     reference = cv2.warpAffine(full, np.float64([[1 / image_scale, 0, 0], [0, 1 / image_scale, 0]]),
                                size, flags=cv2.INTER_LINEAR)
-    output = capture / "dense-bounded-gradient"
-    output.mkdir(exist_ok=True)
     cv2.imwrite(str(output / "reference.png"), reference)
     previous_geometry = prior["reference_derivation"]
     world_scale = previous_geometry["world_units_per_full_map_pixel"] / scale
     origin = np.array(previous_geometry["world_origin"]) - world_scale * offset
     frozen = MatcherCalibration.load(ROOT / "assets/overworld/calibration/subpixel-validation/matcher_calibration.json")
     policy = replace(frozen, reference_pixel_sha256=pixel_hash(reference), mask_pixel_sha256=pixel_hash(mask),
+                     minimap_size=minis[0].shape[1::-1],
                      gradient_mode="bounded64", feature_mode="dense", min_coverage=.1)
     matcher = HybridMapMatcher(reference, policy)
     rows = []
@@ -106,7 +125,9 @@ def main(capture, validation_captures=()):
     for index, mini in enumerate(minis):
         positive = measure(str(paths[index].relative_to(ROOT)), "positive", mini)
         for angle in (2, -2, 10, 90, 180):
-            rotated = cv2.warpAffine(mini, cv2.getRotationMatrix2D((124, 123.5), angle, 1), (248, 247))
+            height, width = mini.shape[:2]
+            rotated = cv2.warpAffine(mini, cv2.getRotationMatrix2D((width / 2, height / 2), angle, 1),
+                                     (width, height))
             measure(f"{index}_rotate_{angle}", "negative", rotated)
         measure(f"{index}_blank", "negative", np.zeros_like(mini))
         # Rightmost terrain does not include the centered player footprint.
@@ -124,6 +145,7 @@ def main(capture, validation_captures=()):
     negatives = [r for r in rows if r["kind"] == "negative"]
     clean = all(r["accepted"] for r in positives) and not any(r["accepted"] for r in negatives)
     report = {"offline_clean": clean, "registration": registration, "minimap_geometry": mini_registration,
+              "minimap_box_xywh": minimap_bounds,
               "world_origin": origin.tolist(), "units_per_pixel": world_scale * image_scale,
               "inputs_sha256": {str(p.relative_to(ROOT)): sha256(p) for p in [old_path, new_path, *paths]},
               "policy": asdict(policy), "rows": rows,

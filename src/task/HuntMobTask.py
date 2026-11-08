@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from pathlib import Path
+from importlib.metadata import version
 from ok import BaseTask, TaskDisabledException
 
 from src.overworld.controller import HuntAbort, HuntCancelled, HuntController, HuntOptions, HuntState
@@ -13,6 +14,7 @@ from src.overworld.navigation.player_locator import PlayerLocator, SurfaceProfil
 from src.overworld.navigation.image_matcher import HybridMapMatcher, MatcherCalibration
 from src.overworld.navigation.arrow_heading import arrow_heading
 from src.overworld.planner import DryRunRoutePlanner, TravelCostModel, cluster_spawns
+from src.overworld.qualification import RuntimeQualification
 from src.task.BaseCombatTask import BaseCombatTask, CharDeadException
 from src.task.FarmMapTask import create_circle_mask_with_hole
 from src.task.WWOneTimeTask import WWOneTimeTask
@@ -38,6 +40,8 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
             "Surface Only": True,
             "Use Liberation": True,
             "Switch to Healer before and after Combat": True,
+            "Runtime Qualification": "",
+            "Observed Game Version": "",
         })
         self.controller = None
         self.locator = None
@@ -69,9 +73,10 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
             message = self.validate_config(key, self.config.get(key))
             if message:
                 raise ValueError(message)
-        if not self.config.get("Hunt Profile").strip():
+        profile_path = self._profile_path()
+        if not profile_path:
             raise ValueError("Select a calibrated Hunt Profile before starting")
-        profile = SurfaceProfile.load(self.config.get("Hunt Profile"))
+        profile = SurfaceProfile.load(profile_path)
         localization_only = self.config.get("Localization Only", True)
         walk_only = self.config.get("Test Walk Only", False)
         if not localization_only:
@@ -81,6 +86,10 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
                 raise ValueError("Test Walk Only requires a verified test_walk_target in the Hunt Profile")
             if not walk_only and not profile.navigation_verified:
                 raise ValueError("Hunting requires a reviewed short walk; run Test Walk Only first")
+            RuntimeQualification.load(self.config.get("Runtime Qualification", "")).assert_compatible(
+                profile_path, profile, runtime_version=version("ok-script"),
+                game_version=self.config.get("Observed Game Version", ""),
+                stage=self._qualification_stage(walk_only), source_root=Path(__file__).resolve().parents[2])
         if self.config.get("Target Mob").strip() != profile.target_mob:
             raise ValueError("Target Mob must match the verified Hunt Profile")
         image = cv2.imdecode(np.fromfile(profile.image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
@@ -109,9 +118,8 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
         if walk_only and not localization_only and not self.locator.contains(profile.test_walk_target):
             raise ValueError("Test walk target is outside the calibrated map image")
         camps = cluster_spawns(spawns, radius=profile.units_per_pixel * 20)
-        if len(camps) != 1:
-            raise ValueError("Controlled validation requires exactly one verified camp")
-        self._diagnostic("validation_profile", profile=str(Path(self.config.get("Hunt Profile")).resolve()),
+        self._validate_camps(profile, spawns, camps)
+        self._diagnostic("validation_profile", profile=str(Path(profile_path).resolve()),
                          reference=str(profile.image_path), database=str(profile.database_path),
                          reference_size=(image.shape[1], image.shape[0]), frame_size=profile.frame_size,
                          origin=(profile.origin.x, profile.origin.y), units_per_pixel=profile.units_per_pixel,
@@ -156,7 +164,7 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
             travel_cost=TravelCostModel(walking_speed_units_per_second=profile.units_per_pixel * 10,
                                        local_sweep_radius=profile.units_per_pixel * 200),
         )
-        self.controller = HuntController(planner, self.navigator, self, options=options)
+        self.controller = self._make_controller(planner, profile, spawns, options)
         self.use_liberation = self.config.get("Use Liberation")
         try:
             WWOneTimeTask.run(self)
@@ -181,6 +189,19 @@ class HuntMobTask(WWOneTimeTask, BaseCombatTask):
                     self.log_error("Hunt movement input cleanup failed", notify=True)
                 self._diagnostic("task_exit", state=self.hunt_run.state.value, reason=self.hunt_run.reason,
                                  cleanup_success=navigation_released and combat_released)
+
+    def _profile_path(self):
+        return self.config.get("Hunt Profile", "").strip()
+
+    def _qualification_stage(self, walk_only):
+        return "WALK" if walk_only else "SINGLE_CAMP"
+
+    def _validate_camps(self, profile, spawns, camps):
+        if len(camps) != 1:
+            raise ValueError("Controlled validation requires exactly one verified camp")
+
+    def _make_controller(self, planner, profile, spawns, options):
+        return HuntController(planner, self.navigator, self, options=options)
 
     def _run_walk_test(self):
         """One bounded segment; combat interrupts instead of handing off to a hunt."""
