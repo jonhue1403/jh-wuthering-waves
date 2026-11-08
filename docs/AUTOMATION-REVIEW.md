@@ -80,3 +80,30 @@ The route database supplies mob/spawn locations, not a verified drop table. No
 material mapping or current UI was invented to satisfy these gates. An empty
 camp remains distinct from a combat trial. Source hashes and historical
 calibration are retained but do not promote historical runs to 3.0.4 live PASS.
+
+## Final committed-source addendum
+
+The reviewer subsequently inspected the final source at
+`241ea5d30a52532dfa1135ea17bb4157a9eeb2ab`. The reviewable boundaries are:
+
+- Core commit `354d4d7c`: shared session/input/resource controls, material goals,
+  daily/weekly coordination, Story Watch and single-camp runtime qualification.
+- Separate route commit `241ea5d30a52532dfa1135ea17bb4157a9eeb2ab`: bounded
+  material-route/beacon implementation, route registration and queue integration,
+  route tests and profile documentation.
+
+The final small deltas preserve an explicit PAUSED/TAKEOVER state when an
+activity unwinds, leave the session stopped after incomplete input cleanup, and
+refuse failed captures before claims, pre-confirmation/result observations or
+semantic challenge confirmations. Source inspection found no new material
+defect in these deltas. The reviewer reran `TestAutomationSession` and
+`TestResourceClaims` against this committed source: **20 tests passed**.
+
+The reviewer also read and checked the root agent's persisted verification
+record at `logs/core-routes/verification/results.json`: exact source SHA
+`241ea5d30a52532dfa1135ea17bb4157a9eeb2ab`, `dirty_at_start: false`, **45 modules,
+462 tests, zero failed module exit codes**. This is the root agent's broader
+measured run, not a second independent execution of all 462 tests. It includes
+the final 9 session tests, 11 claim tests and 14 installed-executor adapter tests.
+The review addendum changes documentation only. All live acceptance boundaries
+above remain pending.

@@ -1,0 +1,303 @@
+{
+  "implementation_sha": "241ea5d30a52532dfa1135ea17bb4157a9eeb2ab",
+  "dirty_at_test_start": false,
+  "command": ".\\.venv\\Scripts\\python.exe scripts/verify_core_routes.py --routes",
+  "python": "Python 3.13.15",
+  "ok_script": "3.0.4",
+  "modules": 45,
+  "tests": 462,
+  "results": [
+    {
+      "module": "TestAutomationSession",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.665
+    },
+    {
+      "module": "TestAutomationAdapter",
+      "exit_code": 0,
+      "tests": 14,
+      "seconds": 0.642
+    },
+    {
+      "module": "TestResourceClaims",
+      "exit_code": 0,
+      "tests": 11,
+      "seconds": 0.629
+    },
+    {
+      "module": "TestResourceGoals",
+      "exit_code": 0,
+      "tests": 32,
+      "seconds": 1.525
+    },
+    {
+      "module": "TestResourceRoutineTask",
+      "exit_code": 0,
+      "tests": 10,
+      "seconds": 0.924
+    },
+    {
+      "module": "TestCultivationTask",
+      "exit_code": 0,
+      "tests": 22,
+      "seconds": 1.013
+    },
+    {
+      "module": "TestStoryWatch",
+      "exit_code": 0,
+      "tests": 18,
+      "seconds": 0.877
+    },
+    {
+      "module": "TestRuntimeQualification",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.965
+    },
+    {
+      "module": "TestHuntMobTask",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.913
+    },
+    {
+      "module": "TestHuntController",
+      "exit_code": 0,
+      "tests": 16,
+      "seconds": 0.709
+    },
+    {
+      "module": "TestHuntValidation",
+      "exit_code": 0,
+      "tests": 15,
+      "seconds": 0.971
+    },
+    {
+      "module": "TestHuntProfileSetup",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.781
+    },
+    {
+      "module": "TestHuntInputAccess",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.576
+    },
+    {
+      "module": "TestHuntPlayerLocator",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.62
+    },
+    {
+      "module": "TestHuntDiagnostics",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.92
+    },
+    {
+      "module": "TestOverworldMobHunt",
+      "exit_code": 0,
+      "tests": 10,
+      "seconds": 0.765
+    },
+    {
+      "module": "TestRouteFollower",
+      "exit_code": 0,
+      "tests": 14,
+      "seconds": 0.62
+    },
+    {
+      "module": "TestCalibrationCapture",
+      "exit_code": 0,
+      "tests": 13,
+      "seconds": 0.921
+    },
+    {
+      "module": "TestArrowHeading",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 1.025
+    },
+    {
+      "module": "TestConfig",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.661
+    },
+    {
+      "module": "TestCustomCharLoader",
+      "exit_code": 0,
+      "tests": 26,
+      "seconds": 1.158
+    },
+    {
+      "module": "TestOneTimeCombatRestart",
+      "exit_code": 0,
+      "tests": 3,
+      "seconds": 0.742
+    },
+    {
+      "module": "TestDeathReentry",
+      "exit_code": 0,
+      "tests": 12,
+      "seconds": 0.692
+    },
+    {
+      "module": "TestDomainRecoveryLoop",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.575
+    },
+    {
+      "module": "TestScheduleSupport",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.601
+    },
+    {
+      "module": "TestMultiAccountDailyTask",
+      "exit_code": 0,
+      "tests": 8,
+      "seconds": 0.843
+    },
+    {
+      "module": "TestMultiAccountConfig",
+      "exit_code": 0,
+      "tests": 35,
+      "seconds": 2.292
+    },
+    {
+      "module": "TestMouseResetTask",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.611
+    },
+    {
+      "module": "TestMouseResetImport",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 0.58
+    },
+    {
+      "module": "TestAutoCombatTask",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 0.673
+    },
+    {
+      "module": "TestAutoPickTask",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 1.001
+    },
+    {
+      "module": "TestSkipDialogConfirm",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.662
+    },
+    {
+      "module": "TestSkipDialogWideMode",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 3.508
+    },
+    {
+      "module": "TestNightmareNestTask",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.755
+    },
+    {
+      "module": "TestFarmEchoPickup",
+      "exit_code": 0,
+      "tests": 3,
+      "seconds": 0.696
+    },
+    {
+      "module": "TestFarmEchoTaskEchoRate",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.72
+    },
+    {
+      "module": "TestFarmEchoTeleport",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 0.797
+    },
+    {
+      "module": "TestBaseCombatTask",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.676
+    },
+    {
+      "module": "TestGameLauncher",
+      "exit_code": 0,
+      "tests": 12,
+      "seconds": 0.807
+    },
+    {
+      "module": "TestFeatureSet",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 1.234
+    },
+    {
+      "module": "TestTacet",
+      "exit_code": 0,
+      "tests": 1,
+      "seconds": 1.589
+    },
+    {
+      "module": "TestWorld",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 1.63
+    },
+    {
+      "module": "TestCharacterCodeTab",
+      "exit_code": 0,
+      "tests": 38,
+      "seconds": 7.393
+    },
+    {
+      "module": "TestMaterialRoute",
+      "exit_code": 0,
+      "tests": 18,
+      "seconds": 0.736
+    },
+    {
+      "module": "TestBoundedRouteTask",
+      "exit_code": 0,
+      "tests": 8,
+      "seconds": 0.742
+    }
+  ],
+  "independent_review": "docs/AUTOMATION-REVIEW.md",
+  "live_status": "LIVE_VERIFICATION_PENDING",
+  "runtime_preview": {
+    "run_id": "04722c1b403843a09f144b331a6f81b5",
+    "state": "succeeded",
+    "game_input": false,
+    "assertions": [
+      "registered ResourceRoutineTask exists",
+      "user-supplied goal labelled",
+      "unknown material mapping stays UNRESOLVED",
+      "preview config restored"
+    ]
+  },
+  "capture_only": {
+    "cached": false,
+    "width": 2560,
+    "height": 1440,
+    "backend": "WindowsGraphicsCaptureMethod",
+    "sha256": "17a79e692e9ff811d323135135b40581246f3edccca59a6a712d7b33e9915490",
+    "source_revision": "working candidate before final source restart",
+    "qualification": "capture observation only; not material/story/combat PASS"
+  }
+}
