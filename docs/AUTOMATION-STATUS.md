@@ -30,7 +30,7 @@ continuity or release outcome is claimed. Follow [LIVE-QUALIFICATION.md](LIVE-QU
 for the exact remaining steps, and [the capability matrix](AUTOMATION-CAPABILITY-MATRIX.md)
 for supported profile/evidence boundaries.
 
-## Measured delivery checkpoint
+## Initial measured delivery checkpoint (Python 3.13)
 
 Implementation SHA: `241ea5d30a52532dfa1135ea17bb4157a9eeb2ab`.
 Core commit: `354d4d7c`; separate route extension: `241ea5d3`.
@@ -51,3 +51,23 @@ Final handoff: activate the no-skip guard before narrative content; keep spendin
 and routes in preview until the profile/privilege/live gates are completed.
 Use the local steps in LIVE-QUALIFICATION.md. No real known material/pickup route
 or story segment is enabled; their complete bounded drivers await actual evidence.
+
+## Supported Python 3.12 delivery checkpoint
+
+Source SHA: `dc422e5276797448bbcdaf4c9506b44ef06a2fd9` (same implementation plus
+preserved inherited CLI task order). Candidate `.venv`: **Python 3.12.14,
+ok-script 3.0.4**, exact requirements pins. The clean-SHA run passed **463 tests
+across 45 isolated processes**, including the new `-t 1` DailyTask compatibility
+regression. `pip check` and compilation pass. See [the supported-runtime record](evidence/2026-11-08-python312-verification.json).
+
+Registered ResourceRoutineTask read-only preview also reached `succeeded` through
+MCP on Python 3.12, run `3ae70e3c92634b63a78e7052dfc2f950`; it verified the
+labelled unmapped goal remains UNRESOLVED and restored configuration. No game
+input was issued, and the owned runtime was shut down after its terminal result.
+Independent source review found no additional material issues in the registration
+change; the full 463-test run is root-measured evidence. All live gates remain.
+
+After this documentation-only checkpoint, the final-head verification command is
+`.\.venv\Scripts\python.exe scripts/verify_core_routes.py --routes --output logs/core-routes/delivery-head-verification`.
+Its persisted results identify the final handoff SHA; it does not change source
+or promote any live gate. The primary checkout remains clean at b3dc536f.

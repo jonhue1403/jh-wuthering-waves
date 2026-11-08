@@ -1,0 +1,286 @@
+{
+  "sha": "dc422e5276797448bbcdaf4c9506b44ef06a2fd9",
+  "dirty_at_start": false,
+  "python": "Z:\\Game\\jh-ww-core-routes-20261108\\.venv\\Scripts\\python.exe",
+  "results": [
+    {
+      "module": "TestAutomationSession",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.781
+    },
+    {
+      "module": "TestAutomationAdapter",
+      "exit_code": 0,
+      "tests": 14,
+      "seconds": 0.828
+    },
+    {
+      "module": "TestResourceClaims",
+      "exit_code": 0,
+      "tests": 11,
+      "seconds": 0.75
+    },
+    {
+      "module": "TestResourceGoals",
+      "exit_code": 0,
+      "tests": 32,
+      "seconds": 1.813
+    },
+    {
+      "module": "TestResourceRoutineTask",
+      "exit_code": 0,
+      "tests": 10,
+      "seconds": 1.578
+    },
+    {
+      "module": "TestCultivationTask",
+      "exit_code": 0,
+      "tests": 22,
+      "seconds": 1.156
+    },
+    {
+      "module": "TestStoryWatch",
+      "exit_code": 0,
+      "tests": 18,
+      "seconds": 0.938
+    },
+    {
+      "module": "TestRuntimeQualification",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 1.094
+    },
+    {
+      "module": "TestHuntMobTask",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 1.125
+    },
+    {
+      "module": "TestHuntController",
+      "exit_code": 0,
+      "tests": 16,
+      "seconds": 0.765
+    },
+    {
+      "module": "TestHuntValidation",
+      "exit_code": 0,
+      "tests": 15,
+      "seconds": 1.125
+    },
+    {
+      "module": "TestHuntProfileSetup",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 1.016
+    },
+    {
+      "module": "TestHuntInputAccess",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.703
+    },
+    {
+      "module": "TestHuntPlayerLocator",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.781
+    },
+    {
+      "module": "TestHuntDiagnostics",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 1.078
+    },
+    {
+      "module": "TestOverworldMobHunt",
+      "exit_code": 0,
+      "tests": 10,
+      "seconds": 0.938
+    },
+    {
+      "module": "TestRouteFollower",
+      "exit_code": 0,
+      "tests": 14,
+      "seconds": 0.687
+    },
+    {
+      "module": "TestCalibrationCapture",
+      "exit_code": 0,
+      "tests": 13,
+      "seconds": 1.11
+    },
+    {
+      "module": "TestArrowHeading",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 1.125
+    },
+    {
+      "module": "TestConfig",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 0.843
+    },
+    {
+      "module": "TestCustomCharLoader",
+      "exit_code": 0,
+      "tests": 26,
+      "seconds": 1.704
+    },
+    {
+      "module": "TestOneTimeCombatRestart",
+      "exit_code": 0,
+      "tests": 3,
+      "seconds": 1.187
+    },
+    {
+      "module": "TestDeathReentry",
+      "exit_code": 0,
+      "tests": 12,
+      "seconds": 1.047
+    },
+    {
+      "module": "TestDomainRecoveryLoop",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.937
+    },
+    {
+      "module": "TestScheduleSupport",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 0.907
+    },
+    {
+      "module": "TestMultiAccountDailyTask",
+      "exit_code": 0,
+      "tests": 8,
+      "seconds": 1.265
+    },
+    {
+      "module": "TestMultiAccountConfig",
+      "exit_code": 0,
+      "tests": 35,
+      "seconds": 4.953
+    },
+    {
+      "module": "TestMouseResetTask",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.766
+    },
+    {
+      "module": "TestMouseResetImport",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 0.781
+    },
+    {
+      "module": "TestAutoCombatTask",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 0.891
+    },
+    {
+      "module": "TestAutoPickTask",
+      "exit_code": 0,
+      "tests": 7,
+      "seconds": 1.125
+    },
+    {
+      "module": "TestSkipDialogConfirm",
+      "exit_code": 0,
+      "tests": 4,
+      "seconds": 0.797
+    },
+    {
+      "module": "TestSkipDialogWideMode",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 4.062
+    },
+    {
+      "module": "TestNightmareNestTask",
+      "exit_code": 0,
+      "tests": 9,
+      "seconds": 0.812
+    },
+    {
+      "module": "TestFarmEchoPickup",
+      "exit_code": 0,
+      "tests": 3,
+      "seconds": 0.829
+    },
+    {
+      "module": "TestFarmEchoTaskEchoRate",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.812
+    },
+    {
+      "module": "TestFarmEchoTeleport",
+      "exit_code": 0,
+      "tests": 6,
+      "seconds": 0.875
+    },
+    {
+      "module": "TestBaseCombatTask",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 0.765
+    },
+    {
+      "module": "TestGameLauncher",
+      "exit_code": 0,
+      "tests": 12,
+      "seconds": 0.875
+    },
+    {
+      "module": "TestFeatureSet",
+      "exit_code": 0,
+      "tests": 5,
+      "seconds": 1.25
+    },
+    {
+      "module": "TestTacet",
+      "exit_code": 0,
+      "tests": 1,
+      "seconds": 1.672
+    },
+    {
+      "module": "TestWorld",
+      "exit_code": 0,
+      "tests": 2,
+      "seconds": 1.719
+    },
+    {
+      "module": "TestCharacterCodeTab",
+      "exit_code": 0,
+      "tests": 38,
+      "seconds": 7.078
+    },
+    {
+      "module": "TestMaterialRoute",
+      "exit_code": 0,
+      "tests": 18,
+      "seconds": 0.875
+    },
+    {
+      "module": "TestBoundedRouteTask",
+      "exit_code": 0,
+      "tests": 8,
+      "seconds": 0.953
+    }
+  ],
+  "python_version": "Python 3.12.14",
+  "ok_script": "3.0.4",
+  "test_count": 463,
+  "runtime_preview": {
+    "run_id": "3ae70e3c92634b63a78e7052dfc2f950",
+    "state": "succeeded",
+    "game_input": false
+  },
+  "live_status": "LIVE_VERIFICATION_PENDING"
+}

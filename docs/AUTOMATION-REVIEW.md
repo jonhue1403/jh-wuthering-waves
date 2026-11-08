@@ -107,3 +107,28 @@ measured run, not a second independent execution of all 462 tests. It includes
 the final 9 session tests, 11 claim tests and 14 installed-executor adapter tests.
 The review addendum changes documentation only. All live acceptance boundaries
 above remain pending.
+
+## Supported-runtime and registration addendum
+
+The subsequent registration-only compatibility change at
+`dc422e5276797448bbcdaf4c9506b44ef06a2fd9` appends the five new tasks after the
+inherited entries. The reviewer inspected this diff and its added regression:
+the documented CLI `-t 1` continues to select DailyTask, and inherited JH task
+order is preserved. No new material finding was established.
+
+The repository's development guidance specifies Python 3.12; its broader
+`pyproject.toml` minimum does not replace that documented runtime. The root
+preserved the primary checkout/environment and rebuilt only the candidate's
+standard `.venv` on Python **3.12.14**, retaining the same exact dependency pins.
+Earlier review measurements above used Python 3.13 and remain separately
+identified evidence.
+
+The reviewer read and checked
+`logs/core-routes/python312-verification/results.json`: exact source SHA
+`dc422e5276797448bbcdaf4c9506b44ef06a2fd9`, `dirty_at_start: false`, **45 modules,
+463 collected tests, zero failed module exit codes**. This supported-runtime run
+was executed by the root agent, not independently rerun in full by the reviewer.
+The extra test checks DailyTask's documented CLI index. The root also reports a
+successful registered queue preview on Python 3.12; that read-only preview is
+separate from game/input/live acceptance and is documented in its runtime
+evidence. No new live gates or live PASS claims follow from this addendum.
