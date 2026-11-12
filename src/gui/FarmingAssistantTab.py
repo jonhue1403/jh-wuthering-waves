@@ -136,6 +136,12 @@ class FarmingAssistantTab(CustomTab):
         self.calibration_label.setWordWrap(True)
         detail.addWidget(self.calibration_label)
 
+        self.route_calibration_label = QLabel(
+            self.tr("Local routes: none qualified for execution"), right
+        )
+        self.route_calibration_label.setWordWrap(True)
+        detail.addWidget(self.route_calibration_label)
+
         actions = QHBoxLayout()
         self.start_button = QToolButton(right)
         self.pause_button = QToolButton(right)
@@ -214,6 +220,7 @@ class FarmingAssistantTab(CustomTab):
             self.source_list.clear()
             self.inventory_label.setText(self.tr("Current inventory: not measured"))
             self.calibration_label.setText(self.tr("Local receipts: none reviewed for execution"))
+            self.route_calibration_label.setText(self.tr("Local routes: none qualified for execution"))
             self.state_label.setText(self.tr("State: PREVIEW ONLY"))
             self.next_step.setText(self.tr("Select a material or mob to preview."))
             self._update_source_button()
@@ -259,6 +266,20 @@ class FarmingAssistantTab(CustomTab):
             self.calibration_label.setText(
                 self.calibration_label.text() + self.tr(
                     " · Evidence audit incomplete or invalid entries detected"
+                )
+            )
+        routes = result["route_calibration"]
+        self.route_calibration_label.setText(
+            self.tr("Local route candidates: {count} — static audit only").format(
+                count=routes["route_candidate_count"]
+            ) if routes["route_candidate_count"]
+            else self.tr("No qualified local route observations")
+        )
+        if (routes["rejected_manifest_count"]
+                or routes["status"] == "ROUTE_AUDIT_INCOMPLETE"):
+            self.route_calibration_label.setText(
+                self.route_calibration_label.text() + self.tr(
+                    " · Route audit incomplete or invalid entries detected"
                 )
             )
         self.state_label.setText(self.tr("State: PREVIEW ONLY"))
