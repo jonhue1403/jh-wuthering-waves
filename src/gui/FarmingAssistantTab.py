@@ -142,6 +142,12 @@ class FarmingAssistantTab(CustomTab):
         self.route_calibration_label.setWordWrap(True)
         detail.addWidget(self.route_calibration_label)
 
+        self.reconciliation_label = QLabel(
+            self.tr("Receipt/route cross-check: no matching local enemy IDs"), right
+        )
+        self.reconciliation_label.setWordWrap(True)
+        detail.addWidget(self.reconciliation_label)
+
         actions = QHBoxLayout()
         self.start_button = QToolButton(right)
         self.pause_button = QToolButton(right)
@@ -221,6 +227,10 @@ class FarmingAssistantTab(CustomTab):
             self.inventory_label.setText(self.tr("Current inventory: not measured"))
             self.calibration_label.setText(self.tr("Local receipts: none reviewed for execution"))
             self.route_calibration_label.setText(self.tr("Local routes: none qualified for execution"))
+            self.reconciliation_label.setText(
+                self.tr("Receipt/route cross-check: no matching local enemy IDs")
+            )
+            self.reconciliation_label.setToolTip("")
             self.state_label.setText(self.tr("State: PREVIEW ONLY"))
             self.next_step.setText(self.tr("Select a material or mob to preview."))
             self._update_source_button()
@@ -282,6 +292,23 @@ class FarmingAssistantTab(CustomTab):
                     " · Route audit incomplete or invalid entries detected"
                 )
             )
+        comparison = result["reconciliation"]
+        count = comparison["candidate_match_count"]
+        if count:
+            label = self.tr(
+                "Historical enemy-ID overlaps: {count} — not live-qualified"
+            ).format(count=count)
+        elif comparison["status"] == "AMBIGUOUS_RECEIPT_IDENTITIES":
+            label = self.tr("Conflicting enemy IDs in local evidence — review required")
+        elif comparison["status"] in (
+            "INCOMPLETE_AUDITS", "TARGET_SCOPE_MISMATCH", "INVALID_AUDIT_SCHEMA",
+            "UNRECOGNIZED_CATALOG_MOB",
+        ):
+            label = self.tr("Receipt/route evidence needs review before matching")
+        else:
+            label = self.tr("Receipt/route cross-check: no matching local enemy IDs")
+        self.reconciliation_label.setText(label)
+        self.reconciliation_label.setToolTip(comparison["note"])
         self.state_label.setText(self.tr("State: PREVIEW ONLY"))
         self.next_step.setText(result["next_step"])
         self._disable_actions()
