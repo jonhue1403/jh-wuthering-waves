@@ -26,6 +26,21 @@ class TestCalculatePcExePath(unittest.TestCase):
             (FarmingAssistantTask.web_tab.asset_dir / 'index.js').is_file()
         )
 
+    def test_farming_assistant_qt_tab_registered_separately_from_web(self):
+        expected = ['src.gui.FarmingAssistantTab', 'FarmingAssistantTab']
+        self.assertEqual([expected], config.config.get('custom_tabs'))
+        self.assertNotIn(expected, config.config.get('onetime_tasks', []))
+        self.assertNotIn(expected, config.config.get('trigger_tasks', []))
+        self.assertNotIn(expected, config.config.get('web_tabs', []))
+        # Import the Qt frontend only when the native frontend dependency exists.
+        try:
+            from PySide6.QtWidgets import QApplication
+        except ImportError:
+            self.skipTest("Qt not installed on this test host")
+        from ok.ui.qt.widget.CustomTab import CustomTab
+        from src.gui.FarmingAssistantTab import FarmingAssistantTab
+        self.assertTrue(issubclass(FarmingAssistantTab, CustomTab))
+
     def test_none_path_uses_most_recently_run_executable(self):
         expected = r"C:\Games\Wuthering Waves.exe"
 
