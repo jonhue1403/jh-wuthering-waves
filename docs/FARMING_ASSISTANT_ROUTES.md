@@ -55,6 +55,43 @@ flag; users never have to enter a Route Manifest or Hunt Profile path.
 Mob-name selection cannot infer an internal numeric game mob ID from a wiki
 slug; the material and mob execution pathways remain blocked independently.
 
+## Historical receipt-to-route cross-check (offline, non-authorizing)
+
+The material preview now has a **read-only enemy-ID cross-check** in both Qt
+and Web. `src/automation/farming_reconciliation.py` joins only the local
+inventory-receipt candidate rows and local route candidate rows that claim the
+**same material and the exact same ASCII-decimal game enemy ID**. For example,
+`000123` and `123` are **different IDs**; no wiki/display-name inference,
+numeric coercion, fuzzy match or fabricated spawn is permitted.
+
+The cross-check requires both bounded audits to be complete with no rejected
+entries. It rejects mismatched material scopes, invalid count/status contracts,
+unknown catalog enemy names, enemies not documented as possible sources for
+the selected material, duplicate route identities, conflicting historical
+versions, and ambiguous mappings between catalog names and game IDs.
+Duplicate consistent receipts are counted as records, not additional
+independent mob/route pairs.
+
+`LOCAL_ID_OVERLAP_ONLY` means only that historical metadata contains a
+matching numeric ID. It is **not** a verified drop, current-version spawn,
+reviewed route, successful OCR observation or gameplay permit. The static route
+manifest does not independently bind current runtime/game version. No
+`FarmingCatalog.resolve` execution-verifier callback is invoked, and this
+cross-check cannot populate the live-authority fields
+`verified_mob_ids`, `qualified_route_ids`, `owned_quantity` or `can_start`.
+The UI displays a count/diagnostic, never a user-entered route/profile path.
+Start/Pause/Stop remain disabled even when local IDs overlap.
+
+Synthetic qualification checks (Windows PowerShell):
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingReconciliation.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingEvidence.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRouteAudit.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_reconciliation.py src/automation/farming_view.py
+node --check src/web/farming_assistant/index.js
+```
+
 ## What this audit deliberately cannot qualify
 
 Static intake does **not** validate an actual drop from the game's inventory
