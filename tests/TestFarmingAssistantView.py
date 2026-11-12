@@ -46,12 +46,17 @@ class TestFarmingAssistantView(unittest.TestCase):
                        "LOCAL_CANDIDATES_ONLY"))
         self.assertFalse(preview["calibration"]["can_start"])
         self.assertNotIn("profile_path", repr(preview["calibration"]))
+        self.assertEqual(0, preview["route_calibration"]["route_candidate_count"])
+        self.assertEqual("NO_LOCAL_ROUTES", preview["route_calibration"]["status"])
+        self.assertFalse(preview["route_calibration"]["can_start"])
 
     def test_mob_selection_remains_unqualified(self):
         preview = self.view.preview("mob", "sabercat-reaver")
         self.assertEqual([], preview["source_candidates"])
         self.assertEqual("ROUTE_UNQUALIFIED", preview["readiness"])
         self.assertEqual("NO_MOB_ROUTE_QUALIFICATION", preview["calibration"]["status"])
+        self.assertEqual("NO_MOB_ROUTE_QUALIFICATION",
+                         preview["route_calibration"]["status"])
         self.assertFalse(preview["can_start"])
         self.assertIsNone(preview["desired_total"])
 
