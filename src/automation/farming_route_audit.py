@@ -8,11 +8,12 @@ Only direct child files in the private calibration folder are inspected.
 
 from dataclasses import dataclass
 from hashlib import sha256
-import json
 from math import isfinite
 from pathlib import Path
 import re
 import time
+
+from src.automation.farming_static_json import read_static_json
 
 
 DEFAULT_ROUTES_DIR = (
@@ -60,10 +61,7 @@ def _safe_file(base, name, limit):
 
 def _load_json(base, name, limit):
     path, _ = _safe_file(base, name, limit)
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict):
-        raise ValueError("Calibration metadata must be a JSON object")
-    return data
+    return read_static_json(path, max_bytes=limit)
 
 
 def _sha_match(base, name, digest, byte_budget, *, limit):
@@ -227,12 +225,19 @@ class FarmingRouteAudit:
         except OSError:
             return (), 1, True
         candidates = []
+        route_ids = set()
         rejected = 0
         incomplete = len(manifests) > MAX_ROUTES
         budget = [0]
         for path in manifests[:MAX_ROUTES]:
             try:
-                candidates.append(_candidate(base, path.name, budget))
+                candidate = _candidate(base, path.name, budget)
+                # Distinct manifest filenames are not distinct routes.  Never
+                # count duplicate route IDs as multiple calibrated candidates.
+                if candidate.route_id in route_ids:
+                    raise ValueError("Duplicate candidate route ID")
+                route_ids.add(candidate.route_id)
+                candidates.append(candidate)
             except AuditBudgetExhausted:
                 incomplete = True
                 rejected += 1
