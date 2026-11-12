@@ -132,6 +132,10 @@ class FarmingAssistantTab(CustomTab):
         self.inventory_label = QLabel(self.tr("Current inventory: not measured"), right)
         detail.addWidget(self.inventory_label)
 
+        self.calibration_label = QLabel(self.tr("Local receipts: none reviewed for execution"), right)
+        self.calibration_label.setWordWrap(True)
+        detail.addWidget(self.calibration_label)
+
         actions = QHBoxLayout()
         self.start_button = QToolButton(right)
         self.pause_button = QToolButton(right)
@@ -209,6 +213,7 @@ class FarmingAssistantTab(CustomTab):
             self.reason_label.clear()
             self.source_list.clear()
             self.inventory_label.setText(self.tr("Current inventory: not measured"))
+            self.calibration_label.setText(self.tr("Local receipts: none reviewed for execution"))
             self.state_label.setText(self.tr("State: PREVIEW ONLY"))
             self.next_step.setText(self.tr("Select a material or mob to preview."))
             self._update_source_button()
@@ -243,6 +248,19 @@ class FarmingAssistantTab(CustomTab):
             self.source_list.addItem(item)
         self._update_source_button()
         self.inventory_label.setText(self.tr("Current inventory: not measured"))
+        calibration = result["calibration"]
+        candidate_count = calibration["receipt_candidate_count"]
+        self.calibration_label.setText(
+            self.tr("Local receipt candidates: {count} — not live-qualified").format(
+                count=candidate_count
+            ) if candidate_count else self.tr("No qualified local receipt observations")
+        )
+        if calibration["rejected_manifest_count"] or calibration["status"] == "AUDIT_INCOMPLETE":
+            self.calibration_label.setText(
+                self.calibration_label.text() + self.tr(
+                    " · Evidence audit incomplete or invalid entries detected"
+                )
+            )
         self.state_label.setText(self.tr("State: PREVIEW ONLY"))
         self.next_step.setText(result["next_step"])
         self._disable_actions()
