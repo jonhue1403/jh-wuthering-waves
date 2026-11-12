@@ -34,6 +34,13 @@ Store a **copy** of candidate files at:
   1–3 camps, bounded finite waypoints, a finite time/radius, a compatible
   inventory-reader contract, and hashed evidence for every camp, source,
   item reader and pickup.
+- Malformed/ambiguous JSON is rejected, including duplicate keys at **any**
+  nesting level and nonstandard `NaN`/`Infinity` literals. The JSON decoder
+  also enforces its byte cap when reading, not only from the prior file stat.
+- Two different local manifest filenames cannot count as two independent
+  routes if they claim the same `route_id`. Duplicate route identity is
+  rejected as a static input error; neither the surviving candidate nor the
+  rejected duplicate authorizes farming.
 - Files are never uploaded, and account/profile screenshots should never be
   committed to GitHub. The scanner has a bounded 10-second read-only cache.
 
