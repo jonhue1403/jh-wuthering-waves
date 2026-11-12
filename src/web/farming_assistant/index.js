@@ -136,6 +136,17 @@ export function mount(container, context) {
     } else {
       right.append(node("p", "farm-muted", t("No documented source mobs.")));
     }
+    const audit = data.calibration || {};
+    const candidateCount = Number(audit.receipt_candidate_count) || 0;
+    const auditText = candidateCount
+      ? t("Local receipt candidates (unverified): ") + String(candidateCount)
+      : t("No qualified local receipt observations");
+    right.append(node("p", "farm-muted", auditText));
+    if ((Number(audit.rejected_manifest_count) || 0) > 0 ||
+        audit.status === "AUDIT_INCOMPLETE") {
+      right.append(node("p", "farm-muted",
+        t("Evidence audit incomplete or invalid entries detected.")));
+    }
     right.append(
       node("div", "farm-divider"),
       node("label", "farm-label", t("Target inventory total (optional)"))
