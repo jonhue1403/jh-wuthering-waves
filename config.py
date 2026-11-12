@@ -297,6 +297,11 @@ config = {
         ["src.task.FastTravelTask", "FastTravelTask"],
         ["src.task.MouseResetTask", "MouseResetTask"],
     ],
+    # The native Qt preview and web preview are separate, read-only pages.
+    # Neither is a runnable/trigger task; the legacy HuntMobTask is retained.
+    'custom_tabs': [
+        ["src.gui.FarmingAssistantTab", "FarmingAssistantTab"],
+    ],
     # WebCustomTab pages are web-only; never register these as runnable
     # onetime/trigger tasks or assume they appear in the classic Qt UI.
     'web_tabs': [
