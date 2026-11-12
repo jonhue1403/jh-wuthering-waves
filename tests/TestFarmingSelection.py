@@ -63,14 +63,17 @@ class TestFarmingSelection(unittest.TestCase):
 
     def test_route_metadata_alone_never_enables_farming(self):
         catalog = self.catalog(drops=(self.drop,), routes=(self.route,))
-        result = catalog.resolve(TargetKind.MATERIAL, "material-1")
+        result = catalog.resolve(TargetKind.MATERIAL, "material-1",
+                                 source_is_qualified=lambda _: True)
         self.assertEqual(FarmingReadiness.ROUTE_UNQUALIFIED, result.readiness)
         self.assertEqual((), result.qualified_route_ids)
 
     def test_explicit_failed_verification_still_blocks(self):
         catalog = self.catalog(drops=(self.drop,), routes=(self.route,))
         result = catalog.resolve(
-            TargetKind.MATERIAL, "material-1", route_is_qualified=lambda _: False
+            TargetKind.MATERIAL, "material-1",
+            route_is_qualified=lambda _: False,
+            source_is_qualified=lambda _: True,
         )
         self.assertEqual(FarmingReadiness.ROUTE_UNQUALIFIED, result.readiness)
 
