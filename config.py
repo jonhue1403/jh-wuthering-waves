@@ -296,7 +296,13 @@ config = {
         ["src.task.SkipDialogTask", "AutoDialogTask"],
         ["src.task.FastTravelTask", "FastTravelTask"],
         ["src.task.MouseResetTask", "MouseResetTask"],
-    ], 'scene': ["src.scene.WWScene", "WWScene"],
+    ],
+    # WebCustomTab pages are web-only; never register these as runnable
+    # onetime/trigger tasks or assume they appear in the classic Qt UI.
+    'web_tabs': [
+        ["src.task.FarmingAssistantTask", "FarmingAssistantTask"],
+    ],
+    'scene': ["src.scene.WWScene", "WWScene"],
     'update_pyappify': {
         'to_version': '1.2.3',
         'zip_url': 'https://github.com/ok-oldking/ok-wuthering-waves/releases/download/v3.5.30/ok-ww-win32.zip',
