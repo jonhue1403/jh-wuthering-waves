@@ -158,6 +158,24 @@ export function mount(container, context) {
       right.append(node("p", "farm-muted",
         t("Route audit incomplete or invalid entries detected.")));
     }
+    // Reconciliation is informational only; even matching numeric IDs do
+    // not prove current game identity, drop receipts or route authorization.
+    const comparison = data.reconciliation || {};
+    const matches = Number(comparison.candidate_match_count) || 0;
+    let comparisonText;
+    if (matches) {
+      comparisonText = t("Historical enemy-ID overlaps (not live-qualified): ") +
+        String(matches);
+    } else if (comparison.status === "AMBIGUOUS_RECEIPT_IDENTITIES") {
+      comparisonText = t("Conflicting enemy IDs in local evidence; review required.");
+    } else if (["INCOMPLETE_AUDITS", "TARGET_SCOPE_MISMATCH",
+                "INVALID_AUDIT_SCHEMA", "UNRECOGNIZED_CATALOG_MOB"]
+                .includes(comparison.status)) {
+      comparisonText = t("Receipt/route evidence requires review before matching.");
+    } else {
+      comparisonText = t("No matching local enemy IDs; route calibration required.");
+    }
+    right.append(node("p", "farm-muted", comparisonText));
     right.append(
       node("div", "farm-divider"),
       node("label", "farm-label", t("Target inventory total (optional)"))
