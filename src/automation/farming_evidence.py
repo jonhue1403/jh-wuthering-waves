@@ -71,7 +71,8 @@ def _load_candidate(path, base, now):
         raise ValueError("Unusable evidence manifest")
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or (
-        data.get("schema_version") != 1 or data.get("status") != "REVIEWED"
+        type(data.get("schema_version")) is not int or data["schema_version"] != 1
+        or data.get("status") != "REVIEWED"
         or data.get("independent_review") is not True
     ):
         raise ValueError("Unreviewed evidence metadata")
@@ -141,11 +142,14 @@ class FarmingEvidenceAudit:
 
     def _scan(self):
         base = self.directory
-        if not base.exists():
-            return (), 0, False
-        if base.is_symlink() or not base.is_dir():
+        try:
+            if base.is_symlink() or (base.exists() and not base.is_dir()):
+                return (), 1, True
+            if not base.exists():
+                return (), 0, False
+            manifests = sorted(base.glob("*.json"))
+        except OSError:
             return (), 1, True
-        manifests = sorted(base.glob("*.json"))
         incomplete = len(manifests) > MAX_MANIFESTS
         rejected = 0
         candidates = []
