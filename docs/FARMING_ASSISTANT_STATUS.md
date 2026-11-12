@@ -58,9 +58,28 @@ node --check src/web/farming_assistant/index.js
 
 Confirm custom-task discovery exposes the new Farming Assistant WebCustomTab. If unavailable, correct registration by following the installed `ok-script` discovery contract, without modifying unrelated task registrations. This increment does not authorize any route executor.
 
+## 2026-11-13 02:04 MYT — web-tab registration increment
+
+- **Root cause discovered:** `FarmingAssistantTask` inherited from `WebCustomTab` but had no `config['web_tabs']` entry, so the existing Web UI had no supported way to discover this tab. Verified the official OK Script contract: https://ok-script.com/en/docs/task_web_tabs/ (Web-only `web_tabs`; Qt `custom_tabs`; `WebCustomTab` does not belong in `onetime_tasks`).
+- `config.py`: registered `["src.task.FarmingAssistantTask", "FarmingAssistantTask"]` under `web_tabs` only. Existing task registration/order and Qt task behavior remain unchanged; preview still cannot control the game.
+- `tests/TestConfig.py`: added a contract test asserting web-only registration, `WebCustomTab` inheritance, the stable tab ID, no runnable task entry, `task_controls=False`, and an existing `index.js`.
+- Commits: `33f92463601e4c21dbf1e04f68473006dc8c51e6` (config), `68f3fbf94ac45b4d302088bc3c0e7ef470543abd` (test).
+- **Verification status:** code committed and read-back confirmed; **Python tests, web server startup, frontend mount and actual Qt UI not run**. No authenticated local game or ok-script MCP runtime is accessible to this scheduled run.
+- **Important scope:** This makes the tab discoverable by the **Web UI** in `main_web.py`; it does **not** make a new tab appear in classic **Qt** UI and does not hide the legacy `HuntMobTask` developer form. The Qt UX replacement remains pending.
+- Local Codex acceptance commands (Windows, from repo root after switching to this branch):
+  ```powershell
+  .\.venv\Scripts\python.exe -m unittest discover -s tests -p TestConfig.py -v
+  .\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
+  .\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingSelection.py -v
+  .\.venv\Scripts\python.exe -m py_compile config.py src/task/FarmingAssistantTask.py
+  node --check src/web/farming_assistant/index.js
+  .\.venv\Scripts\python.exe main_web.py --browser
+  ```
+  Check Farming Assistant navigation is visible and read-only; Start, Pause and Stop disabled. Record screenshot and inspect backend logs; do not start game execution.
+
 ## Next independently reviewable increments (in order)
 
-1. **Local qualification of preview UI**: verify OK Script `WebCustomTab` discovery and asset loading, review keyboard/navigation and run the new contract tests. If auto-discovery does not find `FarmingAssistantTask`, add the smallest supported registration. Keep the old `HuntMobTask` until a safe replacement mechanism is verified.
+1. **Local qualification of preview UI and classic Qt replacement**: explicit WebCustomTab registration is now implemented. Run `TestConfig.py`, launch `main_web.py --browser`, verify asset loading, keyboard/navigation and host signals; add an independently safe PySide6 Qt `custom_tabs` presentation next for users of the default classic desktop UI. Preserve old `HuntMobTask` until the replacement's compatibility and controls are qualified.
 2. Build a read-only source catalog adapter using actual current-game source/profile evidence (the basic external-vs-observed distinction and five-source seed are now implemented). Verify exact game IDs, material receipt hashes, aliases/locale and stale profiles. Do not assign playable routes to FF Mech Core without independent real evidence.
 3. Upgrade the read-only preview UI to fully operational task controls only once live gates pass. The compact native WebCustomTab preview is implemented but Start/Pause/Stop, current inventory and progress receipts are intentionally inactive. Hide legacy developer file paths from ordinary users only after compatibility qualification.
 4. Bind selected targets to existing bounded route machinery through internal profile and runtime-qualification resolution. Fail closed when missing/stale/unverified; support safe read-only preview and guided calibration; never silently enable walking/teleport/claim/combats.
