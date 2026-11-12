@@ -3,8 +3,8 @@
 import unittest
 
 from src.automation.farming_selection import (
-    CandidateRoute, FarmingCatalog, FarmingReadiness, FarmingTarget,
-    ObservedMobDrop, TargetKind, starting_catalog,
+    CandidateRoute, DocumentedMobDrop, FarmingCatalog, FarmingReadiness,
+    FarmingTarget, ObservedMobDrop, TargetKind, starting_catalog,
 )
 
 
@@ -15,17 +15,31 @@ class TestFarmingSelection(unittest.TestCase):
         self.drop = ObservedMobDrop("material-1", "mob-1", "synthetic-test-evidence")
         self.route = CandidateRoute("mob-1", "route-1", "synthetic-test-route-evidence")
 
-    def catalog(self, *, drops=(), routes=()):
-        return FarmingCatalog((self.material, self.mob), tuple(drops), tuple(routes))
+    def catalog(self, *, drops=(), routes=(), documented=()):
+        return FarmingCatalog(
+            (self.material, self.mob), tuple(drops), tuple(routes),
+            documented_drops=tuple(documented),
+        )
 
     def test_pictured_material_searchable_without_guessing_sources(self):
         catalog = starting_catalog()
         match = catalog.search("  fF mEch ")
         self.assertEqual(["ff-mech-core"], [item.target_id for item in match])
         resolution = catalog.resolve(TargetKind.MATERIAL, "ff-mech-core")
-        self.assertEqual(FarmingReadiness.SOURCE_UNRESOLVED, resolution.readiness)
+        self.assertEqual(FarmingReadiness.SOURCE_DOCUMENTED, resolution.readiness)
         self.assertEqual((), resolution.candidate_mob_ids)
         self.assertEqual((), resolution.qualified_route_ids)
+        self.assertEqual(5, len(resolution.documented_mob_ids))
+        self.assertEqual(
+            {"geospider-s4", "sabercat-reaver", "spacetrek-explorer",
+             "twin-nova-collapsar-blade", "twin-nova-nebulous-cannon"},
+            set(resolution.documented_mob_ids),
+        )
+        self.assertEqual(5, len(catalog.documented_sources("ff-mech-core")))
+        self.assertEqual(
+            ["geospider-s4"],
+            [item.target_id for item in catalog.search("geospider", kind=TargetKind.MOB)],
+        )
 
     def test_search_by_kind_alias_and_unicode(self):
         catalog = self.catalog()
@@ -39,8 +53,11 @@ class TestFarmingSelection(unittest.TestCase):
         self.assertEqual(FarmingReadiness.ROUTE_UNQUALIFIED, result.readiness)
         self.assertEqual(("mob-1",), result.candidate_mob_ids)
 
-    def test_observed_drop_without_route_is_not_ready(self):
-        result = self.catalog(drops=(self.drop,)).resolve(TargetKind.MATERIAL, "material-1")
+    def test_verified_drop_without_route_is_not_ready(self):
+        result = self.catalog(drops=(self.drop,)).resolve(
+            TargetKind.MATERIAL, "material-1",
+            source_is_qualified=lambda _: True,
+        )
         self.assertEqual(FarmingReadiness.ROUTE_UNQUALIFIED, result.readiness)
         self.assertEqual(("mob-1",), result.candidate_mob_ids)
 
@@ -64,11 +81,62 @@ class TestFarmingSelection(unittest.TestCase):
             observed.append(route.route_id)
             return route.route_id == "route-1"
         result = catalog.resolve(
-            TargetKind.MATERIAL, "material-1", route_is_qualified=qualified
+            TargetKind.MATERIAL, "material-1", route_is_qualified=qualified,
+            source_is_qualified=lambda _: True,
         )
         self.assertEqual(FarmingReadiness.READY, result.readiness)
         self.assertEqual(("route-1",), result.qualified_route_ids)
         self.assertEqual(["route-1"], observed)
+
+    def test_documented_source_never_permits_execution(self):
+        documented = DocumentedMobDrop(
+            "material-1", "mob-1", "https://example.org/material-drop",
+        )
+        catalog = self.catalog(documented=(documented,), routes=(self.route,))
+        result = catalog.resolve(
+            TargetKind.MATERIAL, "material-1",
+            route_is_qualified=lambda _: True,
+            source_is_qualified=lambda _: True,
+        )
+        self.assertEqual(FarmingReadiness.SOURCE_DOCUMENTED, result.readiness)
+        self.assertEqual(("mob-1",), result.documented_mob_ids)
+        self.assertEqual((), result.candidate_mob_ids)
+        self.assertEqual((), result.qualified_route_ids)
+        self.assertEqual(
+            (documented,), catalog.documented_sources("material-1"),
+        )
+
+    def test_evidence_label_without_source_verifier_is_not_enough(self):
+        catalog = self.catalog(drops=(self.drop,), routes=(self.route,))
+        result = catalog.resolve(
+            TargetKind.MATERIAL, "material-1",
+            route_is_qualified=lambda _: True,
+        )
+        self.assertEqual(FarmingReadiness.SOURCE_UNRESOLVED, result.readiness)
+        self.assertEqual((), result.qualified_route_ids)
+
+    def test_source_failure_blocks_route_even_with_successful_route_verifier(self):
+        catalog = self.catalog(drops=(self.drop,), routes=(self.route,))
+        result = catalog.resolve(
+            TargetKind.MATERIAL, "material-1",
+            route_is_qualified=lambda _: True,
+            source_is_qualified=lambda _: False,
+        )
+        self.assertEqual(FarmingReadiness.SOURCE_UNRESOLVED, result.readiness)
+
+    def test_invalid_documented_source_and_unknown_mappings_rejected(self):
+        for url in ("http://example.org/a", "https://", "https://u:p@x.example/a",
+                    "https://example.org/has space"):
+            with self.subTest(url=url), self.assertRaises(ValueError):
+                DocumentedMobDrop("material-1", "mob-1", url)
+        item = DocumentedMobDrop("material-1", "mob-1", "https://example.org/a")
+        with self.assertRaises(ValueError):
+            self.catalog(documented=(item, item))
+        with self.assertRaises(ValueError):
+            self.catalog(documented=(DocumentedMobDrop(
+                "missing", "mob-1", "https://example.org/a"),))
+        with self.assertRaises(ValueError):
+            self.catalog().documented_sources("unknown")
 
     def test_unknown_target_and_invalid_search_limit_rejected(self):
         catalog = self.catalog()
