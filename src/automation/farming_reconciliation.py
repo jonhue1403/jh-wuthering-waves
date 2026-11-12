@@ -95,6 +95,9 @@ def reconcile_candidate_audits(
         target.target_id: target.name
         for target in catalog.search(kind=TargetKind.MOB, limit=100)
     }
+    mapped_sources = {
+        source.mob_id for source in catalog.documented_sources(material_id)
+    }
     if ((receipts and receipt_summary.get("status") != "LOCAL_CANDIDATES_ONLY")
             or (routes and route_summary.get("status") != "LOCAL_ROUTE_CANDIDATES_ONLY")):
         return _blocked(
@@ -134,12 +137,19 @@ def reconcile_candidate_audits(
                 "A local receipt names a mob absent from the current catalog.",
                 receipt_count=receipt_count, route_count=route_count,
             )
+        if mob not in mapped_sources:
+            return _blocked(
+                "SOURCE_NOT_MAPPED_TO_MATERIAL",
+                "The local enemy record has no documented mapping to this material.",
+                receipt_count=receipt_count, route_count=route_count,
+            )
         by_game[game].add(mob)
         by_catalog[mob].add(game)
         versions[game].add(version)
         observed[game] += 1
 
     route_by_game = defaultdict(set)
+    seen_route_ids = set()
     for row in routes:
         if not isinstance(row, dict):
             return _blocked("INVALID_AUDIT_SCHEMA", "Invalid route record.")
@@ -151,6 +161,13 @@ def reconcile_candidate_audits(
                 or not 1 <= camps <= 3
                 or row.get("evidence_level") != "local_static_hash_match_only"):
             return _blocked("INVALID_AUDIT_SCHEMA", "Unusable local route identity.")
+        if route_id in seen_route_ids:
+            return _blocked(
+                "DUPLICATE_LOCAL_ROUTE_ID",
+                "Duplicate route identities must be reconciled in the route audit.",
+                receipt_count=receipt_count, route_count=route_count,
+            )
+        seen_route_ids.add(route_id)
         route_by_game[game].add(route_id)
 
     if (any(len(ids) != 1 for ids in by_game.values())
