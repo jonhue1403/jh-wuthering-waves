@@ -11,8 +11,8 @@ import re
 
 from src.automation.farming_selection import FarmingCatalog, TargetKind
 
-_SLUG = re.compile(r"[a-z][a-z0-9-]{0,79}\\Z")
-_ROUTE_ID = re.compile(r"[A-Za-z0-9_.-]{1,80}\\Z")
+_SLUG = re.compile(r"[a-z][a-z0-9-]{0,79}\Z")
+_ROUTE_ID = re.compile(r"[A-Za-z0-9_.-]{1,80}\Z")
 _MAX_RECEIPTS = 24
 _MAX_ROUTES = 8
 
@@ -95,6 +95,14 @@ def reconcile_candidate_audits(
         target.target_id: target.name
         for target in catalog.search(kind=TargetKind.MOB, limit=100)
     }
+    if ((receipts and receipt_summary.get("status") != "LOCAL_CANDIDATES_ONLY")
+            or (routes and route_summary.get("status") != "LOCAL_ROUTE_CANDIDATES_ONLY")):
+        return _blocked(
+            "INVALID_AUDIT_SCHEMA",
+            "Candidate records conflict with their local audit status.",
+            receipt_count=receipt_count, route_count=route_count,
+        )
+
     if not receipts or not routes:
         return _blocked(
             "NO_SHARED_CANDIDATES",
