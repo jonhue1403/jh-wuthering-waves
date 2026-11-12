@@ -11,6 +11,7 @@ from src.automation.farming_selection import (
 )
 from src.automation.farming_evidence import FarmingEvidenceAudit
 from src.automation.farming_route_audit import FarmingRouteAudit
+from src.automation.farming_reconciliation import reconcile_candidate_audits
 
 MAX_GOAL = 9_999_999
 MAX_QUERY_LENGTH = 120
@@ -114,6 +115,17 @@ class FarmingAssistantView:
                 "note": "A mob display name does not qualify a current-game route.",
             }
         )
+        reconciliation = (
+            reconcile_candidate_audits(
+                target_id, calibration, route_calibration, catalog=self.catalog,
+            ) if target_kind == TargetKind.MATERIAL else {
+                "status": "NOT_APPLICABLE_MOB",
+                "candidate_match_count": 0,
+                "matches": [],
+                "can_start": False,
+                "note": "A mob display slug cannot establish a numeric game ID.",
+            }
+        )
         return {
             "target": {
                 "id": resolution.target.target_id,
@@ -137,6 +149,7 @@ class FarmingAssistantView:
             "qualified_route_ids": [],
             "calibration": calibration,
             "route_calibration": route_calibration,
+            "reconciliation": reconciliation,
             "can_start": False,
             "can_pause": False,
             "can_stop": False,
