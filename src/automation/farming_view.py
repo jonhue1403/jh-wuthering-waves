@@ -9,14 +9,22 @@ and explicit user authorization are wired through this boundary.
 from src.automation.farming_selection import (
     FarmingCatalog, TargetKind, starting_catalog,
 )
+from src.automation.farming_evidence import FarmingEvidenceAudit
 
 MAX_GOAL = 9_999_999
 MAX_QUERY_LENGTH = 120
 
 
 class FarmingAssistantView:
-    def __init__(self, catalog: FarmingCatalog | None = None):
+    def __init__(
+        self,
+        catalog: FarmingCatalog | None = None,
+        evidence_audit: FarmingEvidenceAudit | None = None,
+    ):
         self.catalog = catalog if catalog is not None else starting_catalog()
+        self.evidence_audit = (
+            evidence_audit if evidence_audit is not None else FarmingEvidenceAudit()
+        )
 
     @staticmethod
     def _kind(kind: str) -> TargetKind:
@@ -75,6 +83,19 @@ class FarmingAssistantView:
             self.catalog.documented_sources(target_id)
             if target_kind == TargetKind.MATERIAL else ()
         )
+        # Local, hash-matched observations remain untrusted historical
+        # candidates. They never populate verified_mob_ids or route IDs.
+        calibration = (
+            self.evidence_audit.summary(target_id)
+            if target_kind == TargetKind.MATERIAL else {
+                "status": "NO_MOB_ROUTE_QUALIFICATION",
+                "receipt_candidate_count": 0,
+                "rejected_manifest_count": 0,
+                "sources": [],
+                "can_start": False,
+                "note": "A documented mob name does not qualify a live route.",
+            }
+        )
         return {
             "target": {
                 "id": resolution.target.target_id,
@@ -96,6 +117,7 @@ class FarmingAssistantView:
             ],
             "verified_mob_ids": [],
             "qualified_route_ids": [],
+            "calibration": calibration,
             "can_start": False,
             "can_pause": False,
             "can_stop": False,
