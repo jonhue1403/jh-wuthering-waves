@@ -155,6 +155,44 @@ class TestFarmingEvidence(unittest.TestCase):
         self.assertEqual(0, summary["receipt_candidate_count"])
         self.assertEqual(24, summary["rejected_manifest_count"])
 
+    def test_duplicate_top_level_receipt_key_is_rejected(self):
+        self.save(self.payload())
+        path = self.folder / "synthetic.json"
+        raw = path.read_text(encoding="utf-8")
+        self.assertIn('"status": "REVIEWED"', raw)
+        path.write_text(
+            raw.replace(
+                '"status": "REVIEWED"',
+                '"status": "REVIEWED", "status": "REVIEWED"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        summary = self.audit.summary("ff-mech-core")
+        self.assertEqual(0, summary["receipt_candidate_count"])
+        self.assertEqual(1, summary["rejected_manifest_count"])
+        self.assertFalse(summary["can_start"])
+
+    def test_duplicate_nested_receipt_hash_key_is_rejected(self):
+        self.save(self.payload())
+        path = self.folder / "synthetic.json"
+        raw = path.read_text(encoding="utf-8")
+        hash_value = self.payload()["evidence_sha256"]["before.png"]
+        match = '"before.png": "' + hash_value + '"'
+        self.assertIn(match, raw)
+        path.write_text(raw.replace(match, match + ', ' + match, 1), encoding="utf-8")
+        summary = self.audit.summary("ff-mech-core")
+        self.assertEqual(0, summary["receipt_candidate_count"])
+        self.assertEqual(1, summary["rejected_manifest_count"])
+
+    def test_receipt_nonfinite_json_literal_is_rejected(self):
+        data = self.payload()
+        data["inventory_after"] = float("nan")
+        self.save(data)
+        summary = self.audit.summary("ff-mech-core")
+        self.assertEqual(0, summary["receipt_candidate_count"])
+        self.assertEqual(1, summary["rejected_manifest_count"])
+
     def test_invalid_material_id_rejected(self):
         for target in ("../../secret", "", "ff mech core", None):
             with self.subTest(target=target), self.assertRaises(ValueError):
