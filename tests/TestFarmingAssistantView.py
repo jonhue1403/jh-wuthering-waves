@@ -46,8 +46,11 @@ class TestFarmingAssistantView(unittest.TestCase):
                        "LOCAL_CANDIDATES_ONLY"))
         self.assertFalse(preview["calibration"]["can_start"])
         self.assertNotIn("profile_path", repr(preview["calibration"]))
-        self.assertEqual(0, preview["route_calibration"]["route_candidate_count"])
-        self.assertEqual("NO_LOCAL_ROUTES", preview["route_calibration"]["status"])
+        # A developer may already have private candidate files on disk.
+        # Their presence never authorizes this user-facing preview.
+        self.assertIn(preview["route_calibration"]["status"],
+                      ("NO_LOCAL_ROUTES", "LOCAL_ROUTE_CANDIDATES_ONLY",
+                       "ROUTE_AUDIT_INCOMPLETE"))
         self.assertFalse(preview["route_calibration"]["can_start"])
 
     def test_mob_selection_remains_unqualified(self):
