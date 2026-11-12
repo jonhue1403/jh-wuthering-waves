@@ -10,6 +10,7 @@ from src.automation.farming_selection import (
     FarmingCatalog, TargetKind, starting_catalog,
 )
 from src.automation.farming_evidence import FarmingEvidenceAudit
+from src.automation.farming_route_audit import FarmingRouteAudit
 
 MAX_GOAL = 9_999_999
 MAX_QUERY_LENGTH = 120
@@ -20,10 +21,14 @@ class FarmingAssistantView:
         self,
         catalog: FarmingCatalog | None = None,
         evidence_audit: FarmingEvidenceAudit | None = None,
+        route_audit: FarmingRouteAudit | None = None,
     ):
         self.catalog = catalog if catalog is not None else starting_catalog()
         self.evidence_audit = (
             evidence_audit if evidence_audit is not None else FarmingEvidenceAudit()
+        )
+        self.route_audit = (
+            route_audit if route_audit is not None else FarmingRouteAudit()
         )
 
     @staticmethod
@@ -96,6 +101,19 @@ class FarmingAssistantView:
                 "note": "A documented mob name does not qualify a live route.",
             }
         )
+        # A static local manifest/hash audit is not an executable permission.
+        # In particular, a display-name mob slug is not a numeric game mob ID.
+        route_calibration = (
+            self.route_audit.summary(target_id)
+            if target_kind == TargetKind.MATERIAL else {
+                "status": "NO_MOB_ROUTE_QUALIFICATION",
+                "route_candidate_count": 0,
+                "rejected_manifest_count": 0,
+                "routes": [],
+                "can_start": False,
+                "note": "A mob display name does not qualify a current-game route.",
+            }
+        )
         return {
             "target": {
                 "id": resolution.target.target_id,
@@ -118,6 +136,7 @@ class FarmingAssistantView:
             "verified_mob_ids": [],
             "qualified_route_ids": [],
             "calibration": calibration,
+            "route_calibration": route_calibration,
             "can_start": False,
             "can_pause": False,
             "can_stop": False,
