@@ -77,9 +77,34 @@ Confirm custom-task discovery exposes the new Farming Assistant WebCustomTab. If
   ```
   Check Farming Assistant navigation is visible and read-only; Start, Pause and Stop disabled. Record screenshot and inspect backend logs; do not start game execution.
 
+## 2026-11-13 03:04 MYT — native Qt read-only preview increment
+
+- `src/gui/FarmingAssistantTab.py`: added an independent native `CustomTab` that reuses `FarmingAssistantView` without importing the game executor or sending input. The compact two-pane interface includes a Material/Mob toggle, live search, target info, documented possible enemy list with explicit HTTPS reference opening, optional desired inventory total, current-inventory-unknown label, readiness diagnostics and disabled Start/Pause/Stop controls.
+- `config.py`: added a separate `custom_tabs` Qt registration. Existing `web_tabs`, `onetime_tasks`, `trigger_tasks`, draft PR #4 and master remain untouched. The old developer-oriented HuntMobTask remains available to avoid breaking existing users, but is **not hidden** yet.
+- `tests/TestFarmingAssistantQt.py`: offscreen Qt contract tests for default FF Mech Core, five informational candidate sources, target filtering, type switching, quantity handling, disabled gameplay controls, source-link safety and no exposed developer paths.
+- `tests/TestConfig.py`: updated Qt-only registration and inheritance contract, keeping web registration independently checked.
+- Code commits: `c44055fb84b5b1bdee74c17f3dc8df18114ff698`, `4bd0fea29fc38852002c0ad44de36a6a74a595b1`, `8e1c9e908ea7691cc41b030b0d5c71e89dd3ce3f`, `c226b546c78c1c9b9ad5c8e496fe7948b2ed3e8e`.
+- **Verification: NOT RUN.** GitHub changes are committed, but this runtime cannot reach the owner's local Python/PySide6/ok-script or game. A separate container cannot fetch this repository by HTTPS (DNS unavailable), so it cannot honestly substitute for a test run. Qt class creation and tab mounting remain unverified. No live route/combat/spend claims, CLI invocation, Terra review, or Codex execution.
+- Before any UI release, Codex should run the offscreen tests and instantiate Qt main navigation to verify the exact installed OK Script version and tab lifecycle, then inspect screenshots in the actual desktop UI. The tab is informational only, **not** a functioning farming executor.
+
+Local Codex verification from the branch (PowerShell):
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+$env:QT_QPA_PLATFORM = 'offscreen'
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantQt.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestConfig.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingSelection.py -v
+.\.venv\Scripts\python.exe -m py_compile src/gui/FarmingAssistantTab.py config.py
+```
+
+Next small increment: evidence-backed, read-only source/profile adapter and explicit calibration guide, still no route dispatch. Then qualify UI startup in both frontends and test current-game evidence before enabling anything.
+
 ## Next independently reviewable increments (in order)
 
-1. **Local qualification of preview UI and classic Qt replacement**: explicit WebCustomTab registration is now implemented. Run `TestConfig.py`, launch `main_web.py --browser`, verify asset loading, keyboard/navigation and host signals; add an independently safe PySide6 Qt `custom_tabs` presentation next for users of the default classic desktop UI. Preserve old `HuntMobTask` until the replacement's compatibility and controls are qualified.
+1. **Qualify both read-only frontends locally**: WebCustomTab and native PySide6 Qt `custom_tabs` are registered and committed but have not been started or visually tested. Run TestConfig, selection/view and new Qt offscreen tests; launch `main_web.py --browser` and classic `main.py`, inspect accessibility, keyboard behavior, source links and tab cleanup. Preserve old HuntMobTask until the new replacement is qualified.
 2. Build a read-only source catalog adapter using actual current-game source/profile evidence (the basic external-vs-observed distinction and five-source seed are now implemented). Verify exact game IDs, material receipt hashes, aliases/locale and stale profiles. Do not assign playable routes to FF Mech Core without independent real evidence.
 3. Upgrade the read-only preview UI to fully operational task controls only once live gates pass. The compact native WebCustomTab preview is implemented but Start/Pause/Stop, current inventory and progress receipts are intentionally inactive. Hide legacy developer file paths from ordinary users only after compatibility qualification.
 4. Bind selected targets to existing bounded route machinery through internal profile and runtime-qualification resolution. Fail closed when missing/stale/unverified; support safe read-only preview and guided calibration; never silently enable walking/teleport/claim/combats.
