@@ -302,7 +302,8 @@ class FarmingAssistantTab(CustomTab):
             label = self.tr("Conflicting enemy IDs in local evidence — review required")
         elif comparison["status"] in (
             "INCOMPLETE_AUDITS", "TARGET_SCOPE_MISMATCH", "INVALID_AUDIT_SCHEMA",
-            "UNRECOGNIZED_CATALOG_MOB",
+            "UNRECOGNIZED_CATALOG_MOB", "SOURCE_NOT_MAPPED_TO_MATERIAL",
+            "DUPLICATE_LOCAL_ROUTE_ID",
         ):
             label = self.tr("Receipt/route evidence needs review before matching")
         else:
