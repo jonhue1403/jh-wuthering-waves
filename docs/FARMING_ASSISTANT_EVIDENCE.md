@@ -32,7 +32,11 @@ screenshots genuinely show the game, or override existing PR #4 safety gates.
    child files are used. The scanner accepts at most 16 KiB per manifest and
    16 MiB per image. It rejects symlinks, missing files, invalid digests,
    ambiguous IDs, future-dated or older-than-30-day receipts, no inventory gain,
-   duplicate frame IDs, and unsupported screenshot paths.
+   duplicate frame IDs, and unsupported screenshot paths. The shared strict
+   JSON reader additionally rejects duplicate keys at any nesting level,
+   nonstandard `NaN`/`Infinity` tokens, and files that grow beyond the
+   manifest byte limit during read. Ambiguous metadata never becomes a receipt
+   candidate.
 6. In the Farming Assistant, a local hash-matched record appears as
    **Local receipt candidate (unverified)**, never as a verified mob/route.
    A changed file, expired snapshot or incomplete scan must trigger renewed
@@ -93,6 +97,7 @@ From the working branch in Windows PowerShell:
 git fetch origin
 git switch agent/material-first-farming
 .\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingEvidence.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingStaticJSON.py -v
 .\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
 $env:QT_QPA_PLATFORM = 'offscreen'
 .\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantQt.py -v
