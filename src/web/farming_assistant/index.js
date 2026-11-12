@@ -169,7 +169,8 @@ export function mount(container, context) {
     } else if (comparison.status === "AMBIGUOUS_RECEIPT_IDENTITIES") {
       comparisonText = t("Conflicting enemy IDs in local evidence; review required.");
     } else if (["INCOMPLETE_AUDITS", "TARGET_SCOPE_MISMATCH",
-                "INVALID_AUDIT_SCHEMA", "UNRECOGNIZED_CATALOG_MOB"]
+                "INVALID_AUDIT_SCHEMA", "UNRECOGNIZED_CATALOG_MOB",
+                "SOURCE_NOT_MAPPED_TO_MATERIAL", "DUPLICATE_LOCAL_ROUTE_ID"]
                 .includes(comparison.status)) {
       comparisonText = t("Receipt/route evidence requires review before matching.");
     } else {
