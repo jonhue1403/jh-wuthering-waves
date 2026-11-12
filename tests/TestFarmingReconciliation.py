@@ -4,7 +4,10 @@ from copy import deepcopy
 import unittest
 
 from src.automation.farming_reconciliation import reconcile_candidate_audits
-from src.automation.farming_selection import starting_catalog
+from src.automation.farming_selection import (
+    DocumentedMobDrop, FarmingCatalog, FarmingTarget, TargetKind,
+    starting_catalog,
+)
 from src.automation.farming_view import FarmingAssistantView
 
 
@@ -166,6 +169,40 @@ class TestFarmingReconciliation(unittest.TestCase):
         ))
         self.assertEqual("UNRECOGNIZED_CATALOG_MOB", result["status"])
         self.assertEqual([], result["matches"])
+
+    def test_mob_without_material_mapping_cannot_be_paired(self):
+        catalog = FarmingCatalog(
+            targets=(
+                FarmingTarget(TargetKind.MATERIAL, "ff-mech-core", "Synthetic Material"),
+                FarmingTarget(TargetKind.MOB, "geospider-s4", "Documented Mob"),
+                FarmingTarget(TargetKind.MOB, "other-mob", "Unmapped Mob"),
+            ),
+            documented_drops=(
+                DocumentedMobDrop(
+                    "ff-mech-core", "geospider-s4", "https://example.org/source",
+                ),
+            ),
+        )
+        receipts, routes = self.summaries(
+            [self.receipt(mob="other-mob")], [self.route()],
+        )
+        result = reconcile_candidate_audits(
+            "ff-mech-core", receipts, routes, catalog=catalog,
+        )
+        self.assertEqual("SOURCE_NOT_MAPPED_TO_MATERIAL", result["status"])
+        self.assertEqual([], result["matches"])
+        self.assertFalse(result["can_start"])
+
+    def test_duplicate_route_identity_is_rejected_at_join_boundary(self):
+        receipts, routes = self.summaries(
+            [self.receipt()],
+            [self.route(game="000123", route="duplicate"),
+             self.route(game="000999", route="duplicate")],
+        )
+        result = self.compare(receipts, routes)
+        self.assertEqual("DUPLICATE_LOCAL_ROUTE_ID", result["status"])
+        self.assertEqual([], result["matches"])
+        self.assertFalse(result["can_start"])
 
     def test_forged_schema_or_unbounded_metadata_is_rejected(self):
         receipt, route = self.summaries()
