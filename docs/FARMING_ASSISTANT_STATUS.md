@@ -145,6 +145,68 @@ $env:QT_QPA_PLATFORM = 'offscreen'
 node --check src/web/farming_assistant/index.js
 ```
 
+## 2026-11-13 06:xx MYT — strict local-audit decoding and duplicate-route defense
+
+**Implementation: committed to `agent/material-first-farming`; static audit only,
+not live farming, and no real FF Mech Core evidence is claimed.**
+
+- New `src/automation/farming_static_json.py`: shared strict bounded JSON
+  reader for offline calibration artifacts. Rejects duplicate object keys at
+  every nesting depth, nonstandard `NaN`/`Infinity` tokens, non-object roots,
+  and actual bytes over the cap even if a file grows after its initial stat.
+- `src/automation/farming_route_audit.py`: reads both route and profile
+  metadata through this parser and rejects a second manifest claiming an
+  already encountered `route_id`. Distinct filenames cannot inflate
+  route candidate counts.
+- `src/automation/farming_evidence.py`: reads receipt manifests through
+  the same strict parser; ambiguous data never yields a candidate.
+- `tests/TestFarmingRouteAudit.py`: new synthetic regressions for duplicate
+  route identity, duplicate nested route keys, duplicate profile keys despite
+  refreshed SHA256, and non-finite route literals.
+- `tests/TestFarmingEvidence.py`: new synthetic regressions for duplicate
+  top-level and nested receipt keys and non-finite receipt literals.
+- New `tests/TestFarmingStaticJSON.py`: bounded-decoder unit contract,
+  including valid JSON, duplicate keys, nonstandard values, size and type gates.
+- Updated `docs/FARMING_ASSISTANT_ROUTES.md` and
+  `docs/FARMING_ASSISTANT_EVIDENCE.md` with the stricter intake rules.
+
+**Code commits:**
+`4b12969a7bdcccdbe9b43a1a2b5136b088fc94fc`,
+`8723c2eb0b63bfaf40937a7cb68447108ae02569`,
+`c0f3b2cacb8f2e18bdd0fbd62423e1c702eb5a46`,
+`e056b54e1abf4f32dc1bef264776402c100f6b3d`,
+`5bb4e7914f71050fa4ddefaf72b227a5dd934357`,
+`02e88fa77042b09c4f1f215ebc695be4bebfb731`.
+
+**Verification:** GitHub connector writes succeeded; test execution **NOT RUN**.
+The tool runtime has Python 3.13 but could not fetch the repository
+(`github.com` DNS resolution failed), so it cannot run the actual repo
+suite, local PySide6/OK Script, Windows game, Antigravity CLI or Terra Medium.
+Do not infer test success from new tests or commits. The existing
+`can_start/can_pause/can_stop: false` boundary is unchanged; no input,
+no source-to-route promotion, no merge.
+
+**Next small increment:** read-only reconciliation between historical
+receipt and route candidate records by exact observed numeric game mob ID,
+with mismatch/ambiguity diagnostics and no automatic verification. Do
+not derive numeric IDs from wiki slugs. Codex should first run
+`TestFarmingStaticJSON.py`, `TestFarmingRouteAudit.py`,
+`TestFarmingEvidence.py` and both UI checks on the real working tree.
+No real FF Mech Core drop receipt, current-game qualification sidecar,
+or runnable route is available yet.
+
+Local Windows test commands:
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingStaticJSON.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRouteAudit.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingEvidence.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
+$env:QT_QPA_PLATFORM = 'offscreen'
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantQt.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_static_json.py src/automation/farming_route_audit.py src/automation/farming_evidence.py
+node --check src/web/farming_assistant/index.js
+```
+
 ## Next independently reviewable increments (in order)
 
 1. **Qualify both read-only frontends locally**: WebCustomTab and native PySide6 Qt `custom_tabs` are registered and committed but have not been started or visually tested. Run TestConfig, selection/view and new Qt offscreen tests; launch `main_web.py --browser` and classic `main.py`, inspect accessibility, keyboard behavior, source links and tab cleanup. Preserve old HuntMobTask until the new replacement is qualified.
