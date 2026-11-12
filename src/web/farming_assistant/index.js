@@ -147,6 +147,17 @@ export function mount(container, context) {
       right.append(node("p", "farm-muted",
         t("Evidence audit incomplete or invalid entries detected.")));
     }
+    // Static local route metadata never makes Start executable.
+    const routeAudit = data.route_calibration || {};
+    const routeCount = Number(routeAudit.route_candidate_count) || 0;
+    right.append(node("p", "farm-muted", routeCount
+      ? t("Local route candidates (not live-qualified): ") + String(routeCount)
+      : t("No qualified local route observations")));
+    if ((Number(routeAudit.rejected_manifest_count) || 0) > 0 ||
+        routeAudit.status === "ROUTE_AUDIT_INCOMPLETE") {
+      right.append(node("p", "farm-muted",
+        t("Route audit incomplete or invalid entries detected.")));
+    }
     right.append(
       node("div", "farm-divider"),
       node("label", "farm-label", t("Target inventory total (optional)"))
