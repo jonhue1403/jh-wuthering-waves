@@ -35,6 +35,8 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertEqual(5, self.tab.source_list.count())
         self.assertIn("not calibrated", self.tab.readiness_label.text().lower())
         self.assertIn("not measured", self.tab.inventory_label.text().lower())
+        self.assertIn("local receipt", self.tab.calibration_label.text().lower())
+        self.assertFalse(self.tab._preview["calibration"]["can_start"])
         self.assertEqual("PREVIEW_ONLY", self.tab._preview["run_state"])
         self.assertFalse(self.tab.start_button.isEnabled())
         self.assertFalse(self.tab.pause_button.isEnabled())
