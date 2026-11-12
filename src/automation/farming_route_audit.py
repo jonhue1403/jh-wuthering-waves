@@ -259,6 +259,7 @@ class FarmingRouteAudit:
         matches = tuple(candidate for candidate in candidates
                         if candidate.material_id == material_id)
         return {
+            "material_id": material_id,
             "status": ("ROUTE_AUDIT_INCOMPLETE" if incomplete else
                        "LOCAL_ROUTE_CANDIDATES_ONLY" if matches else
                        "NO_LOCAL_ROUTES"),
