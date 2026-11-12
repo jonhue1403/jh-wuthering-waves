@@ -169,6 +169,57 @@ class TestFarmingRouteAudit(unittest.TestCase):
         self.assertEqual(8, result["rejected_manifest_count"])
         self.assertFalse(result["can_start"])
 
+    def test_duplicate_route_ids_are_rejected_without_double_counting(self):
+        self.fixture()
+        # A second manifest filename is not a second distinct route.
+        (self.folder / "second.route.json").write_bytes(
+            (self.folder / "test.route.json").read_bytes()
+        )
+        result = self.audit.summary("ff-mech-core")
+        self.assertEqual(1, result["route_candidate_count"])
+        self.assertEqual(1, result["rejected_manifest_count"])
+        self.assertFalse(result["can_start"])
+
+    def test_duplicate_nested_manifest_json_key_is_rejected(self):
+        self.fixture()
+        path = self.folder / "test.route.json"
+        content = path.read_text(encoding="utf-8")
+        self.assertIn('"kind": "observed_mob_drop"', content)
+        content = content.replace(
+            '"kind": "observed_mob_drop"',
+            '"kind": "observed_mob_drop", "kind": "observed_mob_drop"',
+            1,
+        )
+        path.write_text(content, encoding="utf-8")
+        result = self.audit.summary("ff-mech-core")
+        self.assertEqual(0, result["route_candidate_count"])
+        self.assertEqual(1, result["rejected_manifest_count"])
+
+    def test_duplicate_profile_json_key_rejected_even_with_fresh_hash(self):
+        data, profile = self.fixture()
+        profile_path = self.folder / "surface.profile.json"
+        raw = profile_path.read_text(encoding="utf-8")
+        self.assertIn('"target_mob": "310000820"', raw)
+        raw = raw.replace(
+            '"target_mob": "310000820"',
+            '"target_mob": "310000820", "target_mob": "310000820"',
+            1,
+        )
+        profile_path.write_text(raw, encoding="utf-8")
+        data["profile_sha256"] = sha256(raw.encode("utf-8")).hexdigest()
+        self.save("test.route.json", data)
+        result = self.audit.summary("ff-mech-core")
+        self.assertEqual(0, result["route_candidate_count"])
+        self.assertEqual(1, result["rejected_manifest_count"])
+
+    def test_nonstandard_nonfinite_literal_is_rejected(self):
+        data, _ = self.fixture()
+        data["rejoin_radius"] = float("inf")
+        self.save("test.route.json", data)
+        result = self.audit.summary("ff-mech-core")
+        self.assertEqual(0, result["route_candidate_count"])
+        self.assertEqual(1, result["rejected_manifest_count"])
+
     def test_unknown_material_cannot_choose_arbitrary_local_file(self):
         for material in ("../../secret", "", None, "FF Mech Core"):
             with self.subTest(material=material), self.assertRaises(ValueError):
