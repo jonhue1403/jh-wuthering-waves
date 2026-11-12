@@ -118,6 +118,33 @@ Next small increment: evidence-backed, read-only source/profile adapter and expl
 
 Next work: Codex to run the documented offline/Qt/UI checks, inspect actual startup, then an independent reviewer must qualify source/profile/route evidence and current-game runtime. The next safe incremental feature is a read-only profile/route candidate audit, not auto-start.
 
+## 2026-11-13 05:xx MYT — offline route/profile candidate audit
+
+**Source branch HEAD immediately before this documentation update: `687d9f2b82cb2021c9727c3fa6709173748289f9`.**
+This is the next bounded implementation increment, not a live-game qualification.
+
+- `src/automation/farming_route_audit.py` (new): implemented a bounded, read-only local candidate scanner with exact profile SHA256 matching; private direct-child path constraints; 8 manifest / 8 evidence per-manifest / 64 MiB total hash limits; no symlinks or traversal; exact source, profile, map layer and spawn coverage; 1–3 finite-waypoint camp segments; bounded inventory UI and pickup evidence claims. It produces **path-free static candidate counts only**, never READY.
+- `tests/TestFarmingRouteAudit.py` (new): synthetic fixture and negative regressions for changed profile/evidence, wrong material or numeric mob ID, map layer/spawn mismatch, stale hashes, malformed paths, timestamp-independent cache expiry, over-limit manifests and the strict non-execution boundary.
+- `src/automation/farming_view.py`: added independent `route_calibration` summary to material previews without exposing file paths, current-inventory values or enabled execution flags. Mob previews do not infer numeric IDs from wiki slugs.
+- `src/gui/FarmingAssistantTab.py`, `src/web/farming_assistant/index.js`: show route candidate count and invalid/incomplete-audit status; all gameplay buttons stay disabled.
+- `tests/TestFarmingAssistantView.py` and `tests/TestFarmingAssistantQt.py`: assert default and mob-route previews remain unqualified.
+- `docs/FARMING_ASSISTANT_ROUTES.md` (new): describes the private operator-only intake folder, bounded read-only validation, and the missing live qualification contract. No local screenshots, secrets or manifest paths are exposed through the UI.
+- Commits: `c7684067f0d13c6ba6c584cc2ba4e4fa81511373`, `80fa1cb85f9b0330d2f536d7692b9ce2d345df30`, `b9d83f65b3088033c46c5397148ec654ade64b68`, `47d56e86ec012aeee6bccfe669a1d88376eb5517`, `058100ea3ced06513fe72aee9583c66b5dbf5e89`, `c5f758ef1a606059dee9b0b88df2846404aaa056`, `00523dbb36421ff262f2b4e1983ebb3df7beedc6`, `687d9f2b82cb2021c9727c3fa6709173748289f9`.
+- **Tests NOT RUN:** GitHub write/read succeeded, but no local Windows/Python/PySide6/Node/game environment is attached here. This run did **not** invoke Antigravity CLI, Terra Medium, a live game, or Codex. Do not treat source commits as test evidence.
+- **Current blockers:** No authentic FF Mech Core inventory receipt, current-game numeric mob mapping, matching source/image/spawn evidence, reviewed sidecar or qualified local routes. No live control or merge was attempted.
+- **Next increment:** Review and harden the static intake contract (especially path/error cases), then Codex should run all new and existing offline suites + both UI startup checks before any execution wiring. A separate local live review is needed for actual source/route calibration.
+
+Offline Codex commands (Windows PowerShell; use local `.venv`):
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRouteAudit.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingEvidence.py -v
+$env:QT_QPA_PLATFORM = 'offscreen'
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantQt.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_route_audit.py src/automation/farming_view.py src/gui/FarmingAssistantTab.py
+node --check src/web/farming_assistant/index.js
+```
+
 ## Next independently reviewable increments (in order)
 
 1. **Qualify both read-only frontends locally**: WebCustomTab and native PySide6 Qt `custom_tabs` are registered and committed but have not been started or visually tested. Run TestConfig, selection/view and new Qt offscreen tests; launch `main_web.py --browser` and classic `main.py`, inspect accessibility, keyboard behavior, source links and tab cleanup. Preserve old HuntMobTask until the new replacement is qualified.
