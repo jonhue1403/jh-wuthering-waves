@@ -5,6 +5,46 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 07:02 MYT — exact game-mob-ID reconciliation (read-only)
+
+**New independently reviewable implementation increment; no live authorization.**
+
+- Added `src/automation/farming_reconciliation.py` to compare material-scoped historical inventory receipt candidates with static route candidates by **exact ASCII-decimal numeric game mob ID** only. Leading zeros remain significant; display/wiki slugs are not converted to numeric IDs. A local ID overlap can never qualify execution.
+- `farming_evidence.py` and `farming_route_audit.py` now emit the material scope in each summary, preventing accidental cross-target joins. The reducer blocks incomplete/rejected audits, count/status inconsistencies, unknown and non-mapped material mobs, ambiguous catalog-to-game-ID or game-version claims, duplicate route IDs and malformed payloads. No local filenames or evidence paths are included in the cross-check output.
+- `farming_view.py`, `FarmingAssistantTab.py` (Qt) and `src/web/farming_assistant/index.js` show a concise historical ID-overlap / mismatch / calibration-warning diagnostic. Existing `owned_quantity: null`, `verified_mob_ids: []`, `qualified_route_ids: []`, `run_state: PREVIEW_ONLY` and disabled Start/Pause/Stop are unchanged.
+- Added `tests/TestFarmingReconciliation.py` with synthetic contracts for exact/leading-zero ID joins, no-match, mismatch, ambiguous sources and versions, unknown/unmapped source, rejected/incomplete scans, duplicate routes, path-free status, and UI-model refusal to start. Extended `tests/TestFarmingAssistantQt.py` for visible diagnostics.
+- Updated `docs/FARMING_ASSISTANT_ROUTES.md` with the audit contract and local commands.
+- **Source and test commits (in order):**
+  `b16e55dd42665c3116a057a1ecdb6df3dbe06290`,
+  `e637e3bda10424a47e88c38fb87d9cba7f30a7b2`,
+  `1d5b82960f30668df2947f00b022482c91663343`,
+  `b6c8fd32326042321fb42a0c7923fb608b47d489`,
+  `54c2b9da51bfe3b5ce5120ae89f7bf0eedae14af`,
+  `5c7ad0950a12c2cdcb7e38c2b4ecb9f804e4ed14`,
+  `f617e157d9ad0d780106c46a689f062e475b14d0`,
+  `067d8a14eca529da54f69505fad8a7d4f10bcc74`,
+  `dd53eb26c30acd916d740e31e5ac61eb1af29e9c`,
+  `f3f75f8ed0f2d5f265806204e0af74444607c50a`,
+  `908657717e6b5cfa122e0f91977ec068fa36d79c`,
+  `22f3b350ab8b5363cb965a90729020916068f745`,
+  `fdda60810dacedbb23b36c8abdf760c26e2cf4ac`,
+  `00000a51827c53cae35bfa0cdf38ede2a81370a1`.
+- **Tests NOT RUN**: local repository/Qt/ok-script runtime is not attached. The connected GitHub tool confirmed commits, not Python execution. No Antigravity CLI, independent Terra review, native screenshot, actual game drop or input has been performed.
+- **Next**: local Codex should execute the new reconciliation tests plus existing evidence, route, view, Qt and Web checks, validate actual Qt/Web rendering, and independently verify original FF Mech Core source receipt and current game-version routing. After those tests, implement a version-bound read-only preflight adapter and calibration workflow before any executor wiring.
+
+Run on Windows PowerShell from the exact checked-out branch:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingReconciliation.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingEvidence.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRouteAudit.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
+$env:QT_QPA_PLATFORM = 'offscreen'
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantQt.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_reconciliation.py src/automation/farming_view.py src/automation/farming_evidence.py src/automation/farming_route_audit.py
+node --check src/web/farming_assistant/index.js
+```
+
 ## Required product contract
 
 - Primary task is a user-friendly **Farming Assistant**: search/select a **material** or **mob**, choose an optional user goal quantity, click **Start**. No end-user entry of `Hunt Profile`, `Plan Path`, `Route Manifest`, `Runtime Qualification` or developer filenames.
