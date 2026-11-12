@@ -175,6 +175,7 @@ class FarmingEvidenceAudit:
         all_candidates, rejected, incomplete = self._cached
         matching = tuple(x for x in all_candidates if x.material_id == material_id)
         return {
+            "material_id": material_id,
             "status": ("AUDIT_INCOMPLETE" if incomplete else
                        "LOCAL_CANDIDATES_ONLY" if matching else
                        "NO_LOCAL_RECEIPTS"),
