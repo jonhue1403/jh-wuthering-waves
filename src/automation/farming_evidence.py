@@ -8,10 +8,11 @@ current-runtime execution authorization. No game/input/task modules are imported
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from hashlib import sha256
-import json
 from pathlib import Path
 import re
 import time
+
+from src.automation.farming_static_json import read_static_json
 
 
 DEFAULT_EVIDENCE_DIR = (
@@ -69,8 +70,8 @@ def _load_candidate(path, base, now):
     if (path.is_symlink() or not path.is_file()
             or path.stat().st_size > MAX_MANIFEST_BYTES):
         raise ValueError("Unusable evidence manifest")
-    data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict) or (
+    data = read_static_json(path, max_bytes=MAX_MANIFEST_BYTES)
+    if (
         type(data.get("schema_version")) is not int or data["schema_version"] != 1
         or data.get("status") != "REVIEWED"
         or data.get("independent_review") is not True
