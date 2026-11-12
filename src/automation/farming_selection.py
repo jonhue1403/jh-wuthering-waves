@@ -8,6 +8,7 @@ can be returned. Catalog entries never substitute for current game evidence.
 from dataclasses import dataclass
 from enum import Enum
 import unicodedata
+from urllib.parse import urlsplit
 from typing import Callable
 
 
@@ -18,6 +19,7 @@ class TargetKind(str, Enum):
 
 class FarmingReadiness(str, Enum):
     SOURCE_UNRESOLVED = "SOURCE_UNRESOLVED"
+    SOURCE_DOCUMENTED = "SOURCE_DOCUMENTED"
     ROUTE_UNQUALIFIED = "ROUTE_UNQUALIFIED"
     READY = "READY"
 
@@ -41,6 +43,28 @@ class FarmingTarget:
             raise ValueError("Farming targets need an id and display name")
         if any(not value.strip() for value in self.aliases):
             raise ValueError("Target aliases cannot be empty")
+
+
+@dataclass(frozen=True)
+class DocumentedMobDrop:
+    """An external source claim for discovery, never execution authorization.
+
+    A wiki/article link may be outdated or limited by the game's world level.
+    Do not promote this record to an observed drop or a qualified route.
+    """
+
+    material_id: str
+    mob_id: str
+    source_url: str
+
+    def __post_init__(self):
+        if not self.material_id.strip() or not self.mob_id.strip():
+            raise ValueError("Documented source requires exact material and mob ids")
+        parsed = urlsplit(self.source_url)
+        if (parsed.scheme != "https" or not parsed.hostname
+                or parsed.username is not None or parsed.password is not None
+                or any(char.isspace() for char in self.source_url)):
+            raise ValueError("Source citation must be an HTTPS page URL")
 
 
 @dataclass(frozen=True)
@@ -76,6 +100,7 @@ class FarmingResolution:
     candidate_mob_ids: tuple[str, ...]
     qualified_route_ids: tuple[str, ...]
     explanation: str
+    documented_mob_ids: tuple[str, ...] = ()
 
 
 class FarmingCatalog:
@@ -91,6 +116,7 @@ class FarmingCatalog:
         targets: tuple[FarmingTarget, ...] = (),
         drops: tuple[ObservedMobDrop, ...] = (),
         routes: tuple[CandidateRoute, ...] = (),
+        documented_drops: tuple[DocumentedMobDrop, ...] = (),
     ):
         self._targets: dict[tuple[TargetKind, str], FarmingTarget] = {}
         for item in targets:
@@ -101,6 +127,16 @@ class FarmingCatalog:
 
         self._drops = tuple(drops)
         self._routes = tuple(routes)
+        self._documented_drops = tuple(documented_drops)
+        documented_keys: set[tuple[str, str]] = set()
+        for entry in self._documented_drops:
+            if ((TargetKind.MATERIAL, entry.material_id) not in self._targets
+                    or (TargetKind.MOB, entry.mob_id) not in self._targets):
+                raise ValueError("Documented source references an unknown target")
+            key = (entry.material_id, entry.mob_id)
+            if key in documented_keys:
+                raise ValueError("Duplicate documented source")
+            documented_keys.add(key)
         drop_keys: set[tuple[str, str]] = set()
         for entry in self._drops:
             if ((TargetKind.MATERIAL, entry.material_id) not in self._targets
@@ -137,24 +173,51 @@ class FarmingCatalog:
         matches.sort(key=lambda item: (item.kind.value, _normalized(item.name), item.target_id))
         return tuple(matches[:limit])
 
+    def documented_sources(self, material_id: str) -> tuple[DocumentedMobDrop, ...]:
+        if (TargetKind.MATERIAL, material_id) not in self._targets:
+            raise ValueError("Unknown material")
+        return tuple(sorted(
+            (entry for entry in self._documented_drops
+             if entry.material_id == material_id),
+            key=lambda entry: entry.mob_id,
+        ))
+
     def resolve(
         self,
         kind: TargetKind,
         target_id: str,
         *,
         route_is_qualified: Callable[[CandidateRoute], bool] | None = None,
+        source_is_qualified: Callable[[ObservedMobDrop], bool] | None = None,
     ) -> FarmingResolution:
         if not isinstance(kind, TargetKind) or (kind, target_id) not in self._targets:
             raise ValueError("Unknown farming target")
         target = self._targets[(kind, target_id)]
+        documented = ()
         if kind == TargetKind.MATERIAL:
+            documented = tuple(sorted(
+                entry.mob_id for entry in self._documented_drops
+                if entry.material_id == target_id
+            ))
+            # A nonempty evidence label is not evidence validation. A separate
+            # caller MUST check the actual observed-drop evidence and its hashes.
             candidates = tuple(sorted(
-                drop.mob_id for drop in self._drops if drop.material_id == target_id
+                drop.mob_id for drop in self._drops
+                if drop.material_id == target_id
+                and source_is_qualified is not None
+                and source_is_qualified(drop) is True
             ))
             if not candidates:
                 return FarmingResolution(
-                    target, FarmingReadiness.SOURCE_UNRESOLVED, (), (),
-                    "No evidence-backed material-to-mob source is configured.",
+                    target,
+                    (FarmingReadiness.SOURCE_DOCUMENTED if documented
+                     else FarmingReadiness.SOURCE_UNRESOLVED),
+                    (), (),
+                    ("Known possible enemy sources; verify actual drops and "
+                     "calibrate a current-runtime route before farming."
+                     if documented else
+                     "No verified material-to-mob source is configured."),
+                    documented,
                 )
         else:
             candidates = (target_id,)
@@ -169,19 +232,44 @@ class FarmingCatalog:
         if qualified:
             return FarmingResolution(
                 target, FarmingReadiness.READY, candidates, qualified,
-                "Eligible routes passed the caller's current-runtime verification.",
+                "Observed material sources and routes passed current-runtime verification.",
+                documented,
             )
         return FarmingResolution(
             target, FarmingReadiness.ROUTE_UNQUALIFIED, candidates, (),
+            "Material source verified; no route passed current-runtime qualification."
+            if kind == TargetKind.MATERIAL else
             "No route has passed current-runtime and evidence qualification.",
+            documented,
         )
 
 
 def starting_catalog() -> FarmingCatalog:
-    """Seed the pictured goal only; unknown enemy drops must not be invented."""
-    return FarmingCatalog(targets=(
-        FarmingTarget(
-            TargetKind.MATERIAL, "ff-mech-core", "FF Mech Core",
-            "Weapon and Skill Material; source routes not yet qualified.",
+    """FF Mech Core discovery from a community reference; NO live routes.
+
+    The slug identifiers below are UI/catalog identifiers, not in-game mob IDs.
+    Actual game identifiers, coordinates and drop evidence must be qualified
+    independently before a farming executor can use them.
+    """
+    material_id = "ff-mech-core"
+    names = (
+        ("geospider-s4", "Geospider S4"),
+        ("sabercat-reaver", "Sabercat Reaver"),
+        ("spacetrek-explorer", "Spacetrek Explorer"),
+        ("twin-nova-collapsar-blade", "Twin Nova: Collapsar Blade"),
+        ("twin-nova-nebulous-cannon", "Twin Nova: Nebulous Cannon"),
+    )
+    source_url = "https://wutheringwaves.fandom.com/wiki/FF_Mech_Core"
+    return FarmingCatalog(
+        targets=(
+            FarmingTarget(
+                TargetKind.MATERIAL, material_id, "FF Mech Core",
+                "5-star weapon/skill material; Lahai-Roi. Drops vary with enemy and world level.",
+            ),
+            *(FarmingTarget(TargetKind.MOB, mob_id, name) for mob_id, name in names),
         ),
-    ))
+        documented_drops=tuple(
+            DocumentedMobDrop(material_id, mob_id, source_url)
+            for mob_id, _ in names
+        ),
+    )
