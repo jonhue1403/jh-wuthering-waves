@@ -11,6 +11,21 @@ class TestCalculatePcExePath(unittest.TestCase):
     def test_documented_daily_cli_task_index_remains_one(self):
         self.assertEqual(['src.task.DailyTask', 'DailyTask'], config.config['onetime_tasks'][0])
 
+    def test_farming_assistant_is_registered_only_as_a_web_custom_tab(self):
+        from ok import WebCustomTab
+        from src.task.FarmingAssistantTask import FarmingAssistantTask
+
+        entry = ['src.task.FarmingAssistantTask', 'FarmingAssistantTask']
+        self.assertEqual([entry], config.config.get('web_tabs'))
+        self.assertNotIn(entry, config.config.get('onetime_tasks', []))
+        self.assertNotIn(entry, config.config.get('trigger_tasks', []))
+        self.assertTrue(issubclass(FarmingAssistantTask, WebCustomTab))
+        self.assertEqual('farming-assistant', FarmingAssistantTask.web_tab.id)
+        self.assertFalse(FarmingAssistantTask.web_tab.task_controls)
+        self.assertTrue(
+            (FarmingAssistantTask.web_tab.asset_dir / 'index.js').is_file()
+        )
+
     def test_none_path_uses_most_recently_run_executable(self):
         expected = r"C:\Games\Wuthering Waves.exe"
 
