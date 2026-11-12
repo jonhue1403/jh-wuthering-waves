@@ -102,6 +102,22 @@ $env:QT_QPA_PLATFORM = 'offscreen'
 
 Next small increment: evidence-backed, read-only source/profile adapter and explicit calibration guide, still no route dispatch. Then qualify UI startup in both frontends and test current-game evidence before enabling anything.
 
+## 2026-11-13 04:04 MYT — bounded offline receipt evidence intake
+
+**Implemented and committed on `agent/material-first-farming`; last audited source HEAD:
+`854d4a61bbb6a3a00bf8ab212b4e7146d84694ef`.**
+
+- `src/automation/farming_evidence.py`: added an internal-only, read-only evidence scanner for `configs/farming-assistant/evidence/`. It accepts bounded reviewed metadata *claims*, distinct before/after inventory screenshots with exact SHA256 hashes, explicit current-version metadata, numeric game mob ID, timezone-aware observation timestamp, positive inventory delta and distinct frame IDs. Rejects missing/changed files, wrong IDs, stale/future timestamps, insufficient quantities, duplicate frames, unreviewed metadata, path traversal/symlinks, excessive file sizes, and incomplete manifest scans. Local audit data are cached at most 10 seconds. No task/executor/input imports.
+- `src/automation/farming_view.py`: now exposes only a path-free `calibration` summary (count, audit status, candidate source IDs/quantities) for a selected material. **It does not promote any historical candidate to `verified_mob_ids`, `qualified_route_ids` or `can_start`.**
+- `src/gui/FarmingAssistantTab.py` and `src/web/farming_assistant/index.js`: show candidate receipt counts and invalid/incomplete audit warnings, while Start/Pause/Stop stay disabled.
+- `tests/TestFarmingEvidence.py` (new), `tests/TestFarmingAssistantView.py`, `tests/TestFarmingAssistantQt.py`: regression coverage for synthetic hash-bound receipts, mutation, age/expiry, invalid identities, unsupported evidence paths, scan limits, 10-second cache expiration, path-free UI contracts and disabled execution.
+- `docs/FARMING_ASSISTANT_EVIDENCE.md` (new): real capture/review workflow, deliberate DRAFT-only example JSON, private evidence-storage rules, and Codex offline/UI test commands. The example contains placeholders and **cannot** be used as live evidence.
+- Commits: `c8c3096f1e578721563c84b2b3354a81f8bf6b40`, `555c102dacb0853267e7acb79cadde51e3550b61`, `daeab67752ae2e905b011517679f89c843207ea2`, `27e841ca31cc7ad2b5cad73b3e8ae085211f9ecb`, `a7aa2ecdd7838919ca7255d7652607258590ed01`, `f4d402fb68ad553e5c8f97185ab77639c1ba14cf`, `136c5795290462a2cb8dca3fbb610d8096804589`, `18a1d567bba1bcd8dcd4dd961f183f3c2043b654`, `854d4a61bbb6a3a00bf8ab212b4e7146d84694ef`.
+- **Verification: NOT RUN.** GitHub file write/read was confirmed. No Python virtual environment or native Web/Qt/game runtime exists in this task's connected workspace. Do not report passing unit tests, launch, actual material gain, calibrated routes, independent Terra review or Antigravity CLI invocation.
+- **Blocking live execution**: FF Mech Core still has *no actual independently reviewed game-drop receipt and no current-game calibrated route*. A SHA-matched screenshot candidate is not OCR verification or a route permit. Current UI remains preview-only, as before.
+
+Next work: Codex to run the documented offline/Qt/UI checks, inspect actual startup, then an independent reviewer must qualify source/profile/route evidence and current-game runtime. The next safe incremental feature is a read-only profile/route candidate audit, not auto-start.
+
 ## Next independently reviewable increments (in order)
 
 1. **Qualify both read-only frontends locally**: WebCustomTab and native PySide6 Qt `custom_tabs` are registered and committed but have not been started or visually tested. Run TestConfig, selection/view and new Qt offscreen tests; launch `main_web.py --browser` and classic `main.py`, inspect accessibility, keyboard behavior, source links and tab cleanup. Preserve old HuntMobTask until the new replacement is qualified.
