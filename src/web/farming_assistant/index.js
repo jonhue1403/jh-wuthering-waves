@@ -1,4 +1,4 @@
-const STYLE = "\n.farm-ui { padding:12px 4px; color:inherit; min-height:470px; }\n.farm-ui * { box-sizing:border-box; }\n.farm-ui h2 { font-size:1rem; margin:0 0 4px; }\n.farm-ui h3 { font-size:.94rem; margin:0 0 6px; }\n.farm-muted { color:var(--text-muted); font-size:.72rem; line-height:1.55; }\n.farm-grid { display:grid; grid-template-columns:minmax(230px,34%) minmax(0,1fr); gap:12px; margin-top:14px; }\n.farm-panel { background:var(--card-bg); border:1px solid var(--stroke); border-radius:9px; padding:14px; min-width:0; }\n.farm-ui button { border:1px solid var(--stroke); border-radius:6px; background:var(--card-bg); color:inherit; padding:7px 10px; font:inherit; font-size:.73rem; cursor:pointer; min-height:33px; }\n.farm-ui button:disabled { opacity:.5; cursor:default; }\n.farm-ui button:focus-visible, .farm-ui input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }\n.farm-toggle { display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:12px; }\n.farm-toggle button.selected, .farm-targets button.selected { border-color:var(--accent); background:var(--selected); color:var(--accent); }\n.farm-ui input { width:100%; height:36px; padding:8px; border:1px solid var(--stroke); border-radius:6px; background:transparent; color:inherit; font:inherit; font-size:.76rem; }\n.farm-label { font-size:.72rem; font-weight:650; margin:0 0 6px; display:block; }\n.farm-targets { display:flex; flex-direction:column; max-height:440px; min-height:90px; overflow-y:auto; gap:4px; margin-top:10px; }\n.farm-targets button { text-align:left; border-color:transparent; background:transparent; }\n.farm-targets button:hover { background:var(--card-hover); }\n.farm-subtext { display:block; margin-top:3px; color:var(--text-muted); font-size:.65rem; }\n.farm-status { display:inline-block; border:1px solid var(--stroke); padding:5px 8px; border-radius:5px; margin:10px 0; font-size:.7rem; }\n.farm-divider { border-top:1px solid var(--stroke); margin:14px 0; }\n.farm-source-list { padding-left:20px; line-height:1.8; font-size:.74rem; }\n.farm-source-list a { color:var(--accent); }\n.farm-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }\n.farm-actions .primary { border-color:var(--accent); background:var(--accent); color:#102a35; }\n.farm-state { margin-top:12px; border:1px solid var(--stroke); border-radius:7px; padding:10px; }\n@media(max-width:780px){.farm-grid{grid-template-columns:1fr}.farm-targets{max-height:180px}}\n";
+const STYLE = "\n.farm-ui { padding:12px 4px; color:inherit; min-height:470px; }\n.farm-ui * { box-sizing:border-box; }\n.farm-ui h2 { font-size:1rem; margin:0 0 4px; }\n.farm-ui h3 { font-size:.94rem; margin:0 0 6px; }\n.farm-muted { color:var(--text-muted); font-size:.72rem; line-height:1.55; }\n.farm-grid { display:grid; grid-template-columns:minmax(230px,34%) minmax(0,1fr); gap:12px; margin-top:14px; }\n.farm-panel { background:var(--card-bg); border:1px solid var(--stroke); border-radius:9px; padding:14px; min-width:0; }\n.farm-ui button { border:1px solid var(--stroke); border-radius:6px; background:var(--card-bg); color:inherit; padding:7px 10px; font:inherit; font-size:.73rem; cursor:pointer; min-height:33px; }\n.farm-ui button:disabled { opacity:.5; cursor:default; }\n.farm-ui button:focus-visible, .farm-ui input:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }\n.farm-toggle { display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:12px; }\n.farm-toggle button.selected, .farm-targets button.selected { border-color:var(--accent); background:var(--selected); color:var(--accent); }\n.farm-ui input { width:100%; height:36px; padding:8px; border:1px solid var(--stroke); border-radius:6px; background:transparent; color:inherit; font:inherit; font-size:.76rem; }\n.farm-label { font-size:.72rem; font-weight:650; margin:0 0 6px; display:block; }\n.farm-targets { display:flex; flex-direction:column; max-height:440px; min-height:90px; overflow-y:auto; gap:4px; margin-top:10px; }\n.farm-targets button { text-align:left; border-color:transparent; background:transparent; }\n.farm-targets button:hover { background:var(--card-hover); }\n.farm-subtext { display:block; margin-top:3px; color:var(--text-muted); font-size:.65rem; }\n.farm-status { display:inline-block; border:1px solid var(--stroke); padding:5px 8px; border-radius:5px; margin:10px 0; font-size:.7rem; }\n.farm-divider { border-top:1px solid var(--stroke); margin:14px 0; }\n.farm-source-list { padding-left:20px; line-height:1.8; font-size:.74rem; }\n.farm-source-list a { color:var(--accent); }\n.farm-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }\n.farm-actions .primary { border-color:var(--accent); background:var(--accent); color:#102a35; }\n.farm-state { margin-top:12px; border:1px solid var(--stroke); border-radius:7px; padding:10px; }\n.farm-calibration-steps { max-height:185px; overflow-y:auto; padding-right:6px; }\n.farm-calibration-steps li { padding:4px 0; }\n.farm-calibration-steps li.farm-current-step { border-left:2px solid var(--accent); padding-left:8px; }\n@media(max-width:780px){.farm-grid{grid-template-columns:1fr}.farm-targets{max-height:180px}}\n";
 
 function node(tag, className, value) {
   const item = document.createElement(tag);
@@ -183,6 +183,32 @@ export function mount(container, context) {
       t("Calibration preflight: review required · game version: ") +
       String(preflight.game_version_check || "VERSION_NOT_OBSERVED")
         .replaceAll("_", " ").toLowerCase()));
+    // Guidance is a read-only checklist. Historical references are never
+    // presented as a completed live qualification or a Start permission.
+    const guide = data.calibration_guide || {};
+    if (guide.mode === "GUIDED_READ_ONLY" && Array.isArray(guide.steps)) {
+      const section = node("section", "farm-state");
+      section.setAttribute("aria-label", t("Guided calibration checklist"));
+      section.append(node("h3", "", t("Guided calibration · read only")));
+      section.append(node("p", "farm-muted", guide.notice || ""));
+      const checklist = node("ol", "farm-source-list");
+      checklist.classList.add("farm-calibration-steps");
+      guide.steps.forEach((step) => {
+        const item = node("li", "farm-muted");
+        if (step.id === guide.next_step_id) item.classList.add("farm-current-step");
+        item.append(
+          node("strong", "", step.title),
+          node("small", "farm-subtext",
+            step.status === "HISTORICAL_REFERENCE_ONLY"
+              ? t("Historical reference only · not live-verified")
+              : t("Needs live verification")),
+          node("div", "farm-subtext", step.instruction)
+        );
+        checklist.append(item);
+      });
+      section.append(checklist);
+      right.append(section);
+    }
     right.append(
       node("div", "farm-divider"),
       node("label", "farm-label", t("Target inventory total (optional)"))

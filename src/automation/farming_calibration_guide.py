@@ -101,6 +101,8 @@ def build_calibration_guide(kind: str, preflight: dict) -> dict:
 
     if material and source_state != "HISTORICAL_ONLY":
         next_step_id = "observe-material-drop"
+    elif material and route_state != "STATIC_ONLY":
+        next_step_id = "calibrate-reviewed-route"
     elif identity_state != "HISTORICAL_ID_OVERLAP_ONLY":
         next_step_id = "identify-game-enemy"
     elif version_state in (
@@ -114,12 +116,8 @@ def build_calibration_guide(kind: str, preflight: dict) -> dict:
     else:
         next_step_id = "review-runtime-qualification"
 
-    # Live version observation remains outstanding in this report regardless
-    # of any historical equality, but source/route deficiencies are surfaced first.
-    if (material and source_state == "HISTORICAL_ONLY"
-            and identity_state == "HISTORICAL_ID_OVERLAP_ONLY"
-            and route_state != "STATIC_ONLY"):
-        next_step_id = "calibrate-reviewed-route"
+    # A historical version equality never closes the live version step.
+    # Missing route metadata blocks any meaningful numeric-ID cross-check.
 
     return {
         "mode": "GUIDED_READ_ONLY",

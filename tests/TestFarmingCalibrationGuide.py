@@ -47,18 +47,25 @@ class TestFarmingCalibrationGuide(unittest.TestCase):
         guide = build_calibration_guide(
             "material", self.material_preflight(source=True)
         )
-        self.assertEqual("identify-game-enemy", guide["next_step_id"])
+        self.assertEqual("calibrate-reviewed-route", guide["next_step_id"])
         self.assertEqual(
             "HISTORICAL_REFERENCE_ONLY", guide["steps"][0]["status"]
         )
         self.assertEqual(0, guide["verified_step_count"])
 
-    def test_id_overlap_then_missing_route_focuses_route_calibration(self):
+    def test_missing_route_prioritized_before_identity_cross_check(self):
+        # ID matching is not meaningful until both local audits have candidates.
         guide = build_calibration_guide(
             "material", self.material_preflight(source=True, route=False, overlap=True)
         )
         self.assertEqual("calibrate-reviewed-route", guide["next_step_id"])
         self.assertFalse(guide["can_start"])
+
+    def test_route_present_but_no_id_overlap_focuses_identity(self):
+        guide = build_calibration_guide(
+            "material", self.material_preflight(source=True, route=True)
+        )
+        self.assertEqual("identify-game-enemy", guide["next_step_id"])
 
     def test_static_evidence_never_authorizes_execution(self):
         guide = build_calibration_guide(

@@ -5,6 +5,25 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 09:03 MYT — guided read-only calibration checklist
+
+**New source/UI increment: operator guidance, not a playable route or a live qualification.**
+
+- Added `src/automation/farming_calibration_guide.py`: deterministic, path-free material/mob calibration sequence from the existing blocked preflight. Material flow shows source receipt, numeric enemy identity, installed version, bounded route, independent SHA-bound runtime review, live inventory delta and input-safety checks. Mob flow omits material receipt prerequisite.
+- Every step is explicitly `NEEDS_LIVE_VERIFICATION` or `HISTORICAL_REFERENCE_ONLY`; `verified_step_count=0` and `can_start=false` are invariant. A local `REVIEWED` flag, static hash, historical ID overlap or game-version hint cannot complete steps.
+- `farming_view.py` now exposes `calibration_guide` beside the previous preflight. Both the Web custom tab and native Qt panel display the guided checklist, highlight the next action and keep Start/Pause/Stop disabled. The UI has no operator path fields or arbitrary "mark done" actions.
+- New `tests/TestFarmingCalibrationGuide.py` plus expanded `tests/TestFarmingAssistantQt.py` cover deterministic next-step selection, stale/historical-only status, immutable safety boundary, empty selection, native material/mob guidance and path-free output.
+- **Tests NOT RUN:** GitHub connector edits cannot execute the local Python/Qt/OK Script runtime. Local Codex must run:
+```powershell
+.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p TestFarmingCalibrationGuide.py -v
+.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
+$env:QT_QPA_PLATFORM = 'offscreen'
+.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p TestFarmingAssistantQt.py -v
+.\\.venv\\Scripts\\python.exe -m py_compile src/automation/farming_calibration_guide.py src/automation/farming_view.py src/gui/FarmingAssistantTab.py
+node --check src/web/farming_assistant/index.js
+```
+- Next: define an immutable current-runtime observation handoff contract for Codex/Terra verification. Only then consider an internal executor adapter; do not let this checklist directly dispatch existing hunt tasks.
+
 ## 2026-11-13 08:02 MYT — version-aware read-only calibration preflight
 
 **New independently reviewable increment: version diagnostics and next-step guidance, not game input or route authorization.**

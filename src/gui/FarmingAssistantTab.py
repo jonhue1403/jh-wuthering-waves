@@ -155,6 +155,15 @@ class FarmingAssistantTab(CustomTab):
         self.preflight_label.setAccessibleName(self.tr("Calibration preflight status"))
         detail.addWidget(self.preflight_label)
 
+        detail.addWidget(QLabel(self.tr("Guided calibration · read only"), right))
+        self.guide_list = QListWidget(right)
+        self.guide_list.setAccessibleName(self.tr("Guided calibration checklist"))
+        self.guide_list.setMaximumHeight(172)
+        self.guide_list.setToolTip(
+            self.tr("These are instructions only; no step is live-qualified here.")
+        )
+        detail.addWidget(self.guide_list)
+
         actions = QHBoxLayout()
         self.start_button = QToolButton(right)
         self.pause_button = QToolButton(right)
@@ -240,6 +249,7 @@ class FarmingAssistantTab(CustomTab):
             self.reconciliation_label.setToolTip("")
             self.preflight_label.setText(self.tr("Calibration preflight: no target selected"))
             self.preflight_label.setToolTip("")
+            self.guide_list.clear()
             self.state_label.setText(self.tr("State: PREVIEW ONLY"))
             self.next_step.setText(self.tr("Select a material or mob to preview."))
             self._update_source_button()
@@ -334,6 +344,20 @@ class FarmingAssistantTab(CustomTab):
                 safety=preflight["input_safety_check"],
             )
         )
+        guide = result["calibration_guide"]
+        self.guide_list.clear()
+        for step in guide["steps"]:
+            condition = (
+                self.tr("historical reference only")
+                if step["status"] == "HISTORICAL_REFERENCE_ONLY"
+                else self.tr("needs live verification")
+            )
+            caption = step["title"] + " · " + condition
+            if step["id"] == guide["next_step_id"]:
+                caption = self.tr("Next: ") + caption
+            item = QListWidgetItem(caption)
+            item.setToolTip(step["instruction"])
+            self.guide_list.addItem(item)
         self.state_label.setText(self.tr("State: PREVIEW ONLY"))
         self.next_step.setText(result["next_step"])
         self._disable_actions()

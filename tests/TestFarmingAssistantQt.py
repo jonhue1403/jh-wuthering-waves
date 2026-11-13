@@ -40,6 +40,11 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertIn("cross-check", self.tab.reconciliation_label.text().lower())
         self.assertIn("preflight", self.tab.preflight_label.text().lower())
         self.assertIn("version not observed", self.tab.preflight_label.text().lower())
+        self.assertEqual(7, self.tab.guide_list.count())
+        self.assertIn("next:", self.tab.guide_list.item(0).text().lower())
+        self.assertEqual("GUIDED_READ_ONLY",
+                         self.tab._preview["calibration_guide"]["mode"])
+        self.assertFalse(self.tab._preview["calibration_guide"]["can_start"])
         self.assertEqual(0, self.tab._preview["reconciliation"]["candidate_match_count"])
         self.assertFalse(self.tab._preview["reconciliation"]["can_start"])
         self.assertFalse(self.tab._preview["calibration"]["can_start"])
@@ -55,6 +60,7 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.tab.search.setText("sabercat")
         self.assertEqual(1, self.tab.target_list.count())
         self.assertEqual("Sabercat Reaver", self.tab.target_name.text())
+        self.assertEqual(6, self.tab.guide_list.count())
         self.tab.goal.setText("50")
         self.assertEqual(50, self.tab._preview["desired_total"])
         self.assertFalse(self.tab.start_button.isEnabled())
@@ -65,6 +71,7 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertIsNone(self.tab._preview)
         self.assertIn("cross-check", self.tab.reconciliation_label.text().lower())
         self.assertIn("no target selected", self.tab.preflight_label.text().lower())
+        self.assertEqual(0, self.tab.guide_list.count())
         self.assertFalse(self.tab.reference_button.isEnabled())
         self.tab.search.clear()
         self.tab.source_list.setCurrentRow(0)
@@ -91,6 +98,8 @@ class TestFarmingAssistantQt(unittest.TestCase):
             self.tab.next_step.text(),
             self.tab.reconciliation_label.text(),
             self.tab.preflight_label.text(),
+            " ".join(self.tab.guide_list.item(i).text()
+                     for i in range(self.tab.guide_list.count())),
         ))
         for forbidden in ("Hunt Profile", "Route Manifest", "Runtime Qualification",
                           "Plan Path", ".json", "C:\\", "Z:\\"):
