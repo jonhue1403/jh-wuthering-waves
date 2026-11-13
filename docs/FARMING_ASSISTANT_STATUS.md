@@ -6,6 +6,56 @@ Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e0661
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
 
+## 2026-11-13 — private snapshot-to-handoff in-memory coherence audit (new increment)
+
+**Actual source and tests committed on canonical branch. No game input or route authorization.**
+
+- Added `src/automation/farming_capture_session.py` with frozen, path-free
+  `ReadOnlyCaptureSessionAudit` and `inspect_readonly_capture_session`.
+  It checks that original in-memory PNG bytes, digest, size, frame token,
+  captured instant, claimed OK Script version and dimensions agree exactly
+  between `ReadOnlyFrameSnapshot`, `RetainedReadOnlySnapshot`, and
+  `FarmingObservationHandoff`. It reuses the existing chronological
+  retention-binding checks and rejects inconsistent or stale claims.
+- Added `tests/TestFarmingCaptureSession.py` with ten synthetic contract
+  tests: positive local coherence with `can_start=false`; mismatched runtime,
+  tampered PNG, forged digest/size, clock disagreement, changed resolution,
+  invalid PNG/type, missing/extra snapshots, reversed/unsafe retention and
+  expired/naive clock. All enemy and material fixture values are synthetic.
+- **Actually run:** container `py_compile` for new source/test **PASS**;
+  ten tests **PASS (10/10)** in an isolated Linux harness with the actual
+  new source/test and stubbed existing handoff/capture/binding dependencies.
+  These are *not* full-repository or Windows game integration tests.
+- **NOT RUN:** full repository imports/tests, local Qt/Web startup, actual
+  Windows OK Script capture, native frame freshness, installed game version,
+  independent Terra review, Antigravity CLI, FF Mech Core drop or route.
+- Code commit SHA: `0a5783064d3bac707a09fb1852478af50043cf2f`;
+  tests commit: `7560d67dba57685c3287ef418154550fb7eae672`;
+  documentation commit: `9774336f9d3f4f2d8ff338c9188765ccf9830dc2`.
+- Verified working branch remains `agent/material-first-farming`. No PR
+  modification, force push, merge or master change.
+
+Codex local Windows checkout qualification:
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureSession.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureBinding.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureRetention.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_session.py
+```
+
+**Next independent increment:** validate complete repository imports and
+Windows private-directory ACL/reparse protections in the authorized Codex
+checkout; then attach trusted, *read-only* frame sequence/freshness metadata
+and game-version observation without accepting UI-supplied versions or paths.
+Even matching in-memory bytes and local disk hashes cannot prove gameplay
+origin or authorize a source, inventory receipt, route or executor. Require
+separate reviewed current-game evidence and Terra qualification.
+
+---
 ## 2026-11-13 — immutable retained-frame to handoff binding (new increment)
 
 **Actual implementation and tests committed on the canonical branch. No game
