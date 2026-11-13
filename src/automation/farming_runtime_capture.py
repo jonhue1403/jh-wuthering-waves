@@ -61,12 +61,13 @@ def _system_foreground_hwnd():
         raise CaptureBlocked("FOREGROUND_CHECK_UNAVAILABLE") from exc
 
 
-def capture_readonly_frame(task, *, opted_in=False, foreground_hwnd=None) -> ReadOnlyFrameSnapshot:
+def capture_readonly_frame(task, *, opted_in=False) -> ReadOnlyFrameSnapshot:
     """Snapshot a foreground OK Script task's frame without issuing game inputs.
 
     Internal, explicit opt-in only; not a task-tab action. The default focus
-    provider checks the real Win32 foreground window. Injection is exclusively
-    for offline tests, not for bypassing a failed live focus check. This reads
+    provider checks the real Win32 foreground window. Unit tests replace the
+    system-check function using unittest.mock; callers cannot supply a bypass.
+    This reads
     actual OK Script task.next_frame() and task.frame when run inside the
     authorized task runtime, but cannot prove that a backend returned a fresh
     uncached frame. Never convert this result into RuntimeQualification.
@@ -82,9 +83,7 @@ def capture_readonly_frame(task, *, opted_in=False, foreground_hwnd=None) -> Rea
         raise CaptureBlocked("OK_SCRIPT_RUNTIME_UNAVAILABLE") from exc
     if type(hwnd) is not int or hwnd <= 0 or not callable(next_frame) or not callable(cancelled):
         raise CaptureBlocked("OK_SCRIPT_RUNTIME_UNAVAILABLE")
-    checker = _system_foreground_hwnd if foreground_hwnd is None else foreground_hwnd
-    if not callable(checker):
-        raise CaptureBlocked("FOREGROUND_CHECK_UNAVAILABLE")
+    checker = _system_foreground_hwnd
 
     def guard():
         if cancelled():
