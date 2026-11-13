@@ -5,6 +5,46 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 — private read-only snapshot retention (new increment)
+
+**Implementation committed to canonical branch; no game execution or live authorization.**
+
+- Added `src/automation/farming_capture_retention.py`: opt-in local
+  original-PNG retention from `ReadOnlyFrameSnapshot`, requiring an existing
+  absolute trusted private directory, unique opaque token, bounded fresh
+  content and matching SHA256. File creation is exclusive (never overwrites),
+  readback is checked, and root symlink/junction/unsafe token paths reject.
+  `public_summary()` never exposes local paths and always has `can_start=false`.
+- Added `tests/TestFarmingCaptureRetention.py`: 9 synthetic cases covering
+  success, opt-in, duplicate, traversal token, stale/future evidence,
+  bad hash/PNG, invalid/symlink root and naive clock.
+- **Tests actually run:** 9/9 PASSED in isolated Linux Python with a stub
+  `ReadOnlyFrameSnapshot` class matching the existing frozen contract;
+  source/test `py_compile` PASSED. **NOT RUN:** current full repository suite,
+  Windows/OK Script integration, Qt/Web startup, Antigravity CLI, Terra review,
+  actual frame acquisition, independent evidence review or live game.
+- Commits: source `40b79c9d2a23a3ce5812501f7307d3260083029d`,
+  tests `05faf1ed759e1bf14f3eee337b415c26deaa8c76`,
+  documentation `710d5faa73e4ac2b6f458e2c3d89fbbe9eafdc2e`.
+- **Blockers:** private Windows directory ACL and reparse-point verification,
+  current-game version/frame freshness and capture provenance, numeric
+  enemy identity, independent Terra review, real FF Mech Core receipt,
+  bounded executable route and safety qualification. Existing
+  Start/Pause/Stop remain disabled. No PR #4/master changes or merges.
+
+Local Codex commands:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureRetention.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRuntimeCapture.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_retention.py
+```
+
+**Next independently reviewable increment:** bind retained private frame IDs
+to an internal handoff evidence map without operator-supplied paths or
+automatic authorization; validate actual Windows filesystem/OK Script
+behavior and current-game frame freshness locally before gameplay work.
 ## 2026-11-13 — opt-in foreground snapshot producer (read-only)
 
 **Actual source/tests committed on canonical branch; gameplay execution stays disabled.**
