@@ -12,6 +12,10 @@ Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing dr
 new tests and handoff specification) followed by
 `4fcb5ae9c67453b1d7f30e5c453542100cf4dc2b`
 (compatibility with existing explicit clock/expiry rejection reasons).
+Additional code correction: `9e5f2e6386391f61dd39f14a8b1cb0d2d2f050d5`
+moves integrity checking ahead of snapshot/retained-frame map access so a
+forged packet cannot be masked by a missing/extra-frame error. This remains
+unexecuted against the full repository; all tests below remain **NOT RUN**.
 
 - `farming_live_handoff.validate_observation_handoff_integrity` reconstructs
   the canonical v1 observation and compares all frozen fields and SHA256
