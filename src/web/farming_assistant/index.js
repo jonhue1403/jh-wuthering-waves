@@ -177,6 +177,12 @@ export function mount(container, context) {
       comparisonText = t("No matching local enemy IDs; route calibration required.");
     }
     right.append(node("p", "farm-muted", comparisonText));
+    // This is an offline diagnostic, not a current-game authorization check.
+    const preflight = data.preflight || {};
+    right.append(node("p", "farm-muted",
+      t("Calibration preflight: review required · game version: ") +
+      String(preflight.game_version_check || "VERSION_NOT_OBSERVED")
+        .replaceAll("_", " ").toLowerCase()));
     right.append(
       node("div", "farm-divider"),
       node("label", "farm-label", t("Target inventory total (optional)"))
