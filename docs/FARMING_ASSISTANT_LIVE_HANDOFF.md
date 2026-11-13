@@ -361,3 +361,38 @@ Full-repository tests and Windows ACL/reparse checks are still mandatory;
 run `TestFarmingReviewManifest.py` in the authorized Codex checkout. This
 contract uses synthetic FF Mech Core fixture data only; no enemy mapping, live
 inventory gain or route success is inferred.
+
+
+## Internal private-capture review bridge (2026-11-13)
+
+`src/automation/farming_private_review.py` adds
+`review_private_captures(packet, captures, *, source_root, evidence_root,
+binding_files, now)`. A trusted local reviewer supplies a complete mapping
+from the exact immutable packet frame IDs to `PrivateReadOnlyCapture` values,
+which already pair each original in-memory frame with its private retention
+reference. The bridge rejects missing, extra, duplicate or untyped capture
+records and delegates coherent-session, SHA-bound original-file audits to
+`prepare_readonly_review_manifest`. It never acquires a screenshot or creates
+a drop claim. It is **not connected to the operator UI, Start button or task
+registration** and never authenticates game origin, runtime freshness or
+inventory receipts. Paths must come from privately controlled local
+configuration, not the user selector or a route manifest.
+
+The integration tests in `tests/TestFarmingPrivateReview.py` use synthetic
+frame bytes, IDs, inventory quantities and local files. They are **NOT RUN**
+against the complete checkout as of this checkpoint. In a permitted local
+Windows checkout, run:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingPrivateReview.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingReviewManifest.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingPrivateCapture.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_private_review.py tests/TestFarmingPrivateReview.py
+```
+
+A successful manifest remains `LOCAL_REVIEW_MANIFEST_ONLY`, with
+`can_start=false`. Codex must verify actual Windows/OK Script evidence and
+Terra must independently review it before any separate runtime qualification
+decision; hash matches and synthetic tests cannot qualify an FF Mech Core
+route.
+
