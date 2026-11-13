@@ -9,8 +9,8 @@ historical version match cannot promote a static route to executable status.
 import re
 
 
-_VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,31}\\Z")
-_GAME_ID = re.compile(r"[0-9]{1,32}\\Z")
+_VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,31}\Z")
+_GAME_ID = re.compile(r"[0-9]{1,32}\Z")
 
 
 def _valid_candidate(summary, *, status, count_key):
