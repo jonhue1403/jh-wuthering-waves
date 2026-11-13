@@ -4,12 +4,30 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import os
+import subprocess
 import unittest
 
 from src.automation.farming_runtime_capture import ReadOnlyFrameSnapshot
 from src.automation.farming_capture_retention import (
     SnapshotRetentionBlocked, retain_readonly_snapshot,
 )
+
+
+def _create_directory_redirect(link, target):
+    try:
+        os.symlink(target, link, target_is_directory=True)
+        return "symlink"
+    except (OSError, NotImplementedError):
+        if os.name != "nt":
+            raise
+    result = subprocess.run(
+        ["cmd", "/c", "mklink", "/J", str(link), str(target)],
+        capture_output=True, text=True, check=False,
+    )
+    if result.returncode:
+        raise OSError(result.stderr or result.stdout or "junction creation failed")
+    return "junction"
 
 
 class TestFarmingCaptureRetention(unittest.TestCase):
@@ -80,12 +98,12 @@ class TestFarmingCaptureRetention(unittest.TestCase):
                 retain_readonly_snapshot(self.snapshot(), private_root=root,
                                          capture_token="x", opted_in=True, now=self.now)
 
-    def test_symlink_root_rejected(self):
+    def test_redirected_root_rejected(self):
         link = self.root / "link"
         try:
-            link.symlink_to(self.root, target_is_directory=True)
+            _create_directory_redirect(link, self.root)
         except (OSError, NotImplementedError):
-            self.skipTest("Symlinks unavailable")
+            self.skipTest("Symlink/junction creation unavailable")
         with self.assertRaisesRegex(SnapshotRetentionBlocked, "PRIVATE_ROOT_UNSAFE"):
             retain_readonly_snapshot(self.snapshot(), private_root=link,
                                      capture_token="x", opted_in=True, now=self.now)

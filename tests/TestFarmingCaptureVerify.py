@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from pathlib import Path
 import os
+import subprocess
 import tempfile
 import unittest
 
@@ -13,6 +14,22 @@ from src.overworld.qualification import REQUIRED_SOURCES
 
 
 NOW = datetime(2026, 11, 13, 3, 0, tzinfo=timezone.utc)
+
+
+def _create_directory_redirect(link, target):
+    try:
+        os.symlink(target, link, target_is_directory=True)
+        return "symlink"
+    except (OSError, NotImplementedError):
+        if os.name != "nt":
+            raise
+    result = subprocess.run(
+        ["cmd", "/c", "mklink", "/J", str(link), str(target)],
+        capture_output=True, text=True, check=False,
+    )
+    if result.returncode:
+        raise OSError(result.stderr or result.stdout or "junction creation failed")
+    return "junction"
 
 
 class TestFarmingCaptureVerify(unittest.TestCase):
@@ -142,16 +159,28 @@ class TestFarmingCaptureVerify(unittest.TestCase):
             self.audit(binding_files=duplicate).reason_code,
         )
 
-    def test_symlink_inside_trusted_root_is_rejected(self):
+    def test_redirected_file_inside_trusted_root_is_rejected(self):
         original = self.evidence / self.frames["frame-one"]
         link = self.evidence / "private" / "linked-frame.png"
         try:
             os.symlink(original, link)
         except (OSError, NotImplementedError):
-            self.skipTest("Symlink creation unavailable to current test process")
+            if os.name != "nt":
+                self.skipTest("Symlink creation unavailable to current test process")
+            outside = self.evidence.parent / "outside-frames"
+            outside.mkdir()
+            (outside / original.name).write_bytes(original.read_bytes())
+            link = self.evidence / "private" / "redirected"
+            try:
+                _create_directory_redirect(link, outside)
+            except (OSError, NotImplementedError):
+                self.skipTest("Symlink/junction creation unavailable to current test process")
+            relative = "private/redirected/" + original.name
+        else:
+            relative = "private/linked-frame.png"
         self.assertEqual(
             "UNSAFE_LOCAL_PATH",
-            self.audit(frame_files={"frame-one": "private/linked-frame.png"}).reason_code,
+            self.audit(frame_files={"frame-one": relative}).reason_code,
         )
 
     def test_relative_roots_are_rejected_before_original_file_access(self):
@@ -165,22 +194,22 @@ class TestFarmingCaptureVerify(unittest.TestCase):
                 self.assertEqual("LOCAL_ROOT_INVALID", result.reason_code)
                 self.assertFalse(result.public_summary()["can_start"])
 
-    def test_symlinked_ancestor_of_source_root_is_rejected(self):
+    def test_redirected_ancestor_of_source_root_is_rejected(self):
         link = self.sources.parent / "parent-alias"
         try:
-            os.symlink(self.sources.parent, link, target_is_directory=True)
+            _create_directory_redirect(link, self.sources.parent)
         except (OSError, NotImplementedError):
-            self.skipTest("Symlink creation unavailable to current test process")
+            self.skipTest("Symlink/junction creation unavailable to current test process")
         result = self.audit(source_root=link / "repo")
         self.assertEqual("LOCAL_ROOT_INVALID", result.reason_code)
         self.assertEqual(0, result.checked_artifact_count)
 
-    def test_symlinked_ancestor_of_evidence_root_is_rejected(self):
+    def test_redirected_ancestor_of_evidence_root_is_rejected(self):
         link = self.evidence.parent / "evidence-alias"
         try:
-            os.symlink(self.evidence.parent, link, target_is_directory=True)
+            _create_directory_redirect(link, self.evidence.parent)
         except (OSError, NotImplementedError):
-            self.skipTest("Symlink creation unavailable to current test process")
+            self.skipTest("Symlink/junction creation unavailable to current test process")
         result = self.audit(evidence_root=link / "capture")
         self.assertEqual("LOCAL_ROOT_INVALID", result.reason_code)
         self.assertFalse(result.public_summary()["can_start"])
