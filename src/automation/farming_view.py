@@ -13,6 +13,7 @@ from src.automation.farming_evidence import FarmingEvidenceAudit
 from src.automation.farming_route_audit import FarmingRouteAudit
 from src.automation.farming_reconciliation import reconcile_candidate_audits
 from src.automation.farming_preflight import build_calibration_preflight
+from src.automation.farming_calibration_guide import build_calibration_guide
 
 MAX_GOAL = 9_999_999
 MAX_QUERY_LENGTH = 120
@@ -130,6 +131,7 @@ class FarmingAssistantView:
         preflight = build_calibration_preflight(
             target_kind.value, calibration, route_calibration, reconciliation,
         )
+        calibration_guide = build_calibration_guide(target_kind.value, preflight)
         return {
             "target": {
                 "id": resolution.target.target_id,
@@ -155,6 +157,7 @@ class FarmingAssistantView:
             "route_calibration": route_calibration,
             "reconciliation": reconciliation,
             "preflight": preflight,
+            "calibration_guide": calibration_guide,
             "can_start": False,
             "can_pause": False,
             "can_stop": False,
