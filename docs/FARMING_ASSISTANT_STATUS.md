@@ -5,6 +5,50 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 — evidence root reparse/alias validation (current increment)
+
+**Code/test/documentation commit:** `9482eee1a03d2fea1f036f9ee7e4903439203e36` on
+`agent/material-first-farming` (based on `75b5bc43af55152c4c3e33f1f5bc29a945ffd2ab`).
+Changes: `src/automation/farming_capture_verify.py`,
+`tests/TestFarmingCaptureVerify.py`, and
+`docs/FARMING_ASSISTANT_LIVE_HANDOFF.md`. No route or combat behavior changed.
+
+- Tightened original-byte audit roots: absolute paths required; each root and
+  every ancestor must be free of symlinks, junctions and Windows reparse-point
+  metadata. Reject redirected components inside relative source/evidence paths.
+  Preserve existing `LOCAL_ROOT_INVALID` and `UNSAFE_LOCAL_PATH` diagnostics.
+- Added **3 new synthetic regression test methods**: relative checkout/evidence
+  roots, symlinked source-root ancestor and symlinked evidence-root ancestor.
+  Previous tests remain unchanged; **NOT RUN** in this session. Actual Windows
+  NTFS junction/reparse handling, ACL inheritance and link races are NOT
+  qualified by static source inspection.
+- GitHub code commit and canonical branch HEAD checked; the authorized Windows
+  checkout was not available via Devspace (internal error) and container HTTPS
+  access to GitHub still failed DNS. Neither Gemini Antigravity CLI nor Terra
+  was invoked. No source/tests were executed locally. Do not infer test PASS.
+- **Still blocked:** full repo imports/Qt/Web startup, Windows private-root ACL
+  verification, OK Script fresh-frame/foreground proof, installed game version,
+  authentic FF Mech Core enemy/drop inventory receipts, reviewed bounded route
+  and independent Terra qualification. No generated artifact may authorize
+  Start, navigation, combat, paid refill or spending.
+- **Next small increment:** run integration tests in the permitted Windows
+  checkout and independently exercise actual junction/reparse/ACL cases;
+  only then consider a trusted, read-only evidence-session manifest. This
+  remains a non-executable preview.
+
+Codex Windows checkout (use existing local virtualenv):
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p TestFarmingHandoffIntegrity.py -v
+.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p "TestFarmingCapture*.py" -v
+.\\.venv\\Scripts\\python.exe -m py_compile src/automation/farming_capture_verify.py
+```
+
+---
+
 ## 2026-11-13 — immutable observation integrity revalidation (new increment)
 
 **Two actual code commits on `agent/material-first-farming`:**
