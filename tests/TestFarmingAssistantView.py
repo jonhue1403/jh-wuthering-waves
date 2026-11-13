@@ -58,6 +58,23 @@ class TestFarmingAssistantView(unittest.TestCase):
                        "ROUTE_AUDIT_INCOMPLETE"))
         self.assertFalse(preview["route_calibration"]["can_start"])
 
+    def test_stop_criterion_units_are_distinct_and_never_authorize(self):
+        material = self.view.preview("material", "ff-mech-core", "50")
+        mob = self.view.preview("mob", "geospider-s4", "3")
+        self.assertEqual("INVENTORY_TOTAL", material["stop_criterion"]["mode"])
+        self.assertEqual(50, material["stop_criterion"]["requested"])
+        self.assertEqual("ENCOUNTER_LIMIT", mob["stop_criterion"]["mode"])
+        self.assertEqual(3, mob["stop_criterion"]["requested"])
+        for preview in (material, mob):
+            criterion = preview["stop_criterion"]
+            self.assertEqual("PLANNED_ONLY", criterion["state"])
+            self.assertIsNone(criterion["observed"])
+            self.assertIs(criterion["enforced"], False)
+            self.assertFalse(preview["can_start"])
+        no_goal = self.view.preview("mob", "geospider-s4")
+        self.assertIsNone(no_goal["stop_criterion"]["requested"])
+        self.assertIs(no_goal["stop_criterion"]["enforced"], False)
+
     def test_mob_selection_remains_unqualified(self):
         preview = self.view.preview("mob", "sabercat-reaver")
         self.assertEqual([], preview["source_candidates"])

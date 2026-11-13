@@ -56,6 +56,8 @@ class TestFarmingAssistantQt(unittest.TestCase):
 
     def test_mob_search_and_optional_inventory_goal(self):
         self.tab.mob_button.click()
+        self.assertIn("encounters", self.tab.goal_label.text().lower())
+        self.assertIn("mob encounters", self.tab.inventory_label.text().lower())
         self.assertEqual(5, self.tab.target_list.count())
         self.tab.search.setText("sabercat")
         self.assertEqual(1, self.tab.target_list.count())
@@ -63,6 +65,8 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertEqual(6, self.tab.guide_list.count())
         self.tab.goal.setText("50")
         self.assertEqual(50, self.tab._preview["desired_total"])
+        self.assertEqual("ENCOUNTER_LIMIT", self.tab._preview["stop_criterion"]["mode"])
+        self.assertFalse(self.tab._preview["stop_criterion"]["enforced"])
         self.assertFalse(self.tab.start_button.isEnabled())
 
     def test_nonmatch_and_kind_switch_clear_state(self):

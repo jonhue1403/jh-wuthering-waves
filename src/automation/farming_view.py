@@ -80,6 +80,17 @@ class FarmingAssistantView:
         if not isinstance(target_id, str) or len(target_id) > 120:
             raise ValueError("Select a valid material or mob")
         goal = self._goal(desired_total)
+        # A requested stop condition is display-only until an independently
+        # qualified runtime adapter measures progress and enforces a hard cap.
+        # Material quantities and mob encounter counts are different units.
+        stop_criterion = {
+            "mode": ("INVENTORY_TOTAL" if target_kind == TargetKind.MATERIAL
+                     else "ENCOUNTER_LIMIT"),
+            "requested": goal,
+            "observed": None,
+            "enforced": False,
+            "state": "PLANNED_ONLY",
+        }
         # Deliberately no callbacks: a present source/route reference alone
         # cannot authenticate game observations, current runtime or input.
         resolution = self.catalog.resolve(target_kind, target_id)
@@ -139,7 +150,8 @@ class FarmingAssistantView:
                 "name": resolution.target.name,
                 "description": resolution.target.description,
             },
-            "desired_total": goal,
+            "desired_total": goal,  # Backwards-compatible raw UI input.
+            "stop_criterion": stop_criterion,
             "owned_quantity": None,  # Actual inventory was NOT measured.
             "readiness": resolution.readiness.value,
             "source_candidates": [

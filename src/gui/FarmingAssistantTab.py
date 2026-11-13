@@ -119,13 +119,13 @@ class FarmingAssistantTab(CustomTab):
         detail.addWidget(self.reference_button)
 
         goal_row = QHBoxLayout()
-        goal_label = QLabel(self.tr("Desired inventory total (optional)"), right)
+        self.goal_label = QLabel(self.tr("Desired inventory total (optional)"), right)
         self.goal = QLineEdit(right)
         self.goal.setPlaceholderText(self.tr("No goal set"))
         self.goal.setValidator(QIntValidator(1, 9_999_999, self.goal))
         self.goal.setAccessibleName(self.tr("Desired inventory total"))
         self.goal.textChanged.connect(self._refresh_preview)
-        goal_row.addWidget(goal_label)
+        goal_row.addWidget(self.goal_label)
         goal_row.addWidget(self.goal, 1)
         detail.addLayout(goal_row)
 
@@ -205,6 +205,11 @@ class FarmingAssistantTab(CustomTab):
 
     def _switch_kind(self, kind):
         self._kind = kind
+        self.goal_label.setText(self.tr(
+            "Maximum mob encounters (optional)" if kind == "mob"
+            else "Desired inventory total (optional)"
+        ))
+        self.goal.setAccessibleName(self.goal_label.text())
         self.goal.clear()
         self._selected_id = None
         self._refresh_targets()
@@ -283,7 +288,11 @@ class FarmingAssistantTab(CustomTab):
             item.setData(Qt.UserRole, source["source_url"])
             self.source_list.addItem(item)
         self._update_source_button()
-        self.inventory_label.setText(self.tr("Current inventory: not measured"))
+        self.inventory_label.setText(
+            self.tr("Mob encounters: not observed (preview only)")
+            if result["stop_criterion"]["mode"] == "ENCOUNTER_LIMIT"
+            else self.tr("Current inventory: not measured")
+        )
         calibration = result["calibration"]
         candidate_count = calibration["receipt_candidate_count"]
         self.calibration_label.setText(

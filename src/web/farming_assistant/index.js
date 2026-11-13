@@ -209,9 +209,12 @@ export function mount(container, context) {
       section.append(checklist);
       right.append(section);
     }
+    const encounterMode = data.stop_criterion?.mode === "ENCOUNTER_LIMIT";
     right.append(
       node("div", "farm-divider"),
-      node("label", "farm-label", t("Target inventory total (optional)"))
+      node("label", "farm-label", t(encounterMode
+        ? "Maximum mob encounters (optional)"
+        : "Target inventory total (optional)"))
     );
     const goal = node("input");
     goal.type = "number";
@@ -225,7 +228,9 @@ export function mount(container, context) {
       state.goal = goal.value;
       void refreshDetail();
     });
-    right.append(goal, node("p", "farm-muted", t("Current inventory not measured.")));
+    right.append(goal, node("p", "farm-muted", t(encounterMode
+      ? "No encounters observed. Stop limit is not active in preview."
+      : "Current inventory not measured. Stop target is not active in preview.")));
     const actions = node("div", "farm-actions");
     [["Start", "primary"], ["Pause", ""], ["Stop", ""]].forEach(([title, cls]) => {
       const button = node("button", cls, t(title));

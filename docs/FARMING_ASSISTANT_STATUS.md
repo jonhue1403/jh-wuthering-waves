@@ -1,5 +1,24 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-13 — explicit stop-criterion units in operator preview
+
+- Separate **inventory-total** (material) from **encounter-limit** (mob) input semantics in the path-free Farming Assistant view contract. The existing `desired_total` request remains compatible, while the new `stop_criterion` explicitly carries a mode, requested quantity, unknown observed progress, `PLANNED_ONLY` state and `enforced=false`. No fake inventory count, observed kills or active timer is displayed.
+- Update both the WebCustomTab and native Qt surfaces to change the operator label and progress explanation when switching Material/Mob. This prevents a mob encounter cap from being mislabeled as inventory ownership.
+- Add pure view contract and offscreen Qt regression assertions for both modes, optional goals, and the disabled execution boundary. **Tests/compilation: NOT RUN** here because the full checkout and Windows Qt/OK Script runtime remain inaccessible. GitHub writes/readback do not qualify gameplay.
+- Still blocked: actual current-game ID/drop mapping, approved route and runtime preflight, fresh inventory OCR receipts, independent Terra review, cancellation/input qualification. Start/Pause/Stop remain disabled; no spending/navigation/combat; no PR/master changes.
+- **Next:** Codex on the authorized Windows checkout should run `TestFarmingAssistantView.py`, `TestFarmingAssistantQt.py`, `TestFarmingSelection.py`, and WebCustomTab smoke checks against the real UI/runtime, then verify the stop rule never bypasses bounded executor limits.
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantQt.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingSelection.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_view.py src/gui/FarmingAssistantTab.py
+```
+
+---
+
 
 ## 2026-11-13 — private capture -> offline review manifest integration
 
