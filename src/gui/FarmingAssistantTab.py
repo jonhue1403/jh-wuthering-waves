@@ -148,6 +148,13 @@ class FarmingAssistantTab(CustomTab):
         self.reconciliation_label.setWordWrap(True)
         detail.addWidget(self.reconciliation_label)
 
+        self.preflight_label = QLabel(
+            self.tr("Calibration preflight: current game version not observed"), right
+        )
+        self.preflight_label.setWordWrap(True)
+        self.preflight_label.setAccessibleName(self.tr("Calibration preflight status"))
+        detail.addWidget(self.preflight_label)
+
         actions = QHBoxLayout()
         self.start_button = QToolButton(right)
         self.pause_button = QToolButton(right)
@@ -231,6 +238,8 @@ class FarmingAssistantTab(CustomTab):
                 self.tr("Receipt/route cross-check: no matching local enemy IDs")
             )
             self.reconciliation_label.setToolTip("")
+            self.preflight_label.setText(self.tr("Calibration preflight: no target selected"))
+            self.preflight_label.setToolTip("")
             self.state_label.setText(self.tr("State: PREVIEW ONLY"))
             self.next_step.setText(self.tr("Select a material or mob to preview."))
             self._update_source_button()
@@ -310,6 +319,21 @@ class FarmingAssistantTab(CustomTab):
             label = self.tr("Receipt/route cross-check: no matching local enemy IDs")
         self.reconciliation_label.setText(label)
         self.reconciliation_label.setToolTip(comparison["note"])
+        preflight = result["preflight"]
+        self.preflight_label.setText(
+            self.tr("Calibration preflight: {status} · game version: {version}").format(
+                status=self.tr("review required"),
+                version=preflight["game_version_check"].replace("_", " ").lower(),
+            )
+        )
+        self.preflight_label.setToolTip(
+            self.tr("Historical source: {source}; route: {route}; "
+                    "input safety: {safety}").format(
+                source=preflight["source_check"],
+                route=preflight["route_check"],
+                safety=preflight["input_safety_check"],
+            )
+        )
         self.state_label.setText(self.tr("State: PREVIEW ONLY"))
         self.next_step.setText(result["next_step"])
         self._disable_actions()
