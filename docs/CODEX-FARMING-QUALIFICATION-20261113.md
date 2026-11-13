@@ -14,12 +14,18 @@ suite therefore has one known error. No game input or farming was performed.
 ## Checkout and environment
 
 - Canonical branch: `agent/material-first-farming`
-- Base/verified remote HEAD: `dae99e4ee5f77a2884605f1f9d8f92d8561cbc66`
+- Handoff checkpoint: `dae99e4ee5f77a2884605f1f9d8f92d8561cbc66`
+- Remote branch fetched during continuation and matched local HEAD at
+  `1e4de7c1908851669a7dc781c1eb86ca298078ee` before this report update.
+- Full repository verification was run on exact commit
+  `402b36618ca3f88672713e96e4ae6f03cdf284fc`; `1e4de7c` only corrected the
+  report to identify that exact tested SHA. This continuation changes the
+  report only; no application or test source changed after the verified run.
 - Working checkout: isolated `Z:\Game\jh-ww-farming-qualification`; the
   user's `qa/android-gt30pro-validation` checkout and the existing
   `codex/core-and-routes-20261108` worktree were left unchanged.
-- Qualification fix is on top of the base SHA; this report and the fix are
-  committed together in the local qualification branch.
+- Qualification commits: `1fae0d7` (fixture repair and report), `402b366`
+  (independent review record), and `1e4de7c` (exact-SHA verification record).
 - Python `3.13.15`; `ok-script==3.0.4`; `ok-pyside-minimal==6.12.0.post2`;
   `pytest==9.2.0`; Node `v22.23.1`.
 - The repository-local `.venv` was created in the isolated worktree from the
@@ -93,12 +99,31 @@ reported no usable font families and rendered tofu glyphs. Keyboard traversal,
 tab close/reopen, 1280×720 actual-window layout and screen-reader checks remain
 unqualified.
 
-### WebCustomTab — blocked
+### WebCustomTab — blocked; compatibility preview only
 
-JavaScript syntax passes. The runtime registration/backend contract cannot
-start because the pinned OK Script package has neither `WebCustomTab` nor its
-web-tab loader. No WebCustomTab page, browser console, or web action/query
-contract was verified. Do not report web UI acceptance.
+JavaScript syntax passes. The pinned OK Script package has neither
+`WebCustomTab` nor its web-tab loader, so the supported target environment
+still cannot start the registered Farming Assistant page or verify its
+backend action/query contract.
+
+For a limited visual diagnostic, `main_web.py --browser` was started from a
+detached diagnostic worktree with the untouched legacy checkout environment
+(`ok-script==2.0.7b1`). The browser rendered the Farming Assistant read-only
+page. Search found FF Mech Core; the five source candidates appeared as
+documented only; all five Mob candidates appeared as route unqualified; the
+optional mob encounter limit accepted `2`; the optional material inventory
+target accepted `5`; and Start/Pause/Stop remained disabled. The UI also
+displayed that inventory and route receipts were not measured. Search and
+both optional goals were cleared before the preview was closed. This confirms
+only that the static page renders and its local controls respond in that
+legacy compatibility preview; it does not qualify the pinned WebCustomTab
+registration, browser console, or backend query/action contract.
+
+The legacy process logged an empty task discovery result and initialized its
+runtime/device capture services while detecting the already-running game.
+No task was started and no game input was sent. The exact two diagnostic
+server processes were stopped after the preview. Do not report web UI
+acceptance.
 
 ## Capture and evidence integration
 
