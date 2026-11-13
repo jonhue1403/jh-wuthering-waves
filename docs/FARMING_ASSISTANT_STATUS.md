@@ -5,6 +5,32 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 08:02 MYT — version-aware read-only calibration preflight
+
+**New independently reviewable increment: version diagnostics and next-step guidance, not game input or route authorization.**
+
+- Added `src/automation/farming_preflight.py`: a pure Python checklist that separately reports historical source evidence, static route candidates, exact numeric enemy-ID overlap, optional historical-vs-supplied-version diagnostic, independent runtime qualification, fresh inventory and input-safety checks. `can_start` is unconditionally **false**; no runtime/game/input/sidecar modules are imported.
+- A supplied `game_version_hint` is explicitly unauthenticated and **never accepted from the user-facing UI**. A historical text match is labeled `HISTORICAL_EQUAL_UNVERIFIED`, a mismatch is `HISTORICAL_VERSION_MISMATCH`, and missing current-game observation is `VERSION_NOT_OBSERVED`. The route audit still lacks independently checked, current-game version binding; even matching hints cannot qualify execution.
+- `farming_view.py` exposes the path-free `preflight` object and target-specific `next_step`. Native Qt and Web UI display the calibration status without any file-path entry or change to disabled Start/Pause/Stop. Developer-oriented HuntMobTask and its task registration remain untouched.
+- Added `tests/TestFarmingPreflight.py` with synthetic contracts for version match/mismatch/conflict, no hint, missing/invalid receipts/routes, exact ID mismatch, rejection of malformed/bool status metadata, path-free diagnostics, mob-specific block and both view kinds. Extended `TestFarmingAssistantView.py` and offscreen `TestFarmingAssistantQt.py`.
+- Source/test commits: `cee4ee4c17694d3a3dfccf2c5aeb0d8ef2696fd4`, `7c8ab27d7eb377fbe260a96703486c55f82ac43d`, `9393da64724fa86d03e00806dd261d602917e7c4`, `51166b1a3c52a0030125210a5cd43e3c1eac699e`, `ed41b3fb4c8c3bca6233c60de4510895f2d4f573`, `e3d66b4c68eafa0b45dbdde0b484caa55577b607`, `181b207931614bdb55f9e9bd626be2648e8d856d`, `f8b1ee25dac6bec69bc68ce41cd9ee4f4bf286df`, `1a99cd13898681c164ec4e990fd86a91fc7df554`, `1516a5e29bdd0af6ac943c45c4745b4241d7b84d`.
+- **Tests NOT RUN**: GitHub connector edits do not execute Python, Node or Qt; local Windows/Antigravity/Terra/game runtime was not accessible. No game inputs, spending, navigation, sidecar promotion or merge occurred.
+
+Targeted local Codex qualification (Windows PowerShell):
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingPreflight.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantView.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingReconciliation.py -v
+$env:QT_QPA_PLATFORM = 'offscreen'
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingAssistantQt.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_preflight.py src/automation/farming_view.py src/gui/FarmingAssistantTab.py
+node --check src/web/farming_assistant/index.js
+```
+
+**Next increment:** build a guided read-only calibration checklist that captures NO unreviewed user paths, then design the internal current-runtime observation/qualification boundary for later Codex+Terra verification. Do not auto-enable execution from this preflight module.
+
+
 ## 2026-11-13 07:02 MYT — exact game-mob-ID reconciliation (read-only)
 
 **New independently reviewable implementation increment; no live authorization.**
