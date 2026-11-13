@@ -16,16 +16,18 @@ suite therefore has one known error. No game input or farming was performed.
 - Canonical branch: `agent/material-first-farming`
 - Handoff checkpoint: `dae99e4ee5f77a2884605f1f9d8f92d8561cbc66`
 - Remote branch fetched during continuation and matched local HEAD at
-  `1e4de7c1908851669a7dc781c1eb86ca298078ee` before this report update.
-- Full repository verification was run on exact commit
-  `402b36618ca3f88672713e96e4ae6f03cdf284fc`; `1e4de7c` only corrected the
-  report to identify that exact tested SHA. This continuation changes the
-  report only; no application or test source changed after the verified run.
+  `aca3ae8a4071ae8fab6558ab0be84582e79570b9` before junction-test work.
+- The junction regression commit is `160080a1271e30a1a90a53b1d06c58134692c8df`.
+  Full repository verification passed all modules except the known
+  `TestConfig` framework API error on this exact commit with a clean tree.
+  The report-only changes following that verification do not change tested
+  application or test source.
 - Working checkout: isolated `Z:\Game\jh-ww-farming-qualification`; the
   user's `qa/android-gt30pro-validation` checkout and the existing
   `codex/core-and-routes-20261108` worktree were left unchanged.
 - Qualification commits: `1fae0d7` (fixture repair and report), `402b366`
-  (independent review record), and `1e4de7c` (exact-SHA verification record).
+  (independent review record), `1e4de7c` (exact-SHA verification record),
+  and `aca3ae8` (web preview evidence). Junction tests: `160080a`.
 - Python `3.13.15`; `ok-script==3.0.4`; `ok-pyside-minimal==6.12.0.post2`;
   `pytest==9.2.0`; Node `v22.23.1`.
 - The repository-local `.venv` was created in the isolated worktree from the
@@ -39,32 +41,33 @@ suite therefore has one known error. No game input or farming was performed.
 
 | Check | Result |
 | --- | --- |
-| `unittest discover -s tests -p 'TestFarming*.py' -v` | 200 run: 196 passed, 4 skipped, 0 failed |
+| `unittest discover -s tests -p 'TestFarming*.py' -v` | 200 run: 200 passed, 0 skipped, 0 failed |
+| `unittest tests.TestFarmingCaptureVerify tests.TestFarmingCaptureRetention -v` | 22 passed; includes junction fallback cases |
 | `unittest discover -s tests -p 'TestConfig.py' -v` | 8 run: 7 passed, 1 error |
 | `unittest discover -s tests -p 'TestHuntMobTask.py' -v` | 9 passed |
 | `tests/test_autopick_abyss.py` after fixture correction | 14 tests plus 2 subtests passed |
 | `node --check src/web/farming_assistant/index.js` | Passed |
-| Full isolated repository verifier, exact committed SHA `402b36618ca3f88672713e96e4ae6f03cdf284fc` | 96 modules; 1,003 run: 996 passed, 6 skipped, 1 error; 95 modules passed, 1 failed, 0 zero-test modules; exit 1 |
+| Full isolated repository verifier, exact committed SHA `160080a1271e30a1a90a53b1d06c58134692c8df` | 96 modules; 1,003 run: 1,000 passed, 2 skipped, 1 error; 95 modules passed, 1 failed, 0 zero-test modules; exit 1 |
 
 Full verification command:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/verify_core_routes.py --all --output logs/core-routes/farming-codex-final
+.\.venv\Scripts\python.exe scripts/verify_core_routes.py --all --output logs/core-routes/farming-codex-junctions-final
 ```
 
-The final verification artifact records SHA
-`402b36618ca3f88672713e96e4ae6f03cdf284fc` with a clean working tree at test
-start (`dirty_at_start=false`). The earlier preliminary run at the base SHA had
-the same counts and is retained separately under `logs/core-routes/farming-codex-full`.
+The final verification artifact at
+`logs/core-routes/farming-codex-junctions-final/results.json` records SHA
+`160080a1271e30a1a90a53b1d06c58134692c8df` with a clean working tree at test
+start (`dirty_at_start=false`). The earlier runs remain in their original
+folders as historical evidence.
 
 The one full-suite error is `TestConfig.test_farming_assistant_is_registered_only_as_a_web_custom_tab` at its import of `WebCustomTab` from `ok`. The installed `ok-script==3.0.4` metadata lists `default`, `qt`, `adb`, `ocr`, and `dev` extras; its installed source has no web tab implementation. The repository declares `ok-script[web]==3.0.4`, but that extra is not provided by the pinned distribution. A downloaded 3.0.5b4 wheel was inspected, not installed; it also did not contain the needed web module. The package's published extra list confirms the mismatch ([PyPI package metadata](https://pypi.org/project/ok-script/)). This needs a framework version/API decision before a safe web registration repair can be made.
 
-Six full-suite skips were recorded: four symlink/reparse-oriented tests could
-not create symlinks in the current process; two live/private-capture tests had
-no private captures available. The four Farming-suite skips are among those
-symlink cases. These are skips, not passes. The production code's behavior for
-Windows junctions/reparse points and the host's filesystem permissions was
-therefore not qualified here.
+The final run had two skips, both requiring private game captures that are not
+available on this host. Four previously skipped symlink-oriented cases now
+fall back to creating temporary Windows junctions when symlinks are denied;
+the host rejects those redirected paths as expected. ACL behavior, direct
+file-symlink behavior, and reparse types beyond junctions were not qualified.
 
 ## Defect register
 
@@ -72,7 +75,7 @@ therefore not qualified here.
 | --- | --- | --- | --- |
 | FQ-01 | P1 | Pinned OK Script 3.0.4 lacks `WebCustomTab`; `FarmingAssistantTask.py` import fails and `TestConfig` errors. The declared `web` extra is absent. | **Open blocker.** Needs compatible framework/API resolution. No local compatibility shim or weakened test was added. |
 | FQ-02 | P2 | `test_autopick_abyss.py` allocated BaseTask instances with `__new__`, bypassing `_app` initialization. Under the real dependency, translation calls then failed. | **Fixed** by supplying the minimal mocked translation app in both affected fixtures; targeted and full verification rerun. |
-| FQ-03 | P2 | Symlink / private capture tests cannot fully execute in this Windows session. | **Environment-limited.** Four symlink tests and two private capture tests skipped in full discovery. |
+| FQ-03 | P2 | Windows symlink/reparse and private-capture coverage was incomplete. | **Partially addressed** in `160080a1`: junction fallback covers the four redirected-path cases. Two private-capture tests remain skipped; ACLs, direct file symlinks, and other reparse types remain unqualified. |
 | FQ-04 | P1 | FF Mech Core has no authentic source/drop receipt, observed in-game numeric enemy ID, or independently qualified current-runtime route. | **Open live blocker.** Execution controls remain disabled. |
 
 ## UI verification
@@ -134,11 +137,11 @@ chronology/timestamp errors, expired packets, path traversal, duplicate JSON
 keys, missing frames, and source/route mismatches. These synthetic cases
 preserve fail-closed behavior and do not constitute authentic live capture.
 
-Not qualified on this host: symlink/junction/reparse defenses in the skipped
-cases, actual ACL/permission boundaries, real private screenshot retention,
-current game/runtime version binding, current source identity, or a reviewed
-route preflight using live evidence. Synthetic/historical evidence did not
-enable execution.
+The junction fallback exercised Windows redirected-path rejection with the
+production dependencies. Still not qualified on this host: actual ACL and
+permission boundaries, review of authentic private game captures, current
+game/runtime version binding, current source identity, and a live-evidence
+route preflight. Synthetic/historical evidence did not enable execution.
 
 ## FF Mech Core source/route matrix
 
@@ -169,7 +172,13 @@ increase were not observed. No route is ROUTE_QUALIFIED.
   sound, confirmed the report's counts against the verifier artifacts, and
   reported no new blocking defect in that commit. Integration disposition
   remains **NOT CLEAR** because the WebCustomTab mismatch and live gates remain.
-- The full verification was repeated after commit `402b366` on that exact SHA.
+- GPT-6.1 Terra Medium reviewed the exact two-file junction-test diff based on
+  HEAD `aca3ae8a4071ae8fab6558ab0be84582e79570b9`, then committed as
+  `160080a1271e30a1a90a53b1d06c58134692c8df`. It found no blocking test-diff
+  issue and confirmed the helper produced an actual junction on this host.
+  Disposition: **CLEAR for the bounded test diff**; overall integration stays
+  **NOT CLEAR** because the framework and live gates remain open.
+- An earlier full verification was repeated after commit `402b366` on that exact SHA.
   The earlier preliminary artifact at the base SHA used the same correction
   with `dirty_at_start=true`. Terra also notes that the UI screenshot and
   no-game-action claims came from the coordinator's CUA observation, not from
