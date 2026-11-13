@@ -13,6 +13,7 @@ class AutoPickAbyssTest(unittest.TestCase):
         self.pick.scene = WWScene()
         self.pick.in_team_and_world = Mock(return_value=True)
         self.combat = BaseCombatTask.__new__(BaseCombatTask)
+        self.combat._app = Mock(tr=lambda message: message)
         self.combat.scene = self.pick.scene
         self.combat._in_combat = False
         self.combat._abyss_combat_active = False
@@ -120,6 +121,7 @@ class AutoPickAbyssTest(unittest.TestCase):
         self.observe(100, True, True)
         other = BaseCombatTask.__new__(BaseCombatTask)
         other.scene = self.pick.scene
+        other._app = Mock(tr=lambda message: message)
         other.find_abyss_start_marker = Mock(return_value=False)
         other.in_team = Mock(return_value=(True, 0, 3))
         other.load_chars = Mock(return_value=True)
