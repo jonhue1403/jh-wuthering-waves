@@ -5,6 +5,48 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 — opt-in foreground snapshot producer (read-only)
+
+**Actual source/tests committed on canonical branch; gameplay execution stays disabled.**
+
+- New `src/automation/farming_runtime_capture.py` uses actual OK Script
+  `next_frame()` / `frame` task patterns, the task's Windows game HWND,
+  three foreground/cancellation guards and installed `ok-script` metadata to
+  produce a bounded private PNG snapshot. It never issues input, OCR,
+  navigation, route execution, spending or Story Watch changes.
+- Caller must explicitly opt in; there is **no production foreground-guard
+  override parameter**. Non-Windows focus checks fail closed. A snapshot
+  public summary contains no image, HWND, paths, game version, or approval;
+  `can_start=false` and freshness/route/receipt verification remain false.
+- New `tests/TestFarmingRuntimeCapture.py`: **10/10 isolated synthetic
+  contract tests PASSED** under container Python with synthetic task/window
+  and mocked runtime/focus; `py_compile` of both source/test also passed.
+  The container is not a local OK Script or Windows gaming runtime.
+- Source/test commits in order: `09af79e923e3ce27a663608110a8072b2a435e08`,
+  `8c0e131bad95a4e0f73e07cda01fa80f208c315d`,
+  `85697f109ac99f55c95fb88a07bce1f3576c336a`,
+  `3a72ac97d6e80852ed79173a29f99d82fd410beb`; handoff docs
+  `bdd246bb93dc92b6ad00ca1f74ddc7fc750fbb47` (last checked before
+  this status-file update).
+- **NOT RUN:** Windows/real OK Script integration, WGC frame freshness and
+  focus checks, native Qt/Web startup, full repository test suite, Antigravity
+  CLI, independent Terra review and live FF Mech Core evidence. No game
+  control, route authorization, merge, PR modification or master write.
+
+Codex local follow-up:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRuntimeCapture.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingLiveHandoff.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_runtime_capture.py
+```
+
+**Next increment:** independent local review of actual Windows frame-source
+freshness/focus/version metadata and safe private snapshot retention, then
+bind separately observed game version, source/profile hashes and inventory
+delta into the existing immutable handoff. Do not wire gameplay executor
+before independent Terra/runtime qualification.
 ## 2026-11-13 11:02 MYT — local capture artifact SHA256 verification (read-only)
 
 **Committed independent implementation increment: verifies original local bytes
