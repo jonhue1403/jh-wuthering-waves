@@ -5,6 +5,56 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 18:xx MYT — opt-in read-only review manifest from original bytes
+
+**Code/tests/handoff documentation commit:** `899aadc5370f5ec1fb6540a2da889228c53e6147` on
+`agent/material-first-farming`, based on `6ae7cbc69cc13a8cc970a419801d8f4daed274c8`.
+This is an independently reviewable, **non-executable** local capture-review
+increment. No other branch, draft PR #4 or `master` was modified.
+
+- Added `src/automation/farming_review_manifest.py`. The internal-only
+  `prepare_readonly_review_manifest` joins a canonical short-lived handoff,
+  coherent original in-memory snapshots, retained frame references and **actual
+  locally hashed** source/profile/frame bytes. Missing or stale sessions,
+  modified disk evidence and ambiguous bindings fail closed. No user-facing
+  file paths, task dispatch, game input, live capture or spending were added.
+- The frozen `ReadOnlyReviewManifest` emits a deterministic *path-free* digest
+  for later manual correlation. This is **NOT** an attested origin, signed
+  reviewer certificate, authenticated inventory receipt, runtime qualification,
+  validated FF Mech Core enemy mapping, executable route or Start permission.
+  All approval and `can_start` flags remain false.
+- Added `tests/TestFarmingReviewManifest.py`: **13 synthetic regression test
+  methods**, exercising correlation, canonical identity, original byte
+  tampering, missing frames, invalid binding paths, expiry and invariant
+  execution disablement. Synthetic `000123` and quantities are fixtures.
+- Updated `docs/FARMING_ASSISTANT_LIVE_HANDOFF.md` with contract boundaries.
+- **Tests: NOT RUN** in this automation runtime. GitHub write/read tooling
+  works, but no actual Windows checkout/OK Script/PySide6 installation is
+  available here, and container GitHub HTTPS cloning fails DNS resolution.
+  No Antigravity CLI, Codex game control or Terra reviewer was invoked.
+- **Outstanding blockers:** full project imports/Qt and Web startup, NTFS ACL/
+  reparse/junction checks, actual current OK Script frame sequence and game
+  version, verified FF Mech Core source and numeric mob ID, independent OCR
+  before/after receipts, qualified bounded route and Terra review.
+- **Next increment:** Codex should execute focused + full offline integration
+  in the real Windows checkout and independently inspect the new manifest
+  contract (including TOCTOU/ACL assumptions) before wiring any reader/UI.
+  Do not enable combat/navigation/rewards without all independent live gates.
+
+Exact local Windows Codex commands (using the existing virtualenv):
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingReviewManifest.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureSession.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureBinding.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_review_manifest.py
+```
+
+---
+
 ## 2026-11-13 — evidence root reparse/alias validation (current increment)
 
 **Code/test/documentation commit:** `9482eee1a03d2fea1f036f9ee7e4903439203e36` on
