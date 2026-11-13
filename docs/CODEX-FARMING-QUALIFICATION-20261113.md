@@ -134,8 +134,16 @@ increase were not observed. No route is ROUTE_QUALIFIED.
   with the `_app` fixture correction present. It confirmed the fixture repair
   and identified the missing framework web API as a blocking integration
   finding. Disposition: **NOT CLEAR**; web blocker remains open.
-- The report/final local commit was not yet reviewed by Terra when this report
-  was written. No final-commit review is claimed.
+- Terra independently reviewed qualification commit
+  `1fae0d7d2448bb77c9a984a3367c6896c0553ca9`. It found the fixture correction
+  sound, confirmed the report's counts against the verifier artifacts, and
+  reported no new blocking defect in that commit. Integration disposition
+  remains **NOT CLEAR** because the WebCustomTab mismatch and live gates remain.
+- The full-run results were captured before committing, at the base SHA with
+  the exact fixture correction present (`dirty_at_start=true`). They are not a
+  separate execution of commit `1fae0d7`. Terra also notes that the UI screenshot
+  and no-game-action claims came from the coordinator's CUA observation, not
+  from persistent review artifacts.
 - Antigravity CLI `agy` was installed and listed Gemini 3.8 Flash models, but
   the native CLI invocation timed out with `DEADLINE_EXCEEDED` and returned no
   model output. Authentication/callability was not established; no Gemini
