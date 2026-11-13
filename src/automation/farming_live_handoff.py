@@ -206,3 +206,56 @@ def build_observation_handoff(payload: dict, *, now: datetime | None = None) -> 
         stage, route, payload["state_id"], payload["floor_id"],
         tuple(frames), frame_hashes, bindings, sources, before, after, digest,
     )
+
+
+def validate_observation_handoff_integrity(
+    packet: FarmingObservationHandoff, *, now: datetime | None = None,
+) -> FarmingObservationHandoff:
+    """Revalidate a frozen packet after serialization or dataclass replacement.
+
+    A frozen dataclass can still be constructed directly or modified with
+    dataclasses.replace. Rebuild its canonical digest and compare every field
+    before trusting declared file-hash maps. This is integrity, NOT origin
+    authentication, reviewer approval, freshness attestation or permission.
+    """
+
+    if type(packet) is not FarmingObservationHandoff:
+        raise ValueError("HANDOFF_INTEGRITY_INVALID")
+
+    def restored_map(pairs):
+        if (type(pairs) is not tuple
+                or any(type(pair) is not tuple or len(pair) != 2
+                       or type(pair[0]) is not str for pair in pairs)
+                or len({pair[0] for pair in pairs}) != len(pairs)):
+            raise ValueError("HANDOFF_INTEGRITY_INVALID")
+        return dict(pairs)
+
+    try:
+        if type(packet.frame_ids) is not tuple:
+            raise ValueError("Frame IDs are not an immutable tuple")
+        rebuilt = build_observation_handoff({
+            "schema_version": 1,
+            "purpose": packet.purpose,
+            "target_kind": packet.target_kind,
+            "target_id": packet.target_id,
+            "game_mob_id": packet.game_mob_id,
+            "game_version": packet.game_version,
+            "ok_script_version": packet.ok_script_version,
+            "session_id": packet.session_id,
+            "observed_at": packet.observed_at_utc,
+            "stage": packet.stage,
+            "route_id": packet.route_id,
+            "state_id": packet.state_id,
+            "floor_id": packet.floor_id,
+            "frame_ids": list(packet.frame_ids),
+            "frame_sha256": restored_map(packet.frame_sha256),
+            "bindings_sha256": restored_map(packet.bindings_sha256),
+            "source_sha256": restored_map(packet.source_sha256),
+            "inventory_before": packet.inventory_before,
+            "inventory_after": packet.inventory_after,
+        }, now=now)
+    except (ValueError, TypeError, AttributeError, OverflowError) as exc:
+        raise ValueError("HANDOFF_INTEGRITY_INVALID") from exc
+    if packet != rebuilt:
+        raise ValueError("HANDOFF_INTEGRITY_INVALID")
+    return packet

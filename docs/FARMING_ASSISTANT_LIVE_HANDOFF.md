@@ -295,3 +295,20 @@ Windows checkout commands:
 Local Windows/Qt/OK Script integration and independent Terra qualification
 remain **NOT RUN**. The isolated synthetic harness used stand-in dependencies,
 not the complete checkout.
+
+## Immutable handoff revalidation (2026-11-13)
+
+`validate_observation_handoff_integrity` reconstructs the canonical v1
+packet and checks the full frozen record, including duplicate digest-map labels,
+its SHA256 identity, and time bounds. A frozen dataclass is **not** a
+cryptographic attestation: direct construction or `dataclasses.replace`
+can mutate an otherwise frozen capture claim. Session-coherence auditing,
+private-frame binding and original-file byte verification now reject altered
+or non-canonical claims before using the file maps. A rejected verifier result
+reports `HANDOFF_INTEGRITY_INVALID` and intentionally omits the unverified
+packet hash.
+
+This is local contract integrity only. Rebuilding a canonical packet does not
+authenticate a game window, installed game version, enemy identity, observed
+drop, current frame, inventory count, reviewer, route or permission to start.
+No game input or user-visible path entry is added.

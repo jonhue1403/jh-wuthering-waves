@@ -15,7 +15,9 @@ from src.automation.farming_capture_binding import (
 )
 from src.automation.farming_capture_retention import RetainedReadOnlySnapshot
 from src.automation.farming_runtime_capture import ReadOnlyFrameSnapshot
-from src.automation.farming_live_handoff import FarmingObservationHandoff
+from src.automation.farming_live_handoff import (
+    FarmingObservationHandoff, validate_observation_handoff_integrity,
+)
 
 _PNG = b"\x89PNG\r\n\x1a\n"
 _MAX_IMAGE_BYTES = 32 * 1024 * 1024
@@ -81,6 +83,10 @@ def inspect_readonly_capture_session(
     if type(retained) is not dict or set(retained) != set(packet.frame_ids):
         raise CaptureSessionBlocked("RETAINED_IDS_MISMATCH")
     now = datetime.now(timezone.utc) if now is None else now
+    try:
+        validate_observation_handoff_integrity(packet, now=now)
+    except ValueError as exc:
+        raise CaptureSessionBlocked("HANDOFF_INTEGRITY_INVALID") from exc
     try:
         bind_retained_frame_files(packet, retained, now=now)
     except FrameBindingBlocked as exc:

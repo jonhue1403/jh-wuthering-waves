@@ -12,7 +12,9 @@ from hashlib import sha256
 from pathlib import Path
 import re
 
-from src.automation.farming_live_handoff import FarmingObservationHandoff
+from src.automation.farming_live_handoff import (
+    FarmingObservationHandoff, validate_observation_handoff_integrity,
+)
 
 
 _RELATIVE = re.compile(r"[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*\Z")
@@ -141,6 +143,12 @@ def verify_local_capture_claim(
     if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() is None:
         raise ValueError("Verification clock must be timezone aware")
     checked = 0
+    try:
+        validate_observation_handoff_integrity(packet, now=now)
+    except ValueError:
+        # Do not inspect attacker-supplied filenames from an invalid packet.
+        # Its advertised packet hash is not a verified identity.
+        return LocalCaptureAudit("REJECTED", "HANDOFF_INTEGRITY_INVALID", 0, "")
     try:
         observed = datetime.fromisoformat(packet.observed_at_utc)
         utc = now.astimezone(timezone.utc)

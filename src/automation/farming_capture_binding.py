@@ -12,7 +12,9 @@ import re
 
 from src.automation.farming_capture_retention import RetainedReadOnlySnapshot
 from src.automation.farming_capture_verify import verify_local_capture_claim
-from src.automation.farming_live_handoff import FarmingObservationHandoff
+from src.automation.farming_live_handoff import (
+    FarmingObservationHandoff, validate_observation_handoff_integrity,
+)
 
 
 _PRIVATE_NAME = re.compile(r"farm-frame-[A-Za-z0-9_-]{1,48}\.png\Z")
@@ -77,6 +79,10 @@ def bind_retained_frame_files(
     if type(retained) is not dict or set(retained) != set(packet.frame_ids):
         raise FrameBindingBlocked("FRAME_IDS_MISMATCH")
     now = datetime.now(timezone.utc) if now is None else now
+    try:
+        validate_observation_handoff_integrity(packet, now=now)
+    except ValueError as exc:
+        raise FrameBindingBlocked("HANDOFF_INTEGRITY_INVALID") from exc
     if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() is None:
         raise FrameBindingBlocked("CLOCK_INVALID")
     now = now.astimezone(timezone.utc)
