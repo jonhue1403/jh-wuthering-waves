@@ -255,3 +255,43 @@ using the new production binding module and stand-in classes for its three
 existing dependencies. This does NOT establish that the complete repository
 test suite, actual OK Script, Windows ACL behavior or live game works. Those
 remain pending Codex/Terra local qualification. No gameplay execution is wired.
+
+
+## In-memory snapshot/retention/handoff consistency (read-only)
+
+`src/automation/farming_capture_session.py` now provides
+`inspect_readonly_capture_session(packet, snapshots, retained, now=...)`.
+This **pure, private consistency check** runs before
+`verify_retained_capture_claim(...)` hashes original files on disk. The caller
+must use snapshots from the opt-in OK Script capture producer and matching
+`RetainedReadOnlySnapshot` records; no operator-supplied filenames or mutable
+UI/route state enter this API.
+
+It fails closed on missing/extra frame IDs, altered in-memory PNG bytes,
+wrong retention size/hash, OK Script version mismatch, changed dimensions,
+timestamp disagreement, reversed/expired captures and unsafe retained
+frame bindings. All success means is that **the same private image bytes**
+are consistently represented in memory and metadata. PNG-signature
+inspection is not a full image decode. Capture timestamps are not independently
+attested sequence numbers. A matching session is **not** proof of installed
+game version, genuine frame freshness, FF Mech Core drop, executable route
+or OCR inventory receipt. Gameplay controls remain disabled.
+
+The frozen summary is path-free, has no session ID, screenshot bytes, private
+filename or inventory quantity and reports `can_start=false`,
+`original_files_verified=false`, `independent_review_complete=false`,
+`route_qualified=false`. Actual original disk bytes must still pass the
+separate verifier followed by Codex/Terra independent live qualification.
+
+Windows checkout commands:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureSession.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureBinding.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_session.py
+```
+
+Local Windows/Qt/OK Script integration and independent Terra qualification
+remain **NOT RUN**. The isolated synthetic harness used stand-in dependencies,
+not the complete checkout.
