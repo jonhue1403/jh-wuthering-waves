@@ -79,16 +79,17 @@ def bind_retained_frame_files(
     if type(retained) is not dict or set(retained) != set(packet.frame_ids):
         raise FrameBindingBlocked("FRAME_IDS_MISMATCH")
     now = datetime.now(timezone.utc) if now is None else now
-    try:
-        validate_observation_handoff_integrity(packet, now=now)
-    except ValueError as exc:
-        raise FrameBindingBlocked("HANDOFF_INTEGRITY_INVALID") from exc
     if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() is None:
         raise FrameBindingBlocked("CLOCK_INVALID")
     now = now.astimezone(timezone.utc)
     observed = _utc(packet.observed_at_utc, code="OBSERVATION_TIME_INVALID")
     if not now - _MAX_AGE <= observed <= now + _FUTURE_SKEW:
         raise FrameBindingBlocked("OBSERVATION_STALE")
+    # Preserve explicit clock/stale diagnostics before integrity revalidation.
+    try:
+        validate_observation_handoff_integrity(packet, now=now)
+    except ValueError as exc:
+        raise FrameBindingBlocked("HANDOFF_INTEGRITY_INVALID") from exc
 
     declared_hashes = dict(packet.frame_sha256)
     if set(declared_hashes) != set(packet.frame_ids):

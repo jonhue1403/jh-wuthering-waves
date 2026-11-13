@@ -144,16 +144,21 @@ def verify_local_capture_claim(
         raise ValueError("Verification clock must be timezone aware")
     checked = 0
     try:
+        observed = datetime.fromisoformat(packet.observed_at_utc)
+        if observed.tzinfo is None or observed.utcoffset() is None:
+            raise ValueError("naive observation")
+    except (TypeError, ValueError, AttributeError):
+        return LocalCaptureAudit("REJECTED", "HANDOFF_INTEGRITY_INVALID", 0, "")
+    utc = now.astimezone(timezone.utc)
+    if not utc - _MAX_AGE <= observed <= utc + _FUTURE_SKEW:
+        return LocalCaptureAudit("REJECTED", "CAPTURE_CLAIM_STALE", 0, "")
+    try:
         validate_observation_handoff_integrity(packet, now=now)
     except ValueError:
         # Do not inspect attacker-supplied filenames from an invalid packet.
         # Its advertised packet hash is not a verified identity.
         return LocalCaptureAudit("REJECTED", "HANDOFF_INTEGRITY_INVALID", 0, "")
     try:
-        observed = datetime.fromisoformat(packet.observed_at_utc)
-        utc = now.astimezone(timezone.utc)
-        if not utc - _MAX_AGE <= observed <= utc + _FUTURE_SKEW:
-            raise _AuditFailure("CAPTURE_CLAIM_STALE")
         sources = _root(source_root)
         evidence = _root(evidence_root)
         frames = _paths(frame_files, packet.frame_ids)
