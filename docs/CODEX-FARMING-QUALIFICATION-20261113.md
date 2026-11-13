@@ -17,16 +17,19 @@ suite therefore has one known error. No game input or farming was performed.
 - Handoff checkpoint: `dae99e4ee5f77a2884605f1f9d8f92d8561cbc66`
 - Remote branch fetched during continuation and matched local HEAD at
   `aca3ae8a4071ae8fab6558ab0be84582e79570b9` before junction-test work.
-- The latest application/test commit is
-  `8ba58be9fcf924f4482c66be3c70ad3e92bf66a5`. It updates the removed-web
-  compatibility launcher and adds a mocked launcher regression; full
-  repository verification is being rerun after this change.
+- Application/test source commit:
+  `8ba58be9fcf924f4482c66be3c70ad3e92bf66a5` updates the removed-web
+  compatibility launcher and adds a mocked launcher regression. Full
+  verification ran on exact report commit
+  `93838c30f3546b2eb405e23958411ef05a9eefeb`, whose only change after the
+  application/test commit was documentation.
 - Working checkout: isolated `Z:\Game\jh-ww-farming-qualification`; the
   user's `qa/android-gt30pro-validation` checkout and the existing
   `codex/core-and-routes-20261108` worktree were left unchanged.
 - Qualification commits: `1fae0d7` (fixture repair and report), `402b366`
   (independent review record), `1e4de7c` (exact-SHA verification record),
   and `aca3ae8` (web preview evidence). Junction tests: `160080a`.
+  Launcher compatibility: `8ba58be9`; framework clarification: `93838c30`.
 - Python `3.13.15`; `ok-script==3.0.4`; `ok-pyside-minimal==6.12.0.post2`;
   `pytest==9.2.0`; Node `v22.23.1`.
 - The repository-local `.venv` was created in the isolated worktree from the
@@ -48,18 +51,19 @@ suite therefore has one known error. No game input or farming was performed.
 | `tests/test_autopick_abyss.py` after fixture correction | 14 tests plus 2 subtests passed |
 | `node --check src/web/farming_assistant/index.js` | Passed |
 | Full isolated repository verifier, exact committed SHA `160080a1271e30a1a90a53b1d06c58134692c8df` (before launcher update) | 96 modules; 1,003 run: 1,000 passed, 2 skipped, 1 error; 95 modules passed, 1 failed, 0 zero-test modules; exit 1 |
+| Full isolated repository verifier, exact clean SHA `93838c30f3546b2eb405e23958411ef05a9eefeb` | 97 modules; 1,004 run: 1,001 passed, 2 skipped, 1 error; 96 modules passed, 1 failed, 0 zero-test modules; exit 1 |
 
 Full verification command:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/verify_core_routes.py --all --output logs/core-routes/farming-codex-junctions-final
+.\.venv\Scripts\python.exe scripts/verify_core_routes.py --all --output logs/core-routes/farming-codex-webcompat-final
 ```
 
-The junction regression run is retained at
-`logs/core-routes/farming-codex-junctions-final/results.json` and records SHA
-`160080a1271e30a1a90a53b1d06c58134692c8df` with a clean working tree. A new
-full run after the compatibility-launcher commit is in progress; the final
-counts and exact SHA will replace this historical row below.
+The final verification artifact at
+`logs/core-routes/farming-codex-webcompat-final/results.json` records SHA
+`93838c30f3546b2eb405e23958411ef05a9eefeb` with a clean working tree at test
+start (`dirty_at_start=false`). The earlier junction-only run remains at
+`logs/core-routes/farming-codex-junctions-final`.
 
 The one full-suite error is `TestConfig.test_farming_assistant_is_registered_only_as_a_web_custom_tab` at its import of `WebCustomTab` from `ok`. The installed `ok-script==3.0.4` metadata lists `default`, `qt`, `adb`, `ocr`, and `dev` extras; its installed source has no web tab implementation, and `ok web --help` is not a recognized CLI command. The repository declares `ok-script[web]==3.0.4`, but that extra is not provided by the pinned distribution. A downloaded 3.0.5b4 wheel was inspected, not installed; it also did not contain the needed web module. The official `ok-script-app` template states that OK Script 3 removed the web frontend and documents its `web` profile and launcher as compatibility aliases to Qt; its `web_main.py` warns and starts the desktop UI ([template README](https://github.com/ok-oldking/ok-script-app), [template launcher](https://github.com/ok-oldking/ok-script-app/blob/master/web_main.py)). Therefore the current `WebCustomTab` design cannot be restored by installing an extra. A separate web frontend or an older framework branch would be a broader architecture/version decision; no shim or weakened test was added.
 
@@ -73,7 +77,7 @@ file-symlink behavior, and reparse types beyond junctions were not qualified.
 
 | ID | Severity | Defect / evidence | Status |
 | --- | --- | --- | --- |
-| FQ-01 | P1 | Pinned OK Script 3.0.4 lacks `WebCustomTab`; `FarmingAssistantTask.py` import fails and `TestConfig` errors. The declared `web` extra is absent. | **Open blocker.** Needs compatible framework/API resolution. No local compatibility shim or weakened test was added. |
+| FQ-01 | P1 | Pinned OK Script 3.0.4 removed the Web frontend; `FarmingAssistantTask.py` cannot import `WebCustomTab`, `ok web` is unavailable, and `TestConfig` errors. The declared `web` extra is absent. | **Open blocker.** The remaining choices are a separately authorized older framework branch or a new web frontend; this qualification did not guess between those architectures. |
 | FQ-02 | P2 | `test_autopick_abyss.py` allocated BaseTask instances with `__new__`, bypassing `_app` initialization. Under the real dependency, translation calls then failed. | **Fixed** by supplying the minimal mocked translation app in both affected fixtures; targeted and full verification rerun. |
 | FQ-03 | P2 | Windows symlink/reparse and private-capture coverage was incomplete. | **Partially addressed** in `160080a1`: junction fallback covers the four redirected-path cases. Two private-capture tests remain skipped; ACLs, direct file symlinks, and other reparse types remain unqualified. |
 | FQ-04 | P1 | FF Mech Core has no authentic source/drop receipt, observed in-game numeric enemy ID, or independently qualified current-runtime route. | **Open live blocker.** Execution controls remain disabled. |
