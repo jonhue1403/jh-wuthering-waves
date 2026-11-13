@@ -5,6 +5,63 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 — immutable observation integrity revalidation (new increment)
+
+**Two actual code commits on `agent/material-first-farming`:**
+`9dad20adf97340a7614658559bf83e3df2a1e8c9` (implementation,
+new tests and handoff specification) followed by
+`4fcb5ae9c67453b1d7f30e5c453542100cf4dc2b`
+(compatibility with existing explicit clock/expiry rejection reasons).
+
+- `farming_live_handoff.validate_observation_handoff_integrity` reconstructs
+  the canonical v1 observation and compares all frozen fields and SHA256
+  packet identity. Rejects post-construction `dataclasses.replace` changes,
+  forged packet fingerprints, repeated digest-map keys, noncanonical field
+  ordering and invalid/stale claims. A frozen dataclass alone does **not**
+  guarantee that its fields came from the validating constructor.
+- The read-only session auditor, private-frame binder and original-byte
+  verifier now revalidate packet integrity before accepting declared hashes
+  or file mappings. Invalid verifications return
+  `HANDOFF_INTEGRITY_INVALID` without exposing the unverified fingerprint.
+  Previous explicit `CLOCK_INVALID`, `OBSERVATION_STALE`,
+  `RETAINED_BINDING_INVALID` and `CAPTURE_CLAIM_STALE` behavior is preserved.
+- Added `tests/TestFarmingHandoffIntegrity.py` (7 synthetic regression
+  methods) covering a valid-but-unapproved packet, changed target/enemy/
+  version/quantity, altered digest/maps, duplicate labels, timestamp,
+  binding/session rejection and disk-free early verifier rejection.
+  Synthetic IDs and quantities are test fixtures, **not in-game evidence**.
+- **NOT RUN:** all 7 new regression tests, existing tests, full repository
+  imports, py_compile, Qt/Web startup, Windows OK Script integration,
+  Antigravity CLI, independent Terra review and live FF Mech Core evidence.
+  This execution environment cannot clone GitHub over HTTPS (DNS failure)
+  or access the authorized Windows checkout. GitHub connector commits and
+  branch updates were successful; they are not test or live-game evidence.
+- All execution controls remain fail-closed; no navigation, combat, spending,
+  user-entered developer paths, changed task registration, PR mutation,
+  force-push or merge.
+
+**Run in the authorized Windows Codex checkout (using the venv):**
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingHandoffIntegrity.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingLiveHandoff.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureBinding.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureSession.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_live_handoff.py src/automation/farming_capture_binding.py src/automation/farming_capture_verify.py src/automation/farming_capture_session.py
+```
+
+**Next independent increment:** run complete repository integration and
+qualify Windows evidence-folder reparse/ACL handling. Then inspect actual
+OK Script frame freshness, installed-game version and independent inventory
+receipts with Codex/Terra. Canonical SHA integrity is **not** evidence origin
+authentication, OCR reliability, route calibration or farming authorization.
+
+---
+
+
 
 ## 2026-11-13 — private snapshot-to-handoff in-memory coherence audit (new increment)
 
