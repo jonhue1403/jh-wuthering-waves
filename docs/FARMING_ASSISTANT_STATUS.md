@@ -1,5 +1,59 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-13 19:07 MYT — integrated opt-in read-only capture + private retention
+
+**Source/tests commit:** `6e3ef2d613205e762cea7fd176579ae81d180773`
+on canonical branch `agent/material-first-farming`, based on
+`1b95bc1be41a31385879780ae01522ea5bb9b1f1`.
+
+- New `src/automation/farming_private_capture.py` composes existing
+  foreground/focus/cancellation-guarded `capture_readonly_frame` with
+  `retain_readonly_snapshot` in the pre-existing trusted private evidence
+  directory. Capture and retention both require explicit opt-in; opaque,
+  random capture filenames are generated internally rather than supplied
+  through the material/mob selector. The adapter returns an immutable
+  in-memory snapshot + private retention reference for later handoff review.
+  Errors fail closed; mismatched retention receipts never become evidence.
+- New `tests/TestFarmingPrivateCapture.py` contains 10 synthetic scenarios:
+  opt-in before capture, actual local file retention when run with the
+  original dependency, collision resistance, missing private folder,
+  capture failure, malformed payload, corrupt SHA, forged retention receipt,
+  invalid clock and boolean/type rejection.
+- **Actually run in isolated Linux harness:** source+tests `py_compile`
+  PASSED; **10/10 synthetic tests PASSED using stand-in runtime and retention
+  dependencies**. This checks the new production adapter with mocked
+  dependencies. It is NOT the complete repository and does NOT validate
+  the actual production retention module.
+- **NOT RUN:** full repository test imports, Windows/NTFS ACL/junction behavior,
+  actual OK Script frame capture/freshness, game version, GUI startup,
+  Antigravity CLI, Terra review, FF Mech Core drop and executable route.
+  Container GitHub HTTPS DNS still fails and Devspace could not open the
+  owner's local checkout. GitHub connector commits/readback are available.
+- There is **no** public path field, no task registration, no live game
+  invocation or developer profile selection. All `can_start`/qualifications
+  remain false. Neither `master` nor draft PR #4 was changed.
+
+**Codex Windows regression handoff:**
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingPrivateCapture.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRuntimeCapture.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureRetention.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingReviewManifest.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_private_capture.py
+```
+
+**Next independent increment:** run the above against original dependencies,
+qualify actual Win32 foreground/frame freshness and NTFS ACL/reparse behavior,
+then connect **trusted opt-in** local retained-frame references to the private
+review manifest. Do not expose this function in operator UI or enable
+combat/navigation before independent current-game and Terra qualification.
+
+---
+
+
 Last manual checkpoint: 2026-11-13 (Asia/Kuala_Lumpur)
 Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
