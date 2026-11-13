@@ -337,3 +337,27 @@ of any route.
 .\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingHandoffIntegrity.py -v
 .\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_verify.py
 ```
+
+## Read-only local reviewer manifest (2026-11-13)
+
+`src/automation/farming_review_manifest.py` offers an **internal-only**
+`prepare_readonly_review_manifest(packet, snapshots, retained, source_root=...,
+evidence_root=..., binding_files=..., now=...)` bridge for a later Codex/Terra
+review session. It revalidates the handoff's canonical digest and expiry, runs
+the complete in-memory capture-session coherence check, then verifies the
+**original bytes on disk** through existing private retention binding and
+source/profile/screenshot hash auditing. Missing, stale, corrupted or
+ambiguous artifacts fail closed; it never issues game input or captures a frame.
+
+Its immutable `ReadOnlyReviewManifest` provides a deterministic, **path-free**
+correlation digest and count for the reviewer queue. This digest is not a
+cryptographic signature or genuine game-window attestation. The public
+summary does **not** include private roots, frame filenames, runtime session
+IDs, inventory quantities or operator-supplied developer paths; execution,
+route qualification and independent-review flags stay false even when
+synthetic bytes match. Existing Start/Pause/Stop remain disabled.
+
+Full-repository tests and Windows ACL/reparse checks are still mandatory;
+run `TestFarmingReviewManifest.py` in the authorized Codex checkout. This
+contract uses synthetic FF Mech Core fixture data only; no enemy mapping, live
+inventory gain or route success is inferred.
