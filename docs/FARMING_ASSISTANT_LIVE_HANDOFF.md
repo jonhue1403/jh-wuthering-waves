@@ -216,3 +216,42 @@ checkout or a real Windows/OK Script game session. Local Codex commands:
 .\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
 .\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_retention.py
 ```
+
+
+## Private retained-frame binding to observation claims (2026-11-13)
+
+`src/automation/farming_capture_binding.py` now provides an **internal-only,
+read-only** bridge between `RetainedReadOnlySnapshot` records and the frozen
+`FarmingObservationHandoff`. It requires exact frame-ID coverage, unchanged
+SHA256 per frame, private basename-only `farm-frame-*.png` references, distinct
+private filenames, timezone-aware freshness and strictly increasing capture
+timestamps. The handoff observation timestamp must follow the frame captures
+and the last frame must be within two minutes of the observation claim.
+A `SOURCE_DROP` claim inherits the v1 requirement for distinct before/after
+frames and a positive **claimed** delta; that is not independent OCR evidence.
+
+`bind_retained_frame_files(packet, retained, now=...)` returns an immutable
+frame-reference binding. Its `internal_frame_files()` is **never** for
+operator/UI serialization. `verify_retained_capture_claim(...)` connects
+this binding to the existing `verify_local_capture_claim` which checks
+original source, binding and frame **bytes on disk**. It returns only
+`LOCAL_HASH_MATCH_ONLY` or a rejected integrity audit; a successful result
+cannot promote a drop source, approve a route, qualify runtime or enable input.
+Binding records are still untrusted claims, and the private directory must
+remain protected and local. No file paths are accepted from the user UI.
+
+Focused Windows commands:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureBinding.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureRetention.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingLiveHandoff.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_binding.py
+```
+
+The 10 binding tests passed in a **Linux synthetic stub-contract harness**
+using the new production binding module and stand-in classes for its three
+existing dependencies. This does NOT establish that the complete repository
+test suite, actual OK Script, Windows ACL behavior or live game works. Those
+remain pending Codex/Terra local qualification. No gameplay execution is wired.
