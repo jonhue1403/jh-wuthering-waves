@@ -139,3 +139,36 @@ OK Script runtime abstractions. Feed actual images and observed versions into
 the handoff and local-byte verifier without user path fields. Preserve the
 independent Terra verification boundary; do not connect the farming executor
 or trigger game input while calibration evidence is missing.
+
+## Opt-in OK Script frame producer (untrusted, read-only)
+
+`src/automation/farming_runtime_capture.py` introduces
+`capture_readonly_frame(task, opted_in=True)` as an **internal-only**
+foreground screenshot acquisition boundary. No Qt/Web operator action or
+task registration currently calls it. It uses existing OK Script
+`task.next_frame()` / `task.frame` primitives; matches the task's real
+`executor.device_manager.hwnd_window.hwnd` against the Windows foreground
+HWND before and after capture/encoding; checks cancellation; rejects
+malformed/oversized frames; and reads the installed `ok-script` package version.
+PNG bytes remain private in a frozen `ReadOnlyFrameSnapshot`, excluded from
+repr and `public_summary()`. No profile paths or user file inputs are exposed.
+
+On non-Windows systems without a test monkeypatch, focus checks fail closed.
+The producer proves **neither** frame freshness nor uncached capture, installed
+game version, inventory OCR/receipt, enemy identity, authenticated origin, route
+qualification, nor independent review. It cannot make `RuntimeQualification`
+or source-to-route authorization; source and calibration hashes still need
+actual local verification. It never calls game input or starts a route.
+
+Local Codex follow-up: validate this bridge on the actual Windows OK Script
+installation and inspect WGC cached/focus metadata before any review packet.
+Do not connect Start/Pause/Stop or the executor to unreviewed snapshots.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRuntimeCapture.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_runtime_capture.py
+```
+
+The 10 synthetic tests **PASSED in an isolated Linux container** using mocked
+task, window and runtime metadata. Windows/real-game startup, end-to-end
+handoff integration and independent Terra review remain **NOT RUN**.
