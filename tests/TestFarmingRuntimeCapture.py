@@ -41,10 +41,14 @@ class TestFarmingRuntimeCapture(unittest.TestCase):
             "src.automation.farming_runtime_capture.version", return_value="3.0.4")
         self.version_patcher.start()
         self.addCleanup(self.version_patcher.stop)
+        self.focus_patcher = patch(
+            "src.automation.farming_runtime_capture._system_foreground_hwnd",
+            return_value=1357)
+        self.focus_patcher.start()
+        self.addCleanup(self.focus_patcher.stop)
 
     def capture(self, **kwargs):
-        return capture_readonly_frame(
-            self.task, opted_in=True, foreground_hwnd=lambda: 1357, **kwargs)
+        return capture_readonly_frame(self.task, opted_in=True, **kwargs)
 
     def test_reads_actual_frame_without_input_or_execution(self):
         snap = self.capture()
@@ -62,28 +66,27 @@ class TestFarmingRuntimeCapture(unittest.TestCase):
     def test_absent_explicit_opt_in_rejects_before_acquisition(self):
         for value in (False, 1, "yes", None):
             with self.subTest(value=value), self.assertRaises(CaptureBlocked):
-                capture_readonly_frame(self.task, opted_in=value,
-                                       foreground_hwnd=lambda: 1357)
+                capture_readonly_frame(self.task, opted_in=value)
         self.assertEqual(self.task.reads, 0)
 
     def test_foreground_mismatch_blocks_before_read(self):
-        with self.assertRaisesRegex(CaptureBlocked, "GAME_NOT_FOREGROUND"):
-            capture_readonly_frame(self.task, opted_in=True,
-                                   foreground_hwnd=lambda: 9999)
+        with patch("src.automation.farming_runtime_capture._system_foreground_hwnd", return_value=9999):
+            with self.assertRaisesRegex(CaptureBlocked, "GAME_NOT_FOREGROUND"):
+                self.capture()
         self.assertEqual(self.task.reads, 0)
 
     def test_foreground_change_after_frame_rejects(self):
-        views = iter([1357, 9999])
-        with self.assertRaisesRegex(CaptureBlocked, "GAME_NOT_FOREGROUND"):
-            capture_readonly_frame(self.task, opted_in=True,
-                                   foreground_hwnd=lambda: next(views))
+        with patch("src.automation.farming_runtime_capture._system_foreground_hwnd",
+                   side_effect=[1357, 9999]):
+            with self.assertRaisesRegex(CaptureBlocked, "GAME_NOT_FOREGROUND"):
+                self.capture()
         self.assertEqual(self.task.reads, 1)
 
     def test_foreground_change_during_encoding_rejects(self):
-        views = iter([1357, 1357, 9999])
-        with self.assertRaisesRegex(CaptureBlocked, "GAME_NOT_FOREGROUND"):
-            capture_readonly_frame(self.task, opted_in=True,
-                                   foreground_hwnd=lambda: next(views))
+        with patch("src.automation.farming_runtime_capture._system_foreground_hwnd",
+                   side_effect=[1357, 1357, 9999]):
+            with self.assertRaisesRegex(CaptureBlocked, "GAME_NOT_FOREGROUND"):
+                self.capture()
 
     def test_cancellation_before_and_during_read_rejects(self):
         self.task.is_cancelled = True
@@ -125,8 +128,9 @@ class TestFarmingRuntimeCapture(unittest.TestCase):
     def test_foreground_checker_error_fails_closed(self):
         def fail():
             raise OSError("window API unavailable")
-        with self.assertRaisesRegex(CaptureBlocked, "FOREGROUND_CHECK_UNAVAILABLE"):
-            capture_readonly_frame(self.task, opted_in=True, foreground_hwnd=fail)
+        with patch("src.automation.farming_runtime_capture._system_foreground_hwnd", side_effect=fail):
+            with self.assertRaisesRegex(CaptureBlocked, "FOREGROUND_CHECK_UNAVAILABLE"):
+                self.capture()
         self.assertEqual(self.task.reads, 0)
 
 
