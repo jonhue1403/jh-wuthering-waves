@@ -95,6 +95,18 @@ class TestFarmingPreflight(unittest.TestCase):
         self.assertIn("incomplete or rejected", result["next_action"])
         self.assertFalse(result["can_start"])
 
+    def test_boolean_rejected_count_is_not_an_audit_clearance(self):
+        receipts, routes, comparison = self.summaries()
+        receipts["rejected_manifest_count"] = False
+        result = self.check(receipts, routes, comparison)
+        self.assertEqual("MISSING_OR_INVALID", result["source_check"])
+        self.assertFalse(result["can_start"])
+        routes["rejected_manifest_count"] = False
+        receipts["rejected_manifest_count"] = 0
+        result = self.check(receipts, routes, comparison)
+        self.assertEqual("MISSING_OR_INVALID", result["route_check"])
+        self.assertFalse(result["can_start"])
+
     def test_missing_route_prioritized_after_source(self):
         receipts, routes, comparison = self.summaries()
         routes["status"] = "NO_LOCAL_ROUTES"
