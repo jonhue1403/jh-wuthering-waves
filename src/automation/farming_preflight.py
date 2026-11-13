@@ -19,7 +19,8 @@ def _valid_candidate(summary, *, status, count_key):
         and summary.get("status") == status
         and type(summary.get(count_key)) is int
         and 0 < summary[count_key] <= (24 if count_key == "receipt_candidate_count" else 8)
-        and summary.get("rejected_manifest_count") == 0
+        and type(summary.get("rejected_manifest_count")) is int
+        and summary["rejected_manifest_count"] == 0
         and summary.get("can_start") is False
     )
 
