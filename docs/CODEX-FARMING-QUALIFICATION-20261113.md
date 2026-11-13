@@ -38,13 +38,18 @@ suite therefore has one known error. No game input or farming was performed.
 | `unittest discover -s tests -p 'TestHuntMobTask.py' -v` | 9 passed |
 | `tests/test_autopick_abyss.py` after fixture correction | 14 tests plus 2 subtests passed |
 | `node --check src/web/farming_assistant/index.js` | Passed |
-| Full isolated repository verifier | 96 modules; 1,003 run: 996 passed, 6 skipped, 1 error; 95 modules passed, 1 failed, 0 zero-test modules; exit 1 |
+| Full isolated repository verifier, exact committed SHA `402b36618ca3f88672713e96e4ae6f03cdf284fc` | 96 modules; 1,003 run: 996 passed, 6 skipped, 1 error; 95 modules passed, 1 failed, 0 zero-test modules; exit 1 |
 
 Full verification command:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts/verify_core_routes.py --all --output logs/core-routes/farming-codex-full
+.\.venv\Scripts\python.exe scripts/verify_core_routes.py --all --output logs/core-routes/farming-codex-final
 ```
+
+The final verification artifact records SHA
+`402b36618ca3f88672713e96e4ae6f03cdf284fc` with a clean working tree at test
+start (`dirty_at_start=false`). The earlier preliminary run at the base SHA had
+the same counts and is retained separately under `logs/core-routes/farming-codex-full`.
 
 The one full-suite error is `TestConfig.test_farming_assistant_is_registered_only_as_a_web_custom_tab` at its import of `WebCustomTab` from `ok`. The installed `ok-script==3.0.4` metadata lists `default`, `qt`, `adb`, `ocr`, and `dev` extras; its installed source has no web tab implementation. The repository declares `ok-script[web]==3.0.4`, but that extra is not provided by the pinned distribution. A downloaded 3.0.5b4 wheel was inspected, not installed; it also did not contain the needed web module. The package's published extra list confirms the mismatch ([PyPI package metadata](https://pypi.org/project/ok-script/)). This needs a framework version/API decision before a safe web registration repair can be made.
 
@@ -139,11 +144,11 @@ increase were not observed. No route is ROUTE_QUALIFIED.
   sound, confirmed the report's counts against the verifier artifacts, and
   reported no new blocking defect in that commit. Integration disposition
   remains **NOT CLEAR** because the WebCustomTab mismatch and live gates remain.
-- The full-run results were captured before committing, at the base SHA with
-  the exact fixture correction present (`dirty_at_start=true`). They are not a
-  separate execution of commit `1fae0d7`. Terra also notes that the UI screenshot
-  and no-game-action claims came from the coordinator's CUA observation, not
-  from persistent review artifacts.
+- The full verification was repeated after commit `402b366` on that exact SHA.
+  The earlier preliminary artifact at the base SHA used the same correction
+  with `dirty_at_start=true`. Terra also notes that the UI screenshot and
+  no-game-action claims came from the coordinator's CUA observation, not from
+  persistent review artifacts.
 - Antigravity CLI `agy` was installed and listed Gemini 3.8 Flash models, but
   the native CLI invocation timed out with `DEADLINE_EXCEEDED` and returned no
   model output. Authentication/callability was not established; no Gemini
