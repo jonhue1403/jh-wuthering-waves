@@ -163,6 +163,9 @@ def build_observation_handoff(payload: dict, *, now: datetime | None = None) -> 
     frame_hashes = _digest_map(payload["frame_sha256"], required=set(frames))
     if len(frame_hashes) != len(frames):
         raise ValueError("Frame digests do not match observed frames")
+    if (purpose == "SOURCE_DROP"
+            and len({digest for _frame, digest in frame_hashes}) != 2):
+        raise ValueError("Before and after receipt frames must have different image digests")
     bindings = _digest_map(
         payload["bindings_sha256"], required=_BASE_BINDINGS,
         optional=frozenset(("matcher_calibration",)),
