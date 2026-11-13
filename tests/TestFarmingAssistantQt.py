@@ -38,6 +38,8 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertIn("local receipt", self.tab.calibration_label.text().lower())
         self.assertIn("local route", self.tab.route_calibration_label.text().lower())
         self.assertIn("cross-check", self.tab.reconciliation_label.text().lower())
+        self.assertIn("preflight", self.tab.preflight_label.text().lower())
+        self.assertIn("version not observed", self.tab.preflight_label.text().lower())
         self.assertEqual(0, self.tab._preview["reconciliation"]["candidate_match_count"])
         self.assertFalse(self.tab._preview["reconciliation"]["can_start"])
         self.assertFalse(self.tab._preview["calibration"]["can_start"])
@@ -62,6 +64,7 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertEqual(0, self.tab.target_list.count())
         self.assertIsNone(self.tab._preview)
         self.assertIn("cross-check", self.tab.reconciliation_label.text().lower())
+        self.assertIn("no target selected", self.tab.preflight_label.text().lower())
         self.assertFalse(self.tab.reference_button.isEnabled())
         self.tab.search.clear()
         self.tab.source_list.setCurrentRow(0)
@@ -87,6 +90,7 @@ class TestFarmingAssistantQt(unittest.TestCase):
             self.tab.readiness_label.text(),
             self.tab.next_step.text(),
             self.tab.reconciliation_label.text(),
+            self.tab.preflight_label.text(),
         ))
         for forbidden in ("Hunt Profile", "Route Manifest", "Runtime Qualification",
                           "Plan Path", ".json", "C:\\", "Z:\\"):
