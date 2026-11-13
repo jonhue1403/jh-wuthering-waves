@@ -39,6 +39,11 @@ class TestFarmingAssistantView(unittest.TestCase):
         self.assertFalse(preview["can_start"])
         self.assertFalse(preview["can_pause"])
         self.assertFalse(preview["can_stop"])
+        self.assertEqual("CALIBRATION_REQUIRED", preview["preflight"]["status"])
+        self.assertEqual("VERSION_NOT_OBSERVED",
+                         preview["preflight"]["game_version_check"])
+        self.assertFalse(preview["preflight"]["can_start"])
+        self.assertEqual(preview["preflight"]["next_action"], preview["next_step"])
         self.assertEqual([], preview["verified_mob_ids"])
         self.assertEqual([], preview["qualified_route_ids"])
         self.assertIn(preview["calibration"]["status"],
@@ -61,6 +66,8 @@ class TestFarmingAssistantView(unittest.TestCase):
         self.assertEqual("NO_MOB_ROUTE_QUALIFICATION",
                          preview["route_calibration"]["status"])
         self.assertFalse(preview["can_start"])
+        self.assertEqual("NO_VERIFIED_MOB_ROUTE", preview["preflight"]["route_check"])
+        self.assertFalse(preview["preflight"]["can_start"])
         self.assertIsNone(preview["desired_total"])
 
     def test_no_developer_paths_exposed_in_contract(self):
