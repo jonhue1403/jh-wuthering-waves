@@ -78,10 +78,6 @@ def inspect_readonly_capture_session(
     """
     if type(packet) is not FarmingObservationHandoff:
         raise CaptureSessionBlocked("HANDOFF_INVALID")
-    if type(snapshots) is not dict or set(snapshots) != set(packet.frame_ids):
-        raise CaptureSessionBlocked("SNAPSHOT_IDS_MISMATCH")
-    if type(retained) is not dict or set(retained) != set(packet.frame_ids):
-        raise CaptureSessionBlocked("RETAINED_IDS_MISMATCH")
     now = datetime.now(timezone.utc) if now is None else now
     # Reconstruct the canonical packet at its claimed observation instant.
     # The binding layer separately checks the *current* clock and expiry, so
@@ -91,6 +87,10 @@ def inspect_readonly_capture_session(
         validate_observation_handoff_integrity(packet, now=claimed_at)
     except (ValueError, TypeError, AttributeError) as exc:
         raise CaptureSessionBlocked("HANDOFF_INTEGRITY_INVALID") from exc
+    if type(snapshots) is not dict or set(snapshots) != set(packet.frame_ids):
+        raise CaptureSessionBlocked("SNAPSHOT_IDS_MISMATCH")
+    if type(retained) is not dict or set(retained) != set(packet.frame_ids):
+        raise CaptureSessionBlocked("RETAINED_IDS_MISMATCH")
     try:
         bind_retained_frame_files(packet, retained, now=now)
     except FrameBindingBlocked as exc:

@@ -76,8 +76,6 @@ def bind_retained_frame_files(
     """
     if type(packet) is not FarmingObservationHandoff:
         raise FrameBindingBlocked("HANDOFF_INVALID")
-    if type(retained) is not dict or set(retained) != set(packet.frame_ids):
-        raise FrameBindingBlocked("FRAME_IDS_MISMATCH")
     now = datetime.now(timezone.utc) if now is None else now
     if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() is None:
         raise FrameBindingBlocked("CLOCK_INVALID")
@@ -90,6 +88,8 @@ def bind_retained_frame_files(
         validate_observation_handoff_integrity(packet, now=now)
     except ValueError as exc:
         raise FrameBindingBlocked("HANDOFF_INTEGRITY_INVALID") from exc
+    if type(retained) is not dict or set(retained) != set(packet.frame_ids):
+        raise FrameBindingBlocked("FRAME_IDS_MISMATCH")
 
     declared_hashes = dict(packet.frame_sha256)
     if set(declared_hashes) != set(packet.frame_ids):
