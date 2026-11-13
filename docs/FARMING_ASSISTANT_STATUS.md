@@ -5,6 +5,55 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 10:02 MYT — immutable current-runtime observation handoff contract
+
+**New independently reviewable implementation increment: structurally verified review
+packet only, NOT a game observation or execution authority.**
+
+- Added `src/automation/farming_live_handoff.py` with a frozen `FarmingObservationHandoff`
+  and exact 19-field, versioned `build_observation_handoff` intake.
+  Each packet has exact ASCII-decimal game enemy ID, observed game/OK Script
+  version claims, private capture/session identity, fresh timestamp, stage,
+  map layer, bounded frame tokens, declared SHA256 bindings/evidence/source hashes,
+  optional observed inventory deltas and deterministic canonical packet digest.
+- Enforces mandatory `RuntimeQualification.REQUIRED_SOURCES` coverage and
+  stage-specific route sources, strict SHA256 formatting, 15-minute freshness,
+  distinct before/after frame IDs **and image digests**, positive inventory
+  delta for receipt purposes, and no inventory claim from route-only captures.
+  Rejects extra approval/status fields. `public_summary()` is path-free and
+  explicitly returns `can_start=False`, unauthenticated status and no session
+  IDs, local paths or screenshot bytes.
+- Added `tests/TestFarmingLiveHandoff.py` with synthetic regression cases for
+  immutability, canonical digest stability, attempted self-approval, key
+  injection, stale/future/naive timestamps, malformed IDs, missing/wrong
+  bindings and duplicate/identical frames. This is *not* an independently
+  reviewed/live current-game observation.
+- Added `docs/FARMING_ASSISTANT_LIVE_HANDOFF.md` documenting the schema,
+  capture/review separation, Codex+Terra responsibilities and commands.
+- Source/test/documentation commits (in order):
+  `61d42b1e317b7d667e4b0e6c9c609c9e2e0f6b24`,
+  `e4f2edc131738003a3eec9b00bbfd799d38fddc1`,
+  `b54700ef939432cdb822ed70f96490208653bdb0`,
+  `759a4fd105697bc8fd95cd125772883cc3ec031a`,
+  `126c19bc745f9f956174749d23c2ee84309ee39e`.
+- **Tests NOT RUN**: checkout unavailable to local Python/Qt/OK Script
+  execution; this is GitHub connector source editing only. No Gemini 3.8 Flash
+  Antigravity CLI, Terra Medium, live game, screen control, CI, route execution,
+  resource spending or merge was invoked.
+- **Next**: implement a *read-only* trusted runtime capture adapter for actual
+  version/frame/binding observations in a locally accessible game/runtime,
+  while keeping any executor adapter disconnected until Codex local tests,
+  current-game evidence and independent Terra qualification.
+
+Codex Windows test handoff:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingLiveHandoff.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCalibrationGuide.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingPreflight.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_live_handoff.py
+```
+
 ## 2026-11-13 09:03 MYT — guided read-only calibration checklist
 
 **New source/UI increment: operator guidance, not a playable route or a live qualification.**
