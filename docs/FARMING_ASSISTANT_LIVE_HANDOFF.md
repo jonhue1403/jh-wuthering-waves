@@ -172,3 +172,47 @@ Do not connect Start/Pause/Stop or the executor to unreviewed snapshots.
 The 10 synthetic tests **PASSED in an isolated Linux container** using mocked
 task, window and runtime metadata. Windows/real-game startup, end-to-end
 handoff integration and independent Terra review remain **NOT RUN**.
+
+
+## Opt-in private capture retention (no reviewer authority)
+
+`src/automation/farming_capture_retention.py` provides the **internal-only**
+`retain_readonly_snapshot(snapshot, private_root=..., capture_token=..., opted_in=True)`.
+It takes a `ReadOnlyFrameSnapshot` from the read-only OK Script capture adapter
+and writes its original PNG bytes for later local Codex/Terra examination.
+It is **not wired to any UI action, Start button, route task, inventory OCR,
+or game controller**. It does not issue game input or create a live handoff packet.
+
+- A pre-existing, absolute **private evidence directory outside the Git
+  repository** must be provisioned by local Codex. Do not publish, sync or
+  commit screenshots. Restrict access to the intended Windows user via
+  filesystem ACLs; `0o600` on Windows is not a complete ACL policy.
+- Each capture needs an internal unique opaque token; filenames are fixed
+  under that root. Existing files cannot be overwritten. The implementation
+  rejects relative/traversal tokens, symlink/junction roots where visible,
+  malformed or changed PNG/hash claims, missing/unsafe directories, and
+  claims outside the 15-minute freshness window. It uses exclusive creation,
+  file sync and local readback. It never removes prior accepted evidence.
+  Caller-controlled root paths must not come from the operator form.
+- Filesystem concurrency is a **trusted-local-root assumption**: this is
+  not a sandbox against an attacker with write access to the private directory
+  or its ancestors. Codex must verify Windows ACL/reparse-point behavior.
+  A PNG signature/readback proves bytes were stored, not game-frame origin.
+- The returned private record keeps a relative filename for eventual
+  `verify_local_capture_claim` integration; `public_summary()` omits the
+  filename and raw bytes and explicitly reports `can_start=false`.
+- No snapshot is taken merely by importing the module. Independent game
+  version, capture chronology/cached-frame flags, numeric enemy ID, inventory
+  delta, source SHA-bound review and route/runtime qualification remain blocked.
+
+Synthetic isolated verification: **9/9 unittest cases PASSED**, using the
+retention module with a stub `ReadOnlyFrameSnapshot` type contract; Python
+compilation of source/tests also passed. These are **not** tests of the full
+checkout or a real Windows/OK Script game session. Local Codex commands:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureRetention.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingRuntimeCapture.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_retention.py
+```
