@@ -1,5 +1,58 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+
+## 2026-11-13 — private capture -> offline review manifest integration
+
+**Source commit:** `b1945ba4dde5dd4f9526cb6c42390ed8802eb918`.
+**Fixture correction:** `e440d3e856c86561e4a6ee95c06e1fbbb986ece6`.
+**Handoff documentation:** `4e52c4e50245848a700dba930f677b47244a2f4f`.
+Canonical branch: `agent/material-first-farming`, fast-forwarded from
+`24b74de0115f1d57d37b3485eb0cac109b8b3c5b`. No other branch changed.
+
+- Added `src/automation/farming_private_review.py`, an internal function
+  `review_private_captures` to accept an already-constructed immutable handoff
+  and an exact frame-ID map of actual `PrivateReadOnlyCapture` objects. It
+  rejects missing, extra, invalid or duplicated private capture pairs and
+  calls existing review-manifest validation to recheck in-memory consistency
+  and **original retained/source/binding file bytes**. No user-supplied
+  hunt/route profile path, runtime capture, input or executor authorization.
+- Added `tests/TestFarmingPrivateReview.py` with **12 synthetic regression
+  methods**: coherent original bytes (still `can_start=false`), stable manifest
+  identity, wrong IDs/types, duplicate capture, changed in-memory PNG, forged
+  retention digest, modified disk frame/source, expiry, unsafe binding paths
+  and invalid packet. Synthetic FF Mech Core identifiers and positive deltas
+  are **fixtures**, not an authentic drop receipt.
+- **Actually verified:** GitHub branch fast-forward/commits and added source,
+  test and documentation content. **NOT RUN:** these 12 tests, Python
+  compilation, full project imports, Qt/Web GUI, native Windows/NTFS,
+  installed OK Script game frames, real game/version, Antigravity CLI,
+  independent Terra review or any live FF Mech Core drop/route.
+  The allowed local checkout remains unavailable through Devspace, and
+  container GitHub HTTPS cloning fails DNS resolution.
+- **Still blocked:** proven current-runtime frame freshness and provenance,
+  current-game numeric enemy/drop mapping, approved source/profile/database
+  evidence, actual inventory-before/after receipts, bounded route calibration
+  and independent Terra qualification. Private file consistency is **not**
+  a live execution gate. No game input, navigation, combat, spending or
+  premium refill; no PR or master mutation.
+
+**Next meaningful increment:** Codex on Windows must run the private review,
+private capture and original-byte tests with the original dependencies, inspect
+actual NTFS ACL/junction and frame-freshness behavior, and have Terra review
+those results before considering UI/internal preflight integration. Avoid
+adding further evidence wrappers until real integration tests are available.
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingPrivateReview.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingPrivateCapture.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingReviewManifest.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_private_review.py tests/TestFarmingPrivateReview.py
+```
+
+---
+
 ## 2026-11-13 19:07 MYT — integrated opt-in read-only capture + private retention
 
 **Source/tests commit:** `6e3ef2d613205e762cea7fd176579ae81d180773`
