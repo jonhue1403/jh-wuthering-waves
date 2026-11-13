@@ -12,6 +12,7 @@ from src.automation.farming_selection import (
 from src.automation.farming_evidence import FarmingEvidenceAudit
 from src.automation.farming_route_audit import FarmingRouteAudit
 from src.automation.farming_reconciliation import reconcile_candidate_audits
+from src.automation.farming_preflight import build_calibration_preflight
 
 MAX_GOAL = 9_999_999
 MAX_QUERY_LENGTH = 120
@@ -126,6 +127,9 @@ class FarmingAssistantView:
                 "note": "A mob display slug cannot establish a numeric game ID.",
             }
         )
+        preflight = build_calibration_preflight(
+            target_kind.value, calibration, route_calibration, reconciliation,
+        )
         return {
             "target": {
                 "id": resolution.target.target_id,
@@ -150,13 +154,11 @@ class FarmingAssistantView:
             "calibration": calibration,
             "route_calibration": route_calibration,
             "reconciliation": reconciliation,
+            "preflight": preflight,
             "can_start": False,
             "can_pause": False,
             "can_stop": False,
             "run_state": "PREVIEW_ONLY",
             "reason": resolution.explanation,
-            "next_step": (
-                "Read-only calibration: confirm actual enemy drops, inventory "
-                "receipt and current-game route qualification before execution."
-            ),
+            "next_step": preflight["next_action"],
         }
