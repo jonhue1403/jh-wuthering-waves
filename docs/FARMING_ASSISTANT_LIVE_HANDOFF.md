@@ -312,3 +312,28 @@ This is local contract integrity only. Rebuilding a canonical packet does not
 authenticate a game window, installed game version, enemy identity, observed
 drop, current frame, inventory count, reviewer, route or permission to start.
 No game input or user-visible path entry is added.
+
+## Evidence-root alias and reparse-point validation (2026-11-13)
+
+The original-byte verifier now rejects **relative** checkout/evidence roots
+and symlinked ancestors, including a redirected parent above an otherwise
+ordinary directory. Every local artifact component is checked with `lstat`
+and, where available, Windows junction and `FILE_ATTRIBUTE_REPARSE_POINT`
+metadata before digesting bytes. This closes a path-consistency gap where a
+trusted-looking root could previously resolve through a redirected parent.
+The existing rejection codes `LOCAL_ROOT_INVALID` and `UNSAFE_LOCAL_PATH`
+remain stable; no UI path input, gameplay input or route permission is added.
+
+Three new synthetic regression methods cover relative roots and symlinked
+source/evidence parent directories. **NOT RUN** in this connector-only session.
+Actual Windows NTFS junctions, ACL inheritance, read-only capture focus/frame
+freshness, link races and independent reviewer qualification must still be
+validated in the authorized local checkout. This is a filesystem-integrity
+precondition, never authentication of an FF Mech Core drop or authorization
+of any route.
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingHandoffIntegrity.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_verify.py
+```

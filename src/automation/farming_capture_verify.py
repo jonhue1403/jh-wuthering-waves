@@ -58,13 +58,41 @@ class LocalCaptureAudit:
         }
 
 
+def _is_redirected(path: Path, *, missing_ok: bool = False) -> bool:
+    """Reject symlinks, junctions and other Windows reparse-point objects.
+
+    Path.is_symlink() alone does not detect every Windows junction/cloud-link
+    type. lstat() inspects the named entry instead of following its target.
+    This is an offline consistency guard, not protection against a concurrent
+    privileged writer changing the filesystem after inspection.
+    """
+    try:
+        metadata = path.lstat()
+    except FileNotFoundError:
+        if missing_ok:
+            return False
+        raise
+    return (
+        path.is_symlink()
+        or getattr(path, "is_junction", lambda: False)()
+        or bool(getattr(metadata, "st_file_attributes", 0) & 0x400)
+    )
+
+
 def _root(path):
     if not isinstance(path, (str, Path)) or isinstance(path, bool):
         raise _AuditFailure("LOCAL_ROOT_INVALID")
     base = Path(path)
-    if base.is_symlink() or not base.is_dir():
+    if not base.is_absolute():
         raise _AuditFailure("LOCAL_ROOT_INVALID")
     try:
+        # Do not silently resolve a caller's root through a symlinked parent
+        # or Windows reparse point, even if the final path is a directory.
+        for ancestor in (base, *base.parents):
+            if _is_redirected(ancestor):
+                raise _AuditFailure("LOCAL_ROOT_INVALID")
+        if not base.is_dir():
+            raise _AuditFailure("LOCAL_ROOT_INVALID")
         return base.resolve(strict=True)
     except (OSError, RuntimeError):
         raise _AuditFailure("LOCAL_ROOT_INVALID") from None
@@ -79,8 +107,11 @@ def _safe_file(base: Path, relative: str) -> Path:
     current = base
     for part in parts:
         current = current / part
-        if current.is_symlink():
-            raise _AuditFailure("UNSAFE_LOCAL_PATH")
+        try:
+            if _is_redirected(current, missing_ok=True):
+                raise _AuditFailure("UNSAFE_LOCAL_PATH")
+        except (OSError, RuntimeError):
+            raise _AuditFailure("UNSAFE_LOCAL_PATH") from None
     try:
         resolved = current.resolve(strict=True)
     except (OSError, RuntimeError):

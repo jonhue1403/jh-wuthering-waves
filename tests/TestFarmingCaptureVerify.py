@@ -154,6 +154,37 @@ class TestFarmingCaptureVerify(unittest.TestCase):
             self.audit(frame_files={"frame-one": "private/linked-frame.png"}).reason_code,
         )
 
+    def test_relative_roots_are_rejected_before_original_file_access(self):
+        for values in (
+            {"source_root": "relative/checkout"},
+            {"evidence_root": "relative/evidence"},
+        ):
+            with self.subTest(values=values):
+                result = self.audit(**values)
+                self.assertEqual("REJECTED", result.status)
+                self.assertEqual("LOCAL_ROOT_INVALID", result.reason_code)
+                self.assertFalse(result.public_summary()["can_start"])
+
+    def test_symlinked_ancestor_of_source_root_is_rejected(self):
+        link = self.sources.parent / "parent-alias"
+        try:
+            os.symlink(self.sources.parent, link, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlink creation unavailable to current test process")
+        result = self.audit(source_root=link / "repo")
+        self.assertEqual("LOCAL_ROOT_INVALID", result.reason_code)
+        self.assertEqual(0, result.checked_artifact_count)
+
+    def test_symlinked_ancestor_of_evidence_root_is_rejected(self):
+        link = self.evidence.parent / "evidence-alias"
+        try:
+            os.symlink(self.evidence.parent, link, target_is_directory=True)
+        except (OSError, NotImplementedError):
+            self.skipTest("Symlink creation unavailable to current test process")
+        result = self.audit(evidence_root=link / "capture")
+        self.assertEqual("LOCAL_ROOT_INVALID", result.reason_code)
+        self.assertFalse(result.public_summary()["can_start"])
+
     def test_stale_capture_is_rejected_even_when_original_digest_matches(self):
         self.assertEqual(
             "CAPTURE_CLAIM_STALE",
