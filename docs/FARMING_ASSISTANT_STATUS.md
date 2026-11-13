@@ -5,6 +5,52 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+## 2026-11-13 11:02 MYT — local capture artifact SHA256 verification (read-only)
+
+**Committed independent implementation increment: verifies original local bytes
+against the immutable observation claim; still NOT trusted game evidence.**
+
+- Added `src/automation/farming_capture_verify.py`: a frozen
+  `LocalCaptureAudit` and `verify_local_capture_claim` that hash *actual*
+  source, profile/reference/database binding and private screenshot files.
+  Required source names are taken from the existing immutable handoff; frame
+  and binding paths are internal maps only, never exposed through the Qt/Web
+  operator UI.
+- Rejects unsafe/absolute/traversal paths, symlinks, missing files, incomplete
+  or duplicate file maps, source/binding/frame SHA256 mismatches, oversized
+  reads and expired 15-minute capture claims. A single invalid artifact rejects
+  the whole packet; partial hash matches are never reported as success.
+- Added `tests/TestFarmingCaptureVerify.py` with 10 synthetic offline cases
+  for successful integrity-only verification, tampered original source/frame/
+  binding bytes, missing files, traversal paths, map ambiguity, symlinks,
+  stale claims and invalid clock. A positive local hash check is explicitly
+  unauthenticated and has `can_start=false`.
+- Updated `docs/FARMING_ASSISTANT_LIVE_HANDOFF.md` with local operator
+  boundaries, limitations and validation commands.
+- GitHub commits in order: `621fb0b2c0fbcce695c84ebbca57c8270e751696`,
+  `48ae9b47299ca5679f76f48f50f154baa414ded7`,
+  `9b50a6dc813a4d86ab81e8787bd668d18005a859`.
+- **Tests NOT RUN:** local project checkout and Windows Python/OK Script runtime
+  unavailable; GitHub file commits are not test evidence. Devspace access to
+  the previously cited Windows checkout returned an internal error; HTTPS
+  GitHub clone from this container failed DNS resolution. No Antigravity CLI,
+  Terra review, screenshot capture, game input or live FF Mech Core receipt.
+- **Blockers:** no authenticated running game/version/frame producer, no
+  independent current-game review, no qualified route/real inventory delta.
+  Execution remains disabled; no PRs or master changed.
+
+Codex Windows offline checks:
+
+```powershell
+.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\\.venv\\Scripts\\python.exe -m unittest discover -s tests -p TestFarmingLiveHandoff.py -v
+.\\.venv\\Scripts\\python.exe -m py_compile src/automation/farming_capture_verify.py
+```
+
+**Next increment:** implement an internal opt-in, read-only capture *producer*
+from real OK Script frame/focus/runtime abstractions when local Codex access
+is available; keep any executor disconnected pending Terra qualification.
+
 ## 2026-11-13 10:02 MYT — immutable current-runtime observation handoff contract
 
 **New independently reviewable implementation increment: structurally verified review
