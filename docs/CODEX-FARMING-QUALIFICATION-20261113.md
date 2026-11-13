@@ -17,11 +17,10 @@ suite therefore has one known error. No game input or farming was performed.
 - Handoff checkpoint: `dae99e4ee5f77a2884605f1f9d8f92d8561cbc66`
 - Remote branch fetched during continuation and matched local HEAD at
   `aca3ae8a4071ae8fab6558ab0be84582e79570b9` before junction-test work.
-- The junction regression commit is `160080a1271e30a1a90a53b1d06c58134692c8df`.
-  Full repository verification passed all modules except the known
-  `TestConfig` framework API error on this exact commit with a clean tree.
-  The report-only changes following that verification do not change tested
-  application or test source.
+- The latest application/test commit is
+  `8ba58be9fcf924f4482c66be3c70ad3e92bf66a5`. It updates the removed-web
+  compatibility launcher and adds a mocked launcher regression; full
+  repository verification is being rerun after this change.
 - Working checkout: isolated `Z:\Game\jh-ww-farming-qualification`; the
   user's `qa/android-gt30pro-validation` checkout and the existing
   `codex/core-and-routes-20261108` worktree were left unchanged.
@@ -43,11 +42,12 @@ suite therefore has one known error. No game input or farming was performed.
 | --- | --- |
 | `unittest discover -s tests -p 'TestFarming*.py' -v` | 200 run: 200 passed, 0 skipped, 0 failed |
 | `unittest tests.TestFarmingCaptureVerify tests.TestFarmingCaptureRetention -v` | 22 passed; includes junction fallback cases |
+| `unittest tests.TestMainWebCompatibility -v` | 1 passed; OK startup is mocked |
 | `unittest discover -s tests -p 'TestConfig.py' -v` | 8 run: 7 passed, 1 error |
 | `unittest discover -s tests -p 'TestHuntMobTask.py' -v` | 9 passed |
 | `tests/test_autopick_abyss.py` after fixture correction | 14 tests plus 2 subtests passed |
 | `node --check src/web/farming_assistant/index.js` | Passed |
-| Full isolated repository verifier, exact committed SHA `160080a1271e30a1a90a53b1d06c58134692c8df` | 96 modules; 1,003 run: 1,000 passed, 2 skipped, 1 error; 95 modules passed, 1 failed, 0 zero-test modules; exit 1 |
+| Full isolated repository verifier, exact committed SHA `160080a1271e30a1a90a53b1d06c58134692c8df` (before launcher update) | 96 modules; 1,003 run: 1,000 passed, 2 skipped, 1 error; 95 modules passed, 1 failed, 0 zero-test modules; exit 1 |
 
 Full verification command:
 
@@ -55,13 +55,13 @@ Full verification command:
 .\.venv\Scripts\python.exe scripts/verify_core_routes.py --all --output logs/core-routes/farming-codex-junctions-final
 ```
 
-The final verification artifact at
-`logs/core-routes/farming-codex-junctions-final/results.json` records SHA
-`160080a1271e30a1a90a53b1d06c58134692c8df` with a clean working tree at test
-start (`dirty_at_start=false`). The earlier runs remain in their original
-folders as historical evidence.
+The junction regression run is retained at
+`logs/core-routes/farming-codex-junctions-final/results.json` and records SHA
+`160080a1271e30a1a90a53b1d06c58134692c8df` with a clean working tree. A new
+full run after the compatibility-launcher commit is in progress; the final
+counts and exact SHA will replace this historical row below.
 
-The one full-suite error is `TestConfig.test_farming_assistant_is_registered_only_as_a_web_custom_tab` at its import of `WebCustomTab` from `ok`. The installed `ok-script==3.0.4` metadata lists `default`, `qt`, `adb`, `ocr`, and `dev` extras; its installed source has no web tab implementation. The repository declares `ok-script[web]==3.0.4`, but that extra is not provided by the pinned distribution. A downloaded 3.0.5b4 wheel was inspected, not installed; it also did not contain the needed web module. The package's published extra list confirms the mismatch ([PyPI package metadata](https://pypi.org/project/ok-script/)). This needs a framework version/API decision before a safe web registration repair can be made.
+The one full-suite error is `TestConfig.test_farming_assistant_is_registered_only_as_a_web_custom_tab` at its import of `WebCustomTab` from `ok`. The installed `ok-script==3.0.4` metadata lists `default`, `qt`, `adb`, `ocr`, and `dev` extras; its installed source has no web tab implementation, and `ok web --help` is not a recognized CLI command. The repository declares `ok-script[web]==3.0.4`, but that extra is not provided by the pinned distribution. A downloaded 3.0.5b4 wheel was inspected, not installed; it also did not contain the needed web module. The official `ok-script-app` template states that OK Script 3 removed the web frontend and documents its `web` profile and launcher as compatibility aliases to Qt; its `web_main.py` warns and starts the desktop UI ([template README](https://github.com/ok-oldking/ok-script-app), [template launcher](https://github.com/ok-oldking/ok-script-app/blob/master/web_main.py)). Therefore the current `WebCustomTab` design cannot be restored by installing an extra. A separate web frontend or an older framework branch would be a broader architecture/version decision; no shim or weakened test was added.
 
 The final run had two skips, both requiring private game captures that are not
 available on this host. Four previously skipped symlink-oriented cases now
@@ -77,6 +77,7 @@ file-symlink behavior, and reparse types beyond junctions were not qualified.
 | FQ-02 | P2 | `test_autopick_abyss.py` allocated BaseTask instances with `__new__`, bypassing `_app` initialization. Under the real dependency, translation calls then failed. | **Fixed** by supplying the minimal mocked translation app in both affected fixtures; targeted and full verification rerun. |
 | FQ-03 | P2 | Windows symlink/reparse and private-capture coverage was incomplete. | **Partially addressed** in `160080a1`: junction fallback covers the four redirected-path cases. Two private-capture tests remain skipped; ACLs, direct file symlinks, and other reparse types remain unqualified. |
 | FQ-04 | P1 | FF Mech Core has no authentic source/drop receipt, observed in-game numeric enemy ID, or independently qualified current-runtime route. | **Open live blocker.** Execution controls remain disabled. |
+| FQ-05 | P2 | Legacy `main_web.py` set unsupported `gui.type='web'`, which the pinned framework rejects during UI config resolution. | **Fixed** in `8ba58be9`: it now warns and launches the supported Qt UI as a compatibility alias; the web frontend itself remains unavailable. |
 
 ## UI verification
 
@@ -105,9 +106,18 @@ unqualified.
 ### WebCustomTab — blocked; compatibility preview only
 
 JavaScript syntax passes. The pinned OK Script package has neither
-`WebCustomTab` nor its web-tab loader, so the supported target environment
-still cannot start the registered Farming Assistant page or verify its
-backend action/query contract.
+`WebCustomTab` nor its web-tab loader, and its CLI has no `web` command, so
+the registered page cannot run under the supported target environment or
+verify its backend action/query contract. The official OK Script application
+template confirms that v3 removed the Web frontend and that its `web` profile
+is a compatibility alias to the Qt application. The previous legacy preview
+below is not evidence of a supported v3 integration.
+
+The local `main_web.py` entry point now follows that compatibility contract:
+it warns and starts the Qt application without setting the removed `web`
+GUI type. `run-local-web.cmd` explains that it opens the desktop UI. This
+prevents the old launcher from failing on `gui.type='web'`; it does not restore
+the browser frontend or clear FQ-01.
 
 For a limited visual diagnostic, `main_web.py --browser` was started from a
 detached diagnostic worktree with the untouched legacy checkout environment
@@ -178,6 +188,12 @@ increase were not observed. No route is ROUTE_QUALIFIED.
   issue and confirmed the helper produced an actual junction on this host.
   Disposition: **CLEAR for the bounded test diff**; overall integration stays
   **NOT CLEAR** because the framework and live gates remain open.
+- GPT-6.1 Terra Medium reviewed the compatibility launcher, command file,
+  mocked regression, and framework finding based on HEAD
+  `ab5f05cbd2bcb0e31e6241272be09047b6951dd8`. It found no blocking issue and
+  confirmed the change follows the official OK Script 3 launcher behavior.
+  Disposition: **CLEAR for this bounded compatibility change**; web and live
+  qualification remain **NOT CLEAR**.
 - An earlier full verification was repeated after commit `402b366` on that exact SHA.
   The earlier preliminary artifact at the base SHA used the same correction
   with `dirty_at_start=true`. Terra also notes that the UI screenshot and
