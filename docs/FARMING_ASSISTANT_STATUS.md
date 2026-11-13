@@ -5,6 +5,61 @@ Working branch: `agent/material-first-farming`
 Base: draft PR #4, `codex/core-and-routes-20261108` at `e06a9fb7b066e74c988e066154198fe89124173e`
 Integration status: **IN PROGRESS — NOT LIVE QUALIFIED**. Preserve existing draft PR #4, master and user settings.
 
+
+## 2026-11-13 — immutable retained-frame to handoff binding (new increment)
+
+**Actual implementation and tests committed on the canonical branch. No game
+input, route authorization, PR modification or merge.**
+
+- New `src/automation/farming_capture_binding.py` joins private
+  `RetainedReadOnlySnapshot` objects to v1 `FarmingObservationHandoff`
+  frame IDs using exact mapping, matching frame SHA256s, bounded filename/
+  size/time checks, distinct paths and strictly chronological captures.
+  The observation must follow the frames and arrive within two minutes
+  of the last capture; stale or ambiguous references reject.
+- `verify_retained_capture_claim` now passes the internal frame mapping
+  into the existing real-byte `verify_local_capture_claim`, which checks
+  source/binding/screenshot digests on disk. Public summaries omit private
+  filenames, cannot establish game origin or receipts and always report
+  `can_start=false`. Start/Pause/Stop still remain disabled.
+- New `tests/TestFarmingCaptureBinding.py`: 10 synthetic cases covering
+  immutable path-free summary, matching local bytes, altered screenshot,
+  missing/extra frame IDs, wrong hashes/types/sizes, path traversal,
+  duplicated private filenames, reversed chronology, stale/future/naive
+  times and expired handoffs.
+- **Actually run:** `py_compile` for source/test PASS, **10/10 PASSED**
+  in an isolated Linux synthetic-stub harness using the real new source/test
+  and stand-in existing handoff/retention/audit classes. **NOT RUN:**
+  full checkout tests against original existing dependencies, Windows/Qt/Web
+  startup, real OK Script capture, in-game FF Mech Core drop,
+  Antigravity CLI, independent Terra review or current-game route execution.
+- GitHub commits: source `c939bf2d6b1621fb93aed025e3824a5ceec604e9`;
+  tests `eb2789f2547f6a9983d9b0e786de29493b78194b`;
+  handoff docs `cc79cbff91254cab9ce3d8bff9af87bdf94c8313`.
+- **Exact blockers:** current installed game/version and WGC frame freshness;
+  Windows private-folder ACL/reparse validation; current numeric enemy IDs,
+  verified inventory delta, FF Mech Core source relationship, bounded
+  executable route and independent source/runtime/route review.
+  Container GitHub clone still fails DNS; GitHub connector writes are working.
+
+Run on local Codex Windows checkout:
+
+```powershell
+git fetch origin
+git switch agent/material-first-farming
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureBinding.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureRetention.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingLiveHandoff.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_binding.py
+```
+
+**Next independent increment:** qualify the bridge against actual complete
+repository imports/tests and Windows private-folder behavior, then build
+an opt-in read-only trusted local evidence session/manifest which binds
+runtime version, actual frame freshness and source SHA; do not enable
+executor input pending separate Codex/Terra and live-game gates.
+
 ## 2026-11-13 — private read-only snapshot retention (new increment)
 
 **Implementation committed to canonical branch; no game execution or live authorization.**
