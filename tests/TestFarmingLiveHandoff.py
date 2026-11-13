@@ -173,6 +173,12 @@ class TestFarmingLiveHandoff(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     self.build(payload)
 
+    def test_distinct_frame_ids_cannot_reuse_identical_image_digest(self):
+        payload = sample_packet()
+        payload["frame_sha256"]["frame-after"] = payload["frame_sha256"]["frame-before"]
+        with self.assertRaises(ValueError):
+            self.build(payload)
+
     def test_route_survey_has_no_material_receipt_and_needs_route_id(self):
         payload = sample_packet()
         payload.update(
