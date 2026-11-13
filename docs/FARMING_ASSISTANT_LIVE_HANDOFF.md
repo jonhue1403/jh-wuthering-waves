@@ -91,13 +91,51 @@ git switch agent/material-first-farming
 `python -m compileall` check nor GitHub file commits are a substitute for the
 actual Windows/Qt runtime and independent Terra review.
 
+## Local original-artifact verification (offline; not approval)
+
+`src/automation/farming_capture_verify.py` provides
+`verify_local_capture_claim(packet, source_root=..., evidence_root=...,
+frame_files=..., binding_files=...)`. This is the next **read-only local
+artifact adapter**, NOT a screen capture implementation or a trusted
+current-game observation. It accepts an immutable v1 capture handoff from the
+previous step. Only internal local capture code may supply the roots and
+file maps; the operator-facing Farming Assistant has no path inputs.
+
+- Required source names come from the handoff; their actual bytes are hashed
+  beneath a local trusted checkout root. Frame tokens and binding labels map
+  to relative artifact filenames beneath a separate private evidence root.
+- Exact map coverage, relative-path syntax, containment, symlink rejection,
+  missing/unreadable artifacts and bounded byte reads are enforced. Any
+  digest mismatch rejects the **entire** packet: there is no partial pass.
+- Original frame files, calibration bindings and source code each must match
+  their declared SHA256. An independently checked packet must still pass
+  actual game-origin, installed-version, enemy identity, inventory OCR,
+  frame chronology, session/focus and Terra review gates separately.
+- An expired 15-minute observation is rejected even if every saved byte
+  still hashes correctly. Private evidence files remain local and must not
+  be committed or uploaded to GitHub.
+- The only positive outcome is `LOCAL_HASH_MATCH_ONLY`; all outcomes have
+  `evidence_authenticated=false`, `route_qualified=false`,
+  `independent_review_complete=false`, `can_start=false`.
+  No task dispatch, combat, navigation, OCR interaction or resource spending
+  is connected.
+
+Local offline test commands:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingCaptureVerify.py -v
+.\.venv\Scripts\python.exe -m unittest discover -s tests -p TestFarmingLiveHandoff.py -v
+.\.venv\Scripts\python.exe -m py_compile src/automation/farming_capture_verify.py
+```
+
+**Tests NOT RUN in the GitHub-only editing session.** A matching local hash
+is never a live FF Mech Core receipt or executable route.
+
 ## Next independently reviewable implementation increment
 
-Implement an **internal, read-only, opt-in observation capture adapter**
-using the existing frame/focus/session abstractions, first in local preview
-mode. It should not request new gameplay input, route dispatch or OCR clicks.
-Capture actual version strings and immutable frame provenance from the running
-client, then compare declared digests with the original local evidence before
-forwarding the packet for review. A successful structural handoff still has
-no ability to start farming. Codex's screen-controlled tests belong to the
-later explicitly authorized test phase.
+When Codex begins the authorized local testing phase, wire an internal
+**opt-in, read-only frame/focus/version capture producer** using the current
+OK Script runtime abstractions. Feed actual images and observed versions into
+the handoff and local-byte verifier without user path fields. Preserve the
+independent Terra verification boundary; do not connect the farming executor
+or trigger game input while calibration evidence is missing.
