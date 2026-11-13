@@ -18,7 +18,7 @@ from src.overworld.qualification import REQUIRED_SOURCES
 
 
 NOW = datetime(2026, 11, 13, 12, 0, tzinfo=timezone.utc)
-PNG = b"\x5cx89PNG\x5cr\x5cn\x5cx1a\x5cn"
+PNG = b"\x89PNG\r\n\x1a\n"
 
 
 class TestFarmingPrivateReview(unittest.TestCase):
