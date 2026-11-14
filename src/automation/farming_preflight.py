@@ -8,6 +8,8 @@ historical version match cannot promote a static route to executable status.
 
 import re
 
+from src.automation.farming_acquisition_reference import SourceKind
+
 
 _VERSION = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,31}\Z")
 _GAME_ID = re.compile(r"[0-9]{1,32}\Z")
@@ -60,6 +62,84 @@ def _historical_version_state(receipts, comparison, version_hint):
             else "HISTORICAL_VERSION_MISMATCH")
 
 
+_DOMAIN_METHODS = frozenset((
+    SourceKind.FORGERY.value,
+    SourceKind.SIMULATION.value,
+    SourceKind.TACET_FIELD.value,
+))
+_KNOWN_METHODS = frozenset(method.value for method in SourceKind)
+
+
+def _non_mob_source_preflight(methods):
+    """Never turn a quest, domain, synthesis or historical method into a mob."""
+
+    names = set(methods)
+    domain = names & _DOMAIN_METHODS
+    if domain:
+        family = "DOMAIN_CHALLENGE_CANDIDATE"
+        if len(domain) == 1:
+            method = next(iter(domain))
+            label = {
+                SourceKind.FORGERY.value: "Forgery Challenge",
+                SourceKind.SIMULATION.value: "Simulation Training",
+                SourceKind.TACET_FIELD.value: "Tacet Field",
+            }[method]
+            next_action = (
+                f"Observe the exact current-game {label} and its actual material "
+                "reward. Qualify the selected challenge, per-claim current "
+                "Waveplate debit and fresh inventory receipt before enabling "
+                "any resource-consuming adapter."
+            )
+        else:
+            next_action = (
+                "Choose and independently verify one current-game domain provider "
+                "and material reward; conflicting references do not select a challenge."
+            )
+        source_state = "DOMAIN_SOURCE_UNVERIFIED"
+    elif SourceKind.SYNTHESIS.value in names:
+        family = "SYNTHESIS_REFERENCE_ONLY"
+        source_state = "NON_EXECUTABLE_REFERENCE"
+        next_action = (
+            "Review the current in-game synthesis recipe, input materials and "
+            "consumption costs. There is no qualified automatic synthesis adapter."
+        )
+    elif SourceKind.SUBSCRIPTION.value in names:
+        family = "HISTORICAL_REFERENCE_ONLY"
+        source_state = "NON_EXECUTABLE_REFERENCE"
+        next_action = (
+            "Check whether the historical reward is still obtainable in the "
+            "current game. A past subscription does not authorize farming."
+        )
+    elif names:
+        family = "MANUAL_REWARD_REFERENCE_ONLY"
+        source_state = "NON_EXECUTABLE_REFERENCE"
+        next_action = (
+            "Verify the item's current quest, exploration, event or exchange "
+            "availability and observe its inventory receipt. No repeatable "
+            "enemy route or automatic reward claim is qualified."
+        )
+    else:
+        family = "SOURCE_UNKNOWN"
+        source_state = "SOURCE_UNRESOLVED"
+        next_action = (
+            "Identify a real acquisition source in the current game before "
+            "choosing an executor. Do not assume the material drops from mobs."
+        )
+    return {
+        "status": "CALIBRATION_REQUIRED",
+        "source_family": family,
+        "source_check": source_state,
+        "route_check": "NOT_APPLICABLE",
+        "identity_check": "NOT_APPLICABLE",
+        "game_version_check": "VERSION_NOT_OBSERVED",
+        "runtime_qualification": "NOT_CHECKED",
+        "fresh_inventory_check": "NOT_OBSERVED",
+        "input_safety_check": "NOT_CHECKED",
+        "can_start": False,
+        "next_action": next_action,
+    }
+
+
 def build_calibration_preflight(
     kind: str,
     receipt_summary: dict | None,
@@ -67,6 +147,7 @@ def build_calibration_preflight(
     reconciliation: dict | None,
     *,
     game_version_hint: str | None = None,
+    acquisition_methods: tuple[str, ...] | list[str] | None = None,
 ) -> dict:
     """Return a path-free next-step diagnostic; ALWAYS deny execution.
 
@@ -80,6 +161,15 @@ def build_calibration_preflight(
     if game_version_hint is not None:
         if not isinstance(game_version_hint, str) or not _VERSION.fullmatch(game_version_hint):
             raise ValueError("Invalid game version hint")
+    if acquisition_methods is not None:
+        if (type(acquisition_methods) not in (list, tuple)
+                or len(acquisition_methods) > len(_KNOWN_METHODS)
+                or any(type(method) is not str or method not in _KNOWN_METHODS
+                       for method in acquisition_methods)
+                or len(set(acquisition_methods)) != len(acquisition_methods)):
+            raise ValueError("Unrecognized or duplicate acquisition methods")
+        if kind == "material" and SourceKind.MOB_DROP.value not in acquisition_methods:
+            return _non_mob_source_preflight(acquisition_methods)
     if kind == "mob":
         return {
             "status": "CALIBRATION_REQUIRED",
@@ -143,6 +233,7 @@ def build_calibration_preflight(
 
     return {
         "status": "CALIBRATION_REQUIRED",
+        "source_family": "MOB_DROP_CANDIDATE",
         "source_check": "HISTORICAL_ONLY" if source_ok else "MISSING_OR_INVALID",
         "route_check": "STATIC_ONLY" if route_ok else "MISSING_OR_INVALID",
         "identity_check": "HISTORICAL_ID_OVERLAP_ONLY" if identity_overlap else "UNRESOLVED",
