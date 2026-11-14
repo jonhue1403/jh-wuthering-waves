@@ -208,9 +208,13 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             # evidence; another candidate sharing an executor/profile must not
             # enter the same receipt or silently redirect a challenge.
             source_goals = []
+            binding = (source.kind, source.executor, source.profile, source.evidence, source.runtime)
             for candidate in queue.goals:
                 choices = [s for s in queue.mappings if s.matches(candidate, runtime)]
-                if len(choices) == 1 and choices[0] == source:
+                if len(choices) == 1 and (
+                    choices[0].kind, choices[0].executor, choices[0].profile,
+                    choices[0].evidence, choices[0].runtime
+                ) == binding:
                     source_goals.append(candidate)
             observer = RoutineObserver(self, path.parent / source.profile, source.kind)
             before, inventory_before = observer.observe()

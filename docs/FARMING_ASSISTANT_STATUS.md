@@ -1,5 +1,17 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — durable goal dispatch journal and pre/post-inventory gates (GitHub-only)
+
+- **Code changes:** [`0d70a8ac82d3a46c71d030088e5e808d53809d81`](https://github.com/jonhue1403/jh-wuthering-waves/commit/0d70a8ac82d3a46c71d030088e5e808d53809d81), followed by a same-scope source-binding/test correction on `agent/material-first-farming` (read live HEAD before further work).
+- `ResourceRoutineTask` records a durable **PENDING material-goal attempt before inherited dispatch**, keyed by observed account/server/cycle, exact provider kind/task/profile/evidence/runtime, all selected material names and actual pre-dispatch inventory counts. Interrupted, cancelled or unverified attempts become **UNCERTAIN** rather than silently reissuing combat or a claim. Only fresh same-identity post-observation with actual target inventory progress can mark the attempt COMPLETE. Changed verified inventory establishes a different attempt key if a deficit remains.
+- Source batching now includes *only uniquely mapped goals sharing the exact producer binding*. An ambiguous mapping, mismatched source evidence, or missing/mismatched baseline for any batched material cannot authorize an inherited dispatch. Unresolved prior spending also blocks a new attempt.
+- Added focused contract tests for fingerprint changes, uncertain replay, incomplete batch baseline and confirmed positive inventory receipt in `tests/TestResourceRoutineTask.py`. Synthetic observations in these tests **are not actual game evidence**.
+- **Verification performed:** GitHub source commits and file readback only. **Tests NOT RUN** (Python/Qt/Windows/browser/game); no Antigravity CLI or independent Terra review invoked, no game launched, no claims or premium currency spent.
+- **Status:** `BLOCKED_FOR_LIVE_QUALIFICATION`. Existing 27 read-only materials and disabled UI execution controls remain unchanged; current-game provider identities and executable route/spend permissions are still missing.
+- **Next targeted increment:** audit and bind Forge/Simulation/Tacet challenge identity + selected task configuration to a fresh qualified provider observation before any planned source dispatch. Run `.\\.venv\\Scripts\\python.exe -m unittest tests.TestResourceRoutineTask -v` and later the consolidated `run-farming-one-shot.cmd` in the Codex Windows checkout.
+
+---
+
 ## 2026-11-14 — enforce real resource-source/provider compatibility (GitHub-only)
 
 - **Base:** `b8e9fa64ab3bb2551d3815ec90167c6f16c1534d`; **source + regression commit:** `0c44695d2d43c67d1c16591a266a30a1507acf3f` on `agent/material-first-farming`.

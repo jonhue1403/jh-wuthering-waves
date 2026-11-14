@@ -156,9 +156,12 @@ class TestResourceRoutineTask(unittest.TestCase):
         self.assertEqual(4, queue.goals[0].owned)
 
     def test_material_batch_requires_all_baselines_before_input(self):
-        stack, _, _, _, _ = self._material_run_context(other_goal=True)
+        stack, _, observer, _, _ = self._material_run_context(other_goal=True)
         # The observer read lacks the second material; the primary goal alone
         # must never authorize an inherited multi-material executor.
+        observation = RoutineObservation('uid', 'Asia', 'overworld', 'cycle-42',
+                                         100.0, True, False, 'observed-before')
+        observer.observe.side_effect = [(observation, {'Known material': 4})]
         dispatch = Mock()
         with stack, patch.object(self.task, '_dispatch', dispatch):
             with self.assertRaises(ResourcePolicyError):
