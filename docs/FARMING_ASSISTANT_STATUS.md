@@ -1,5 +1,17 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+
+## 2026-11-14 — reviewed bounded-route dispatch preflight / no stale child fallback (GitHub-only)
+
+- **Starting HEAD:** `d9f9a993b8c38e516e0b8587f6ad4e5699233e36` on `agent/material-first-farming`. Source commit `d6275aa0789989fa4f25c573974a946fa6d2eb2b`; regression commit `455480538fd99313d0f0ff215d574ed54a86d49e`; implementation documentation `1a54233092619046091fd7f0a579611d170a01cd`. Consult live branch HEAD for this checkpoint commit and any later work.
+- **Concrete implementation:** A bounded overworld material-goal attempt now requires explicit internal `Route Manifest`, `Runtime Qualification`, and `Observed Game Version` in `executor_config.BoundedRouteTask`. It no longer inherits a stale manifest or version from a reused task instance. Before observing target inventory or creating a durable material attempt, the queue loads the reviewed route and surface profile and checks the `MATERIAL_ROUTE` runtime qualification, independent-review status, source hashes and version via the existing qualification interface. The exact route determines its mob, camp count and user-supplied required total; conflicting task overrides fail closed. The executor repeats the same preflight at direct dispatch and still enforces inherited live navigation/input qualifications independently.
+- **Activation semantics:** A route with authentic, separately reviewed local permissions can now be configured for real bounded material execution by the explicitly non-preview resource queue without manually inheriting `Target Mob`, `Max Camps` or other hidden child state. This is **not** approval for any currently undocumented material/route. Missing route evidence, stale hashes and absent live qualification continue to block. The native Qt and localhost-only browser previews remain read-only and have not been connected to an unqualified executor.
+- **Focused contracts authored:** Four regression tests in `tests/TestResourceRoutineTask.py` cover exact derived route controls and stage binding; missing/malformed/conflicting overrides without child task lookup; mob/goal mismatches; and stale runtime qualification refusing before inventory observation/attempt journaling. Existing dispatch-journal tests isolate the new route preflight through an explicit test stub. The existing deferred one-shot runner already includes `tests.TestResourceRoutineTask`.
+- **Verification:** GitHub source/test/documentation commits and source readback only. Python, Qt, Windows, localhost browser, complete suite, live game and independent Terra review **NOT RUN**; no game input, spending, fabricated receipts or approved routes created. Later Codex: `.\\.venv\\Scripts\\python.exe -m unittest tests.TestResourceRoutineTask -v` and then the single consolidated `run-farming-one-shot.cmd` on the exact clean Windows checkout.
+- **Status:** `BLOCKED_FOR_LIVE_QUALIFICATION`. All 27 screenshot material references remain non-executable without actual independent current-game source/route evidence. **Next:** continue developing verified challenge-selector identity and per-claim material-receipt adapters for Forgery/Simulation/Tacet without removing their `PROVIDER_ADAPTER_PENDING` block; then consolidate Codex acceptance when local QA is authorized.
+
+---
+
 ## 2026-11-14 — shared budget reset-cycle alignment before task dispatch (GitHub-only)
 
 - **Starting HEAD:** `adf827177c73f19e26c07c814190da3866f64d02` on `agent/material-first-farming`; see live GitHub HEAD for this one-commit change.
