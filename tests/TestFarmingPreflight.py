@@ -182,6 +182,7 @@ class TestFarmingPreflight(unittest.TestCase):
                          preview["preflight"]["route_check"])
         self.assertIsNone(preview["owned_quantity"])
         self.assertEqual(25, preview["desired_total"])
+        self.assertIn("No documented acquisition method", preview["reason"])
         self.assertFalse(preview["can_start"])
 
     def test_non_mob_methods_skip_unrelated_enemy_and_route_audits(self):
