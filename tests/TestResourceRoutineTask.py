@@ -89,6 +89,55 @@ class TestResourceRoutineTask(unittest.TestCase):
             self.task._dispatch('arbitrary.module.DestructiveTask', {}, self.ledger())
         self.task.run_task_by_class.assert_not_called()
 
+    def test_unadapted_domain_material_providers_reject_before_task_lookup(self):
+        self.task.get_task_by_class = Mock(side_effect=AssertionError('unsafe inherited task lookup'))
+        self.task.run_task_by_class = Mock(side_effect=AssertionError('unsafe inherited task run'))
+        goal = MaterialGoal('Known material', 4, 28, origin='user_supplied')
+        for provider in ('ForgeryTask', 'SimulationTask', 'TacetTask'):
+            with self.subTest(provider=provider):
+                with self.assertRaisesRegex(ResourcePolicyError, 'PROVIDER_ADAPTER_PENDING'):
+                    self.task._dispatch(provider, {}, self.ledger(), queued_goals=[goal])
+        self.task.get_task_by_class.assert_not_called()
+        self.task.run_task_by_class.assert_not_called()
+
+    def test_domain_source_preview_reports_adapter_block_without_input(self):
+        source = SourceMapping('Known material', 'domain', 'ForgeryTask',
+                               'candidate-observation.json', 'unit-evidence', 'unit-runtime', True)
+        queue = ResourceGoalQueue([MaterialGoal('Known material', 4, 28,
+                                               origin='user_supplied')], [source])
+        self.task._load_plan = Mock(return_value=(self.path, self.plan, queue))
+        with patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                   return_value='unit-runtime'), \\
+             patch.object(WWOneTimeTask, 'run', side_effect=AssertionError('preview started game')):
+            self.task.run()
+        self.assertEqual('READY', self.task.info['Goal queue preview'][0]['state'])
+        self.assertIn('PROVIDER_ADAPTER_PENDING',
+                      self.task.info['Material provider readiness']['Known material'])
+        self.task.click.assert_not_called()
+
+    def test_domain_material_dispatch_fails_before_session_or_journal(self):
+        from contextlib import ExitStack
+        self.task.config.update({'Preview Only': False, 'Maximum Activities': 1})
+        source = SourceMapping('Known material', 'domain', 'SimulationTask',
+                               'candidate-observation.json', 'unit-evidence', 'unit-runtime', True)
+        queue = ResourceGoalQueue([MaterialGoal('Known material', 4, 28,
+                                               origin='user_supplied')], [source])
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(self.task, '_load_plan',
+                                             return_value=(self.path, self.plan, queue)))
+            stack.enter_context(patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                                      return_value='unit-runtime'))
+            start = stack.enter_context(patch.object(WWOneTimeTask, 'run'))
+            identity = stack.enter_context(patch('src.task.ResourceRoutineTask.observe_identity'))
+            observer = stack.enter_context(patch('src.task.ResourceRoutineTask.RoutineObserver'))
+            with self.assertRaisesRegex(ResourcePolicyError, 'Unadapted material providers'):
+                self.task.run()
+            start.assert_not_called()
+            identity.assert_not_called()
+            observer.assert_not_called()
+        self.assertFalse((self.folder / 'automation-actions.json').exists())
+        self.task.click.assert_not_called()
+
     def _material_run_context(self, *, other_goal=False, after_inventory=None):
         from contextlib import ExitStack
         self.task.config['Maximum Activities'] = 1

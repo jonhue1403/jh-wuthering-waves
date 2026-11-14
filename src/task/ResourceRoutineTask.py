@@ -99,7 +99,27 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         fingerprint = hashlib.sha256(json.dumps(binding, sort_keys=True).encode('utf-8')).hexdigest()
         return replace(identity, activity='material-goal:' + fingerprint)
 
+    # The inherited domain tasks currently use DomainTask/TacetTask's generic
+    # use_stamina loop. Unlike CultivationTask, they do not bind a selected
+    # challenge to a fresh observed reward identity or journal each debit and
+    # inventory receipt through the injected ResourceLedger. Merely attaching
+    # the ledger to the task cannot make those inherited loops safe for goals.
+    _UNADAPTED_MATERIAL_PROVIDERS = frozenset({
+        'ForgeryTask', 'SimulationTask', 'TacetTask',
+    })
+
+    @classmethod
+    def _material_provider_readiness(cls, executor):
+        if executor in cls._UNADAPTED_MATERIAL_PROVIDERS:
+            return (False, f'{executor}: PROVIDER_ADAPTER_PENDING; fresh challenge-identity '
+                    'binding, per-claim resource journal and actual material receipt are required')
+        return (True, 'CANDIDATE_ONLY: runtime, route, spending and inventory gates still apply')
+
     def _dispatch(self, name, overrides, ledger, queued_goals=None):
+        if queued_goals:
+            supported, reason = self._material_provider_readiness(name)
+            if not supported:
+                raise ResourcePolicyError(reason)
         if name not in self.EXECUTORS:
             raise ResourcePolicyError('No qualified registered executor for this source')
         module, class_name = self.EXECUTORS[name]
@@ -152,8 +172,27 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         self.info_set('Goal queue preview', queue.preview(runtime))
         self.info_set('Routine plan preview', plan.get('activities', []))
         self.info_set('Shared resource limits', plan.get('budget', {}))
+        # Distinguish a structurally matched source from a usable executor.
+        # This check precedes session startup and any pre-dispatch journal write.
+        provider_readiness = {}
+        blocked_providers = []
+        for goal in queue.goals:
+            if not goal.missing:
+                continue
+            choices = [s for s in queue.mappings if s.matches(goal, runtime)]
+            if len(choices) == 1:
+                supported, reason = self._material_provider_readiness(choices[0].executor)
+                provider_readiness[goal.name] = reason
+                if not supported:
+                    blocked_providers.append(goal.name)
+            else:
+                provider_readiness[goal.name] = 'UNRESOLVED: unique compatible source required'
+        self.info_set('Material provider readiness', provider_readiness)
         if self.config.get('Preview Only', True):
             return
+        if blocked_providers:
+            raise ResourcePolicyError('Unadapted material providers cannot start: '
+                                      + ', '.join(sorted(blocked_providers)))
         budget = ResourceBudget(**plan.get('budget', {}))
         journal = ActionJournal(path.parent / plan.get('journal_path', 'automation-actions.json'))
         maximum = self.config.get('Maximum Activities', 3)
