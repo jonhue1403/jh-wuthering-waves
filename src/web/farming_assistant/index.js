@@ -136,6 +136,35 @@ export function mount(container, context) {
     } else {
       right.append(node("p", "farm-muted", t("No documented source mobs.")));
     }
+    // Community method hints are informational only. Never derive executable
+    // routes, spends or game input from these entries.
+    const acquisition = data.acquisition_reference || {};
+    if (Array.isArray(acquisition.methods) && acquisition.methods.length) {
+      const section = node("section", "farm-state");
+      section.setAttribute("aria-label", t("Possible acquisition methods"));
+      section.append(node("h3", "", t("Possible acquisition methods · not verified")));
+      const methods = node("ul", "farm-source-list");
+      acquisition.methods.forEach((method) => {
+        const line = node("li", "", method.label);
+        try {
+          const url = new URL(method.reference_url);
+          if (url.protocol === "https:" && !url.username && !url.password) {
+            const link = node("a", "", t(" Reference"));
+            link.href = url.href;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            line.append(link);
+          }
+        } catch {
+          // Never surface an unvalidated URL as a live link.
+        }
+        methods.append(line);
+      });
+      section.append(methods);
+      section.append(node("p", "farm-muted",
+        t("Reference only. Confirm current-game item, source and inventory receipt.")));
+      right.append(section);
+    }
     const audit = data.calibration || {};
     const candidateCount = Number(audit.receipt_candidate_count) || 0;
     const auditText = candidateCount
