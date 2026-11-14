@@ -165,6 +165,28 @@ export function mount(container, context) {
         t("Reference only. Confirm current-game item, source and inventory receipt.")));
       right.append(section);
     }
+    // Plan candidate task families without dispatching any OK Script job.
+    // A framework task being present is NEVER sufficient for live authorization.
+    const providerPlan = data.acquisition_plan || {};
+    if (Array.isArray(providerPlan.possible_methods)) {
+      const section = node("section", "farm-state");
+      section.setAttribute("aria-label", t("Acquisition workflow readiness"));
+      section.append(node("h3", "", t("Acquisition workflows · qualification required")));
+      const workflows = [...new Set(providerPlan.possible_methods
+        .filter((method) => method.automation_candidate_exists)
+        .map((method) => String(method.workflow).replaceAll("_", " ").toLowerCase()))];
+      section.append(node("p", "farm-muted", workflows.length
+        ? t("Possible task families (not verified): ") + workflows.join(", ")
+        : t("No automated provider is currently qualified for this target.")));
+      if (providerPlan.possible_methods.some((method) =>
+        method.resource_policy === "POTENTIAL_WAVEPLATE_COST")) {
+        section.append(node("p", "farm-muted",
+          t("Some methods may consume Waveplates. Spending remains disabled.")));
+      }
+      section.append(node("p", "farm-muted",
+        t("No provider selected · execution requires current-game evidence and independent review.")));
+      right.append(section);
+    }
     const audit = data.calibration || {};
     const candidateCount = Number(audit.receipt_candidate_count) || 0;
     const auditText = candidateCount
