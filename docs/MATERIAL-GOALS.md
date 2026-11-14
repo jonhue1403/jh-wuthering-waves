@@ -81,6 +81,30 @@ Other producers accept labelled user targets until a native target reader is
 qualified. The Cultivation adapter supports the selected row, not cross-boss
 planning. Queue batches may use different separately qualified source profiles.
 
+### Qualified bounded-route material dispatch (implementation, not live approval)
+
+For a `BoundedRouteTask` material-goal candidate, the internal
+`executor_config.BoundedRouteTask` must explicitly supply a
+`Route Manifest`, `Runtime Qualification`, and `Observed Game Version`.
+The queue never falls back to the reused child's previously selected route.
+It reads the reviewed surface manifest and associated profile, and checks
+the `MATERIAL_ROUTE` stage against the exact current source hashes, runtime
+version and supplied observed game version **before actual inventory observation
+or durable attempt creation**. Missing, stale, mismatched or unreviewed local
+evidence fails closed without creating a new material attempt.
+
+The approved route determines the internal `Target Mob`, `Max Camps`, and
+the queued material's `User Material Target`. A conflicting explicit override
+is rejected instead of being silently redirected. Only a non-preview material
+queue invocation can derive `Preview Only: false`,
+`Localization Only: false` and `Test Walk Only: false`; the inherited
+`HuntMobTask` still independently verifies the SHA-bound current-runtime
+qualification, source profile, bounded map route and live input/session guards.
+This does **not** permit arbitrary mob routes, spending or gameplay on
+reference-only sources. There is no bundled qualified route for FF Mech Core,
+and the native Qt/Web Farming Assistant remains read-only until genuine local
+qualification and separate controlled acceptance.
+
 ## Calibration contracts
 
 Profiles are local configuration, not instructions or arbitrary Python. The
