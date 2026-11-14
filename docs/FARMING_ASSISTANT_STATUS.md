@@ -1,5 +1,17 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — cross-source unfinished-attempt replay gate (GitHub-only)
+
+- **Starting SHA:** `4ee3625e4390f7d03b27e680bd74646ee636b71b` on `agent/material-first-farming`; see current branch HEAD for this scoped code/test/checkpoint commit.
+- **Fix:** `ActionJournal.begin_activity` now atomically rejects a new material-goal attempt when any other `PENDING` or `UNCERTAIN` material-goal attempt for the same account/server exists. A different material, source route, fingerprint or reset cycle must not bypass unresolved attempts. Daily/ordinary routine activity semantics remain unchanged.
+- **Early preflight:** `ResourceRoutineTask` checks the existing durable journal after observed budget identity but **before** `WWOneTimeTask.run`/game startup, leaving read-only previews and explicit reconciliation intact. The atomic journal gate still protects concurrent callers after this initial check. No new journal is created for an unused plan by the preflight.
+- **Focused contracts added:** `tests/TestResourceGoals.py` covers pending/uncertain cross-source and reset-cycle blocks, completion/unrelated-account behavior and unchanged daily journal semantics; `tests/TestResourceRoutineTask.py` checks pre-startup rejection without child lookup, observation, or gameplay input. The existing later one-shot runner already includes both modules.
+- **Verification:** GitHub source inspection/write/readback only. Python tests, Windows/Qt/browser/live-game, and independent Terra review **NOT RUN**. For later Codex: `.\\.venv\\Scripts\\python.exe -m unittest tests.TestResourceGoals tests.TestResourceRoutineTask -v` followed by the single full `run-farming-one-shot.cmd` campaign.
+- **Status:** `BLOCKED_FOR_LIVE_QUALIFICATION`. Domain providers remain `PROVIDER_ADAPTER_PENDING`, current-game challenge identities, approved routes, FF Mech Core acquisition and observed inventory/spending gates remain unqualified. No game input, premium refill or resource spending occurred.
+- **Next:** source-specific challenge identity and per-claim ledger/receipt adapter audit; keep all unverified material execution blocked and avoid redundant capture wrappers.
+
+---
+
 ## 2026-11-14 — cultivation Guidebook side-item reconciliation (GitHub-only)
 
 - **Follow-up correctness fix:** The earlier deficit-only dispatch change revealed an interaction with `CultivationTask`: its Guidebook row matcher expected every displayed material, including already-satisfied side items, to be queued. `src/task/CultivationTask.py` now permits omitted **observed and fully satisfied** side items while rejecting a missing active material, unknown name, duplicate requested name, stale quantity or mismatched native requirement. It does not weaken fresh Guidebook item-detail checks.

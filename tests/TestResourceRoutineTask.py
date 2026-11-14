@@ -165,6 +165,32 @@ class TestResourceRoutineTask(unittest.TestCase):
                       self.task.info['Material provider readiness']['Known material'])
         self.task.click.assert_not_called()
 
+    def test_unfinished_material_attempt_blocks_before_game_startup(self):
+        self.task.config['Preview Only'] = False
+        self.plan['budget_identity_profile'] = 'budget.json'
+        source = SourceMapping('Known material', 'overworld', 'BoundedRouteTask',
+                               'reviewed-source.json', 'evidence', 'unit-runtime', True)
+        queue = ResourceGoalQueue([MaterialGoal('Known material', 4, 28,
+                                               origin='user_supplied')], [source])
+        journal = ActionJournal(self.folder / 'automation-actions.json')
+        previous = ClaimIdentity('uid', 'Asia', 'material-goal:old-route', 'older-reset')
+        journal.begin_activity(previous, 'previous fresh inventory')
+        journal.uncertain_activity(previous, 'cancelled before receipt')
+        with patch.object(self.task, '_load_plan', return_value=(self.path, self.plan, queue)), \\
+             patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                   return_value='unit-runtime'), \\
+             patch('src.task.ResourceRoutineTask.observe_identity',
+                   return_value=ClaimIdentity('uid', 'Asia', 'resource_budget', 'cycle-42')) as identity, \\
+             patch.object(WWOneTimeTask, 'run') as startup, \\
+             patch('src.task.ResourceRoutineTask.RoutineObserver') as observer:
+            with self.assertRaisesRegex(UncertainReceipt, 'before game startup'):
+                self.task.run()
+            identity.assert_called_once()
+            startup.assert_not_called()
+            observer.assert_not_called()
+        self.assertEqual(1, len(journal.snapshot()['activities']))
+        self.task.click.assert_not_called()
+
     def _material_run_context(self, *, other_goal=False, after_inventory=None):
         from contextlib import ExitStack
         self.task.config['Maximum Activities'] = 1

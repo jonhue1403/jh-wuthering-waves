@@ -119,6 +119,36 @@ class TestResourceGoals(unittest.TestCase):
         with self.assertRaises(UncertainReceipt):
             self.journal.prepare(other, self.budget, cost=60, current=121, inventory={'material': 4})
 
+    def test_material_attempt_blocks_different_source_and_cycle_until_reconciled(self):
+        first = ClaimIdentity('account-uid', 'Asia', 'material-goal:first-source', 'observed-cycle-42')
+        next_source = ClaimIdentity('account-uid', 'Asia', 'material-goal:second-source', 'new-cycle')
+        self.assertTrue(self.journal.begin_activity(first, 'fresh pre-inventory'))
+        self.assertEqual(1, len(self.journal.unresolved_material_activities(next_source)))
+        with self.assertRaisesRegex(UncertainReceipt, 'Prior unfinished material attempt'):
+            self.journal.begin_activity(next_source, 'different material baseline')
+        self.journal.uncertain_activity(first, 'executor cancelled after entering route')
+        with self.assertRaises(UncertainReceipt):
+            self.journal.begin_activity(next_source, 'different material baseline')
+        self.assertEqual(1, len(self.journal.snapshot()['activities']))
+
+    def test_confirmed_material_attempt_unblocks_next_and_other_accounts(self):
+        first = ClaimIdentity('account-uid', 'Asia', 'material-goal:first-source', 'cycle-42')
+        second = ClaimIdentity('account-uid', 'Asia', 'material-goal:second-source', 'cycle-42')
+        other = ClaimIdentity('other-account', 'Asia', 'material-goal:unrelated', 'cycle-42')
+        self.journal.begin_activity(first, 'fresh pre-inventory')
+        self.journal.complete(first, 'verified material receipt')
+        self.assertEqual([], self.journal.unresolved_material_activities(second))
+        self.assertTrue(self.journal.begin_activity(second, 'new material baseline'))
+        self.assertTrue(self.journal.begin_activity(other, 'different account baseline'))
+        self.assertFalse(self.journal.begin_activity(first, 'already complete'))
+
+    def test_pending_material_attempt_does_not_rewrite_daily_routine_semantics(self):
+        material = ClaimIdentity('account-uid', 'Asia', 'material-goal:first', 'cycle-42')
+        routine = ClaimIdentity('account-uid', 'Asia', 'daily', 'cycle-42')
+        self.journal.begin_activity(material, 'fresh material baseline')
+        self.assertTrue(self.journal.begin_activity(routine, 'daily eligible observation'))
+        self.assertEqual(1, len(self.journal.unresolved_material_activities(routine)))
+
     def test_pending_claim_survives_reset_rollover_and_still_blocks_spending(self):
         self.prepare()
         next_cycle = ClaimIdentity('account-uid', 'Asia', 'daily', 'observed-next-cycle')

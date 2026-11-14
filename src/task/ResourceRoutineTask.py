@@ -11,7 +11,7 @@ from src.automation.goals import MaterialGoal, ResourceGoalQueue, SourceMapping
 from src.automation.domain_selection import inspect_domain_selector
 from src.automation.observations import RoutineObserver
 from src.automation.identity import observe_identity
-from src.automation.resource_policy import ActionJournal, ResourceBudget, ResourceLedger, ResourcePolicyError
+from src.automation.resource_policy import ActionJournal, ResourceBudget, ResourceLedger, ResourcePolicyError, UncertainReceipt
 from src.automation.routines import INHERITED_ACTIVITIES, RoutineCoordinator
 from src.automation.session import get_session
 from src.task.BaseWWTask import BaseWWTask
@@ -228,6 +228,12 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         budget_scope = hashlib.sha256(json.dumps({'account': budget_identity.account,
                                      'server': budget_identity.server, 'observed_budget_cycle': budget_identity.cycle},
                                     sort_keys=True).encode()).hexdigest()
+        # A pending/uncertain material attempt on this account may refer to a
+        # different goal, route, source or reset cycle. Reject it before game
+        # startup; begin_activity repeats the gate atomically at journal write.
+        # Do not create a new journal merely to inspect a fresh plan.
+        if journal.path.exists() and journal.unresolved_material_activities(budget_identity):
+            raise UncertainReceipt('Prior unfinished material attempt requires reconciliation before game startup')
         WWOneTimeTask.run(self)
         session = get_session(self)
         started = time.monotonic()

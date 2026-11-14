@@ -155,6 +155,27 @@ class ActionJournal:
         return [a for a in self.snapshot()['actions'] if self._account(a, identity)
                 and a['state'] in ('PENDING', 'UNCERTAIN')]
 
+    @staticmethod
+    def _unfinished_material_activities(activities, identity):
+        """Any unfinished material attempt for this account blocks another.
+
+        Source, goal fingerprint and reset cycle may all differ after an
+        interruption, so none can justify replay without reconciliation.
+        Ordinary scheduled routines retain their independent activity rules.
+        """
+        return [entry for entry in activities.values()
+                if isinstance(entry, dict)
+                and entry.get('state') in ('PENDING', 'UNCERTAIN')
+                and isinstance(entry.get('identity'), dict)
+                and entry['identity'].get('account') == identity.account
+                and entry['identity'].get('server') == identity.server
+                and isinstance(entry['identity'].get('activity'), str)
+                and entry['identity']['activity'].startswith('material-goal:')]
+
+    def unresolved_material_activities(self, identity):
+        return self._unfinished_material_activities(
+            self.snapshot().get('activities', {}), identity)
+
     def prepare(self, identity, budget, *, cost, current, inventory, elapsed=0,
                 receipt_kind='inventory', budget_scope=''):
         budget_scope = budget_scope or budget_scope_for(identity)
@@ -269,6 +290,11 @@ class ActionJournal:
             raise ResourcePolicyError('Observed precondition evidence required')
         with self._transaction() as data:
             activities = data.setdefault('activities', {})
+            # Atomic cross-source replay gate: a different material, profile or
+            # reset cycle cannot hide an earlier uncertain acquisition attempt.
+            if (identity.activity.startswith('material-goal:')
+                    and self._unfinished_material_activities(activities, identity)):
+                raise UncertainReceipt('Prior unfinished material attempt requires reconciliation before dispatch')
             previous = activities.get(identity.key)
             if previous and previous['state'] in ('PENDING', 'UNCERTAIN'):
                 raise UncertainReceipt('Interrupted routine requires observed reconciliation before dispatch')
