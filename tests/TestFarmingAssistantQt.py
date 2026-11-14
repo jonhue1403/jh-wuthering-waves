@@ -70,6 +70,23 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertFalse(self.tab.pause_button.isEnabled())
         self.assertFalse(self.tab.stop_button.isEnabled())
 
+    def test_material_acquisition_guidance_does_not_unlock_farming(self):
+        self.tab.search.setText("mysterious code")
+        self.assertEqual("Mysterious Code", self.tab.target_name.text())
+        self.assertIn("Casket Delivery", self.tab.acquisition_label.text())
+        self.assertEqual("SOURCE_UNRESOLVED", self.tab._preview["readiness"])
+        self.assertFalse(self.tab.start_button.isEnabled())
+
+        self.tab.search.setText("premium energy core")
+        self.assertIn("Simulation Training", self.tab.acquisition_label.text())
+        self.assertEqual("SOURCE_UNRESOLVED", self.tab._preview["readiness"])
+        self.assertFalse(self.tab.start_button.isEnabled())
+
+        self.tab.search.setText("ff-mech core")
+        self.assertIn("Clamorling", self.tab.acquisition_label.text())
+        self.assertEqual(5, self.tab.source_list.count())
+        self.assertFalse(self.tab.start_button.isEnabled())
+
     def test_mob_search_and_optional_inventory_goal(self):
         self.tab.mob_button.click()
         self.assertIn("encounters", self.tab.goal_label.text().lower())
