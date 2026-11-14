@@ -176,12 +176,12 @@ class TestResourceRoutineTask(unittest.TestCase):
         previous = ClaimIdentity('uid', 'Asia', 'material-goal:old-route', 'older-reset')
         journal.begin_activity(previous, 'previous fresh inventory')
         journal.uncertain_activity(previous, 'cancelled before receipt')
-        with patch.object(self.task, '_load_plan', return_value=(self.path, self.plan, queue)), \\
+        with patch.object(self.task, '_load_plan', return_value=(self.path, self.plan, queue)), \
              patch('src.task.ResourceRoutineTask.importlib.metadata.version',
-                   return_value='unit-runtime'), \\
+                   return_value='unit-runtime'), \
              patch('src.task.ResourceRoutineTask.observe_identity',
-                   return_value=ClaimIdentity('uid', 'Asia', 'resource_budget', 'cycle-42')) as identity, \\
-             patch.object(WWOneTimeTask, 'run') as startup, \\
+                   return_value=ClaimIdentity('uid', 'Asia', 'resource_budget', 'cycle-42')) as identity, \
+             patch.object(WWOneTimeTask, 'run') as startup, \
              patch('src.task.ResourceRoutineTask.RoutineObserver') as observer:
             with self.assertRaisesRegex(UncertainReceipt, 'before game startup'):
                 self.task.run()
