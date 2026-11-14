@@ -25,6 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 TARGET_MODULES = (
     "tests.TestFarmingSelection",
     "tests.TestFarmingAcquisitionReference",
+    "tests.TestFarmingStrategy",
+    "tests.TestFarmingStopPolicy",
     "tests.TestFarmingAssistantView",
     "tests.TestFarmingAssistantQt",
     "tests.TestFarmingStandaloneWeb",
@@ -34,6 +36,8 @@ TARGET_MODULES = (
 PY_FILES = (
     "src/automation/farming_selection.py",
     "src/automation/farming_acquisition_reference.py",
+    "src/automation/farming_strategy.py",
+    "src/automation/farming_stop_policy.py",
     "src/automation/farming_view.py",
     "src/automation/farming_web_server.py",
     "src/gui/FarmingAssistantTab.py",
@@ -198,6 +202,18 @@ def _catalog_snapshot() -> dict:
                 or not reference["methods"]
                 or reference["executable_source_ids"]):
             raise ValueError("Unreviewed acquisition method was promoted: " + name)
+        strategy = preview["acquisition_plan"]
+        if (strategy["can_dispatch"] is not False
+                or strategy["can_start"] is not False
+                or strategy["selected_provider"] is not None
+                or strategy["qualified_provider_ids"]
+                or not strategy["possible_methods"]):
+            raise ValueError("Unreviewed farming strategy was promoted: " + name)
+        policy = preview["stop_criterion"]
+        if (policy["decision"] != "FRESH_OBSERVATION_REQUIRED"
+                or policy["can_continue"] is not False
+                or policy["can_dispatch"] is not False):
+            raise ValueError("Unverified material stop rule was bypassed: " + name)
         expected = "SOURCE_DOCUMENTED" if slug == "ff-mech-core" else "SOURCE_UNRESOLVED"
         if preview["readiness"] != expected:
             raise ValueError("Material acquisition state changed without approval: " + name)
