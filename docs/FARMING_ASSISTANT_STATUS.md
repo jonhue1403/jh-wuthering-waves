@@ -1,5 +1,17 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — standalone read-only web server implementation (FQ-01)
+
+- Removed unsupported OK Script 3 `web_tabs` registration from `config.py`. The previously failing `TestConfig` case now checks the actual standalone server and confirms the old web task is not registered. Preserved Qt `custom_tabs`, `main.py` and the legacy `main_web.py` Qt compatibility alias.
+- Added `main_farming_web.py`, `run-farming-web.cmd`, `src/automation/farming_web_server.py` and the minimal standalone HTML/CSS/JS adapter around the existing ES-module `index.js`. Uses only the shared path-free `FarmingAssistantView`, two read-only GET endpoints and an ephemeral 127.0.0.1 port.
+- Added `tests/TestFarmingStandaloneWeb.py` for real loopback HTTP, search and preview contracts, documented FF Mech Core sources, mob/material stop rules, headers, Host and Origin checks, disallowed methods/paths, duplicate query keys and source isolation.
+- Browser has no gameplay control endpoints. Every operational control remains disabled; source names and historical audit data never establish a live route. No Waveplate spending, memory access, game input or automated movement.
+- **Test execution: NOT RUN in this GitHub connector session.** The actual Windows repository, Python virtual environment and browser are not attached. Source commits/readback are not a test pass. Earlier 1,001 passed / 2 skipped / 1 error remain the most recent measured full repository run, before this remediation.
+- **Next:** Codex must run TestFarmingStandaloneWeb, TestConfig, all Farming tests, exact-SHA full verifier, Qt and actual browser smoke; Terra Medium must independently review security and compatibility. FQ-01 is an implemented remediation candidate, not yet qualified. FQ-04 remains LIVE_VERIFICATION_PENDING.
+- Full instructions: `docs/FARMING_STANDALONE_WEB.md`. Existing hourly coding automation stays paused by the owner's prior request.
+
+---
+
 ## 2026-11-13 — explicit stop-criterion units in operator preview
 
 - Separate **inventory-total** (material) from **encounter-limit** (mob) input semantics in the path-free Farming Assistant view contract. The existing `desired_total` request remains compatible, while the new `stop_criterion` explicitly carries a mode, requested quantity, unknown observed progress, `PLANNED_ONLY` state and `enforced=false`. No fake inventory count, observed kills or active timer is displayed.
