@@ -65,6 +65,28 @@ class TestFarmingStandaloneWeb(unittest.TestCase):
         }))
         self.assertEqual(["ff-mech-core"], [entry["id"] for entry in data])
 
+    def test_all_27_materials_visible_over_read_only_http(self):
+        items = self.read_json("/api/targets?kind=material")
+        self.assertEqual(27, len(items))
+        self.assertEqual("ff-mech-core", items[0]["id"])
+        self.assertEqual(27, len({item["id"] for item in items}))
+        self.assertIn("premium-sealed-tube", {item["id"] for item in items})
+        self.assertIn("ff-carved-crystal", {item["id"] for item in items})
+
+        detail = self.read_json("/api/preview?" + urlencode({
+            "kind": "material",
+            "target_id": "ff-autopuppet-kernel",
+            "desired_total": "12",
+        }))
+        self.assertEqual("FF Autopuppet Kernel", detail["target"]["name"])
+        self.assertEqual("SOURCE_UNRESOLVED", detail["readiness"])
+        self.assertEqual([], detail["source_candidates"])
+        self.assertEqual("INVENTORY_TOTAL", detail["stop_criterion"]["mode"])
+        self.assertEqual(12, detail["stop_criterion"]["requested"])
+        self.assertFalse(detail["can_start"])
+        self.assertFalse(detail["can_pause"])
+        self.assertFalse(detail["can_stop"])
+
     def test_source_discovery_is_documented_not_executable(self):
         data = self.read_json("/api/preview?" + urlencode({
             "kind": "material", "target_id": "ff-mech-core",
