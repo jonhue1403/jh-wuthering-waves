@@ -227,6 +227,46 @@ class TestResourceRoutineTask(unittest.TestCase):
                                   return_value=observer))
         return stack, queue, observer, initial, source
 
+    def test_material_cycle_mismatch_rejects_before_dispatch_or_journal(self):
+        stack, _, observer, baseline, _ = self._material_run_context()
+        observer.observe.side_effect = [(RoutineObservation(
+            'uid', 'Asia', 'overworld', 'cycle-43', 100.0,
+            True, False, 'different-cycle'), baseline)]
+        dispatch = Mock()
+        with stack, patch.object(self.task, '_dispatch', dispatch):
+            with self.assertRaisesRegex(ResourcePolicyError, 'Material goal account/server/reset cycle'):
+                self.task.run()
+        dispatch.assert_not_called()
+        self.assertFalse((self.folder / 'automation-actions.json').exists())
+
+    def test_daily_cycle_mismatch_rejects_before_dispatch_or_journal(self):
+        from contextlib import ExitStack
+
+        self.task.config.update({'Preview Only': False, 'Maximum Activities': 1})
+        plan = {'activities': [{'activity': 'daily', 'observation_profile': 'daily.json'}],
+                'sources': [], 'budget_identity_profile': 'budget.json',
+                'budget': self.plan['budget']}
+        observation = RoutineObservation('uid', 'Asia', 'daily', 'cycle-43',
+                                         100.0, True, False, 'fresh-daily-observation')
+        observer = Mock()
+        observer.observe.return_value = (observation, {'Known material': 4})
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(self.task, '_load_plan', return_value=(
+                self.path, plan, ResourceGoalQueue())))
+            stack.enter_context(patch.object(WWOneTimeTask, 'run'))
+            stack.enter_context(patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                                      return_value='unit-runtime'))
+            stack.enter_context(patch('src.task.ResourceRoutineTask.observe_identity',
+                                      return_value=ClaimIdentity(
+                                          'uid', 'Asia', 'resource_budget', 'cycle-42')))
+            stack.enter_context(patch('src.task.ResourceRoutineTask.RoutineObserver',
+                                      return_value=observer))
+            dispatch = stack.enter_context(patch.object(self.task, '_dispatch'))
+            with self.assertRaisesRegex(ResourcePolicyError, 'Routine activity account/server/reset cycle'):
+                self.task.run()
+            dispatch.assert_not_called()
+        self.assertFalse((self.folder / 'automation-actions.json').exists())
+
     def test_goal_attempt_identity_binds_source_and_fresh_inventory(self):
         identity = ClaimIdentity('uid', 'Asia', 'overworld', 'cycle-42')
         source = SourceMapping('Known material', 'overworld', 'BoundedRouteTask',

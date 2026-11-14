@@ -1,5 +1,15 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — shared budget reset-cycle alignment before task dispatch (GitHub-only)
+
+- **Starting HEAD:** `adf827177c73f19e26c07c814190da3866f64d02` on `agent/material-first-farming`; see live GitHub HEAD for this one-commit change.
+- **Safety fix:** `ResourceRoutineTask` now requires the fresh routine/material observer's **account, server AND immutable observed reset cycle** to exactly match the independently observed shared budget identity before constructing/dispatching any child task or material attempt. Previously only account/server were compared, so a cross-cycle observation could be charged to the wrong `budget_scope` even though the independently observed budget allowance belonged to another cycle. The check is applied to both daily inherited routines and material goals; after-observation identity freshness checks remain unchanged.
+- **Focused contract coverage:** Two tests in `tests/TestResourceRoutineTask.py` construct mismatched synthetic reset cycles and assert that neither daily nor material dispatch starts or creates an attempt journal. These are synthetic data, **NOT live reset evidence**.
+- **Verification:** GitHub source commit/readback only; Python, Windows, Qt, browser, game and independent Terra review **NOT RUN**. Later Codex runs `.\\.venv\\Scripts\\python.exe -m unittest tests.TestResourceRoutineTask -v` and then the single consolidated `run-farming-one-shot.cmd`.
+- **Status:** `BLOCKED_FOR_LIVE_QUALIFICATION`. All 27 materials remain read-only where unqualified; no domain spending gate, route, game input or inventory receipt was enabled. **Next:** review current-runtime challenge selector identity and receipt-aware ledger adapters, retaining fail-closed gates.
+
+---
+
 ## 2026-11-14 — cross-source unfinished-attempt replay gate (GitHub-only)
 
 - **Starting SHA:** `4ee3625e4390f7d03b27e680bd74646ee636b71b` on `agent/material-first-farming`; see current branch HEAD for this scoped code/test/checkpoint commit.

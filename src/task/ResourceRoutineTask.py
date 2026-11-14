@@ -100,6 +100,20 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         fingerprint = hashlib.sha256(json.dumps(binding, sort_keys=True).encode('utf-8')).hexdigest()
         return replace(identity, activity='material-goal:' + fingerprint)
 
+    @staticmethod
+    def _require_budget_cycle(observed, budget_identity, context):
+        """Reject observations from a different account/server/reset allowance.
+
+        The shared budget scope is derived from the independently observed
+        budget cycle. Passing a different observed cycle to a task or ledger
+        could otherwise charge actions to the wrong allowance.
+        """
+        observed_scope = (observed.account, observed.server, observed.cycle)
+        budget_scope = (budget_identity.account, budget_identity.server, budget_identity.cycle)
+        if observed_scope != budget_scope:
+            raise ResourcePolicyError(
+                f'{context} account/server/reset cycle differs from the observed shared budget identity')
+
     # The inherited domain tasks currently use DomainTask/TacetTask's generic
     # use_stamina loop. Unlike CultivationTask, they do not bind a selected
     # challenge to a fresh observed reward identity or journal each debit and
@@ -245,8 +259,7 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             activity = entry['activity']
             observer = RoutineObserver(self, path.parent / entry['observation_profile'], activity)
             before, inventory_before = observer.observe()
-            if (before.account, before.server) != (budget_identity.account, budget_identity.server):
-                raise ResourcePolicyError('Activity account/server differs from the observed shared budget identity')
+            self._require_budget_cycle(before, budget_identity, 'Routine activity')
             ledger = ResourceLedger(journal, before.identity, budget, budget_scope=budget_scope)
             ledger.started = started
             coordinator = RoutineCoordinator(journal, budget)
@@ -286,8 +299,7 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             before, inventory_before = observer.observe()
             if any(inventory_before.get(g.name) != g.owned for g in source_goals):
                 raise ResourcePolicyError('Fresh inventory disagrees with one or more queued goals; refresh the plan preview')
-            if (before.account, before.server) != (budget_identity.account, budget_identity.server):
-                raise ResourcePolicyError('Goal account/server differs from the observed shared budget identity')
+            self._require_budget_cycle(before, budget_identity, 'Material goal')
             attempt = self._goal_attempt_identity(before.identity, source, source_goals, inventory_before)
             ledger = ResourceLedger(journal, before.identity, budget, budget_scope=budget_scope)
             ledger.started = started
