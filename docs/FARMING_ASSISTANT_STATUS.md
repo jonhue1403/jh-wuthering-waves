@@ -1,5 +1,17 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — cultivation Guidebook side-item reconciliation (GitHub-only)
+
+- **Follow-up correctness fix:** The earlier deficit-only dispatch change revealed an interaction with `CultivationTask`: its Guidebook row matcher expected every displayed material, including already-satisfied side items, to be queued. `src/task/CultivationTask.py` now permits omitted **observed and fully satisfied** side items while rejecting a missing active material, unknown name, duplicate requested name, stale quantity or mismatched native requirement. It does not weaken fresh Guidebook item-detail checks.
+- **Receipt boundary:** Before confirming a prepared Waveplate claim, the actual post-claim inventory must increase for at least one **previously unmet** cultivation material. A gain in a satisfied side item alone leaves the claim `UNCERTAIN` rather than reporting a confirmed target receipt.
+- **Commits:** code `d086caf327915dfce8840978e856415f728e4ed6`; tests `87f084d1f0cc0c3c092115936592e59424a996e5`, precise-exception refinement `bb48789ad53a6c069d1461a0cf1d0d3085ff91bf`; deferred one-shot runner `425cb9419de8f667bc5059dcaa285a290d43f813`. Canonical branch `agent/material-first-farming`.
+- **Focused offline contracts added:** `tests/TestCultivationTask.py` covers satisfied Guidebook side items, unrequested missing items, stale inventory, and target-only receipt confirmation. `tests.TestCultivationTask` and both changed Python files are now included in the existing single-run Codex acceptance workflow.
+- **Verification:** GitHub source updates/readback only; Python/Windows/Qt/browser/live game and independent Terra **NOT RUN**. Codex later runs `.\\.venv\\Scripts\\python.exe -m unittest tests.TestResourceRoutineTask tests.TestCultivationTask -v`, then the consolidated `run-farming-one-shot.cmd`.
+- **Status:** `BLOCKED_FOR_LIVE_QUALIFICATION`; all 27 materials remain reference-only or read-only where not independently qualified. Domain provider adapters, current-game challenge observations, source/route authorization and per-claim spending approval remain blocked. No live input or resource spending occurred.
+- **Next:** exact current-game challenge identity and selector binding for Forgery/Simulation/Tacet, followed by receipt-aware resource-ledger adapters; do not enable inherited generic spending loops on static selector evidence.
+
+---
+
 ## 2026-11-14 — exclude completed materials from dispatch receipts (GitHub-only)
 
 - **Starting HEAD:** `f41d97317a89ebcdac3437687257f83a1d09e148`; code commit `59d951246dd82550443079035a54cae459a528ca`; focused contracts `18fb8e63ae57cf1f5519ed3d5a190c47de6a0554`, all on `agent/material-first-farming`.
