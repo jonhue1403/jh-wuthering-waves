@@ -106,9 +106,9 @@ class TestResourceRoutineTask(unittest.TestCase):
         queue = ResourceGoalQueue([MaterialGoal('Known material', 4, 28,
                                                origin='user_supplied')], [source])
         self.task._load_plan = Mock(return_value=(self.path, self.plan, queue))
-        with patch('src.task.ResourceRoutineTask.importlib.metadata.version',
-                   return_value='unit-runtime'), \\
-             patch.object(WWOneTimeTask, 'run', side_effect=AssertionError('preview started game')):
+        with (patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                    return_value='unit-runtime'),
+              patch.object(WWOneTimeTask, 'run', side_effect=AssertionError('preview started game'))):
             self.task.run()
         self.assertEqual('READY', self.task.info['Goal queue preview'][0]['state'])
         self.assertIn('PROVIDER_ADAPTER_PENDING',
