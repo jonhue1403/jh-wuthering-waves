@@ -71,6 +71,28 @@ class TestFarmingOneShot(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "different commit"):
                 _module_counts(path, expected_sha="fedcba")
 
+    def test_incomplete_full_suite_is_not_accepted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            self.sample_result(path)
+            summary = _module_counts(
+                path, expected_sha="abcdef",
+                expected_modules={"TestSyntheticModule", "TestOmittedModule"},
+            )
+            self.assertIsNone(summary["passed"])
+            self.assertTrue(any("Incomplete" in err
+                                for err in summary["failed_modules"]))
+
+    def test_exact_full_suite_module_coverage_is_accepted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            self.sample_result(path)
+            summary = _module_counts(
+                path, expected_sha="abcdef",
+                expected_modules={"TestSyntheticModule"},
+            )
+            self.assertEqual([], summary["failed_modules"])
+
     def test_failure_is_recorded_not_reported_as_pass(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp)
