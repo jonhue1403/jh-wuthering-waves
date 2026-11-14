@@ -56,6 +56,18 @@ are the registered inherited classes, `CultivationTask` and `BoundedRouteTask`.
 are type-checked and restored after success, cancellation or failure. The Daily
 Echo destruction option is prohibited in this coordinator.
 
+Source-kind and provider identity are enforced before the resource-goal queue
+can choose any source. A `boss` source must use `CultivationTask`, an
+`overworld` source must use `BoundedRouteTask`, and a `domain` source
+must use an inherited `ForgeryTask`, `SimulationTask`, or `TacetTask`.
+Wrong-category classes and synthesized/quest/event/weekly Echo sources cannot
+be used as an overworld material route by renaming a JSON entry. An exact,
+uniquely matched mapping is still **only a dispatch candidate**: it does not
+substitute for current-runtime identity, task-specific SHA-bound qualification,
+session ownership, resource ledger approvals or an observed inventory receipt.
+The queue preview reports unresolved/ambiguous candidates and makes this
+remaining preflight boundary explicit.
+
 An activity entry has `activity` (`daily`, `tacet`, `forgery`, `simulation`,
 `boss_echo`, `nightmare_nest`, `garden`), `observation_profile`, and optional
 `task_config`. Before dispatch, it must have observed eligibility and a fresh
