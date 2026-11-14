@@ -117,6 +117,20 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertFalse(self.tab._preview["stop_criterion"]["enforced"])
         self.assertFalse(self.tab.start_button.isEnabled())
 
+    def test_kind_switch_clears_old_search_and_loads_new_targets(self):
+        self.tab.search.setText("mysterious code")
+        self.assertEqual(1, self.tab.target_list.count())
+        self.tab.mob_button.click()
+        self.assertEqual("", self.tab.search.text())
+        self.assertEqual(5, self.tab.target_list.count())
+        self.assertIn("bounded overworld", self.tab.strategy_label.text())
+        self.assertFalse(self.tab.start_button.isEnabled())
+        self.tab.search.setText("geospider")
+        self.tab.material_button.click()
+        self.assertEqual("", self.tab.search.text())
+        self.assertEqual(27, self.tab.target_list.count())
+        self.assertEqual("FF Mech Core", self.tab.target_name.text())
+
     def test_nonmatch_and_kind_switch_clear_state(self):
         self.tab.search.setText("not-here")
         self.assertEqual(0, self.tab.target_list.count())
