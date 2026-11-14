@@ -23,8 +23,9 @@ compatibility aliases and MUST NOT be advertised as a browser frontend.
   `context.query`, `context.t` and `context.notify`. There is no second
   target-selection implementation.
 - The native Qt `custom_tabs` registration remains in `config.py`; the
-  unsupported `web_tabs` registration is removed. `FarmingAssistantTask.py`
-  is a historical unused source file, not a registered task or web backend.
+  unsupported `web_tabs` registration is removed. The obsolete
+`src/task/FarmingAssistantTask.py` was deleted, as it imported a removed
+framework API and is no longer an entry point.
 
 No OK Script executor, input subsystem, browser remote control, screenshot
 directory, game files, secrets or profile paths are served.
