@@ -99,6 +99,9 @@ class TestResourceRoutineTask(unittest.TestCase):
                     self.task._dispatch(provider, {}, self.ledger(), queued_goals=[goal])
         self.task.get_task_by_class.assert_not_called()
         self.task.run_task_by_class.assert_not_called()
+        with self.assertRaisesRegex(ResourcePolicyError, 'UNSUPPORTED_MATERIAL_PROVIDER'):
+            self.task._dispatch('DailyTask', {}, self.ledger(), queued_goals=[goal])
+        self.task.get_task_by_class.assert_not_called()
 
     def test_domain_source_preview_reports_adapter_block_without_input(self):
         source = SourceMapping('Known material', 'domain', 'ForgeryTask',

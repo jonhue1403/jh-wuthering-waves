@@ -107,12 +107,15 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
     _UNADAPTED_MATERIAL_PROVIDERS = frozenset({
         'ForgeryTask', 'SimulationTask', 'TacetTask',
     })
+    _MATERIAL_GOAL_EXECUTORS = frozenset({'CultivationTask', 'BoundedRouteTask'})
 
     @classmethod
     def _material_provider_readiness(cls, executor):
         if executor in cls._UNADAPTED_MATERIAL_PROVIDERS:
             return (False, f'{executor}: PROVIDER_ADAPTER_PENDING; fresh challenge-identity '
                     'binding, per-claim resource journal and actual material receipt are required')
+        if executor not in cls._MATERIAL_GOAL_EXECUTORS:
+            return (False, f'{executor}: UNSUPPORTED_MATERIAL_PROVIDER; no adapted goal receipt')
         return (True, 'CANDIDATE_ONLY: runtime, route, spending and inventory gates still apply')
 
     def _dispatch(self, name, overrides, ledger, queued_goals=None):
