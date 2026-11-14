@@ -78,6 +78,38 @@ class TestCultivationTask(unittest.TestCase):
             with self.subTest(owned=owned):
                 self.assertEqual(missing, MaterialGoal('材料', owned, 28).missing)
 
+    def test_queued_cultivation_goals_allow_only_satisfied_observed_side_items(self):
+        self.task.goals = [MaterialGoal('Needed', 4, 28),
+                           MaterialGoal('Satisfied', 10, 10)]
+        self.task._bind_queued_goals([
+            MaterialGoal('Needed', 4, 12, origin='user_supplied')])
+        self.assertEqual(12, self.task.goals[0].required)
+        self.assertEqual('user_supplied', self.task.goals[0].origin)
+        self.assertEqual(10, self.task.goals[1].required)
+
+    def test_queued_cultivation_goals_reject_unrequested_deficit_and_stale_count(self):
+        self.task.goals = [MaterialGoal('Needed', 4, 28),
+                           MaterialGoal('Also needed', 9, 10)]
+        with self.assertRaisesRegex(Exception, 'Guidebook row does not match'):
+            self.task._bind_queued_goals([
+                MaterialGoal('Needed', 4, 28, origin='user_supplied')])
+        self.task.goals[1].owned = 10
+        with self.assertRaisesRegex(Exception, 'Queued inventory differs'):
+            self.task._bind_queued_goals([
+                MaterialGoal('Needed', 5, 28, origin='user_supplied')])
+
+    def test_gain_for_completed_cultivation_material_never_confirms_claim(self):
+        self.prepare_farm(
+            [MaterialGoal('Needed', 4, 28), MaterialGoal('Satisfied', 9, 9)],
+            [{'Needed': 4, 'Satisfied': 10}], [(121, 60)], [61])
+        with self.assertRaisesRegex(UncertainReceipt, 'No unmet cultivation material increased'):
+            self.task.farm(121)
+        records = self.task._resource_ledger.journal.snapshot()['actions']
+        self.assertEqual(1, len(records))
+        self.assertEqual('UNCERTAIN', records[0]['state'])
+        self.assertNotIn('confirmed_at', records[0])
+        self.assertEqual(4, self.task.goals[0].owned)
+
     def test_read_stable_returns_after_two_matching_reads(self):
         reader = Mock(side_effect=[(5, 28), (5, 28)])
 
