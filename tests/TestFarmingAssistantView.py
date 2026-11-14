@@ -75,6 +75,26 @@ class TestFarmingAssistantView(unittest.TestCase):
                 self.assertEqual([], result["qualified_route_ids"])
                 self.assertFalse(result["can_start"])
 
+    def test_provider_candidates_never_become_executable_in_read_only_preview(self):
+        for slug in ("premium-tuner", "presto-helix", "ff-mech-core",
+                     "mysterious-code", "transducer"):
+            with self.subTest(material=slug):
+                preview = self.view.preview("material", slug)
+                plan = preview["acquisition_plan"]
+                self.assertEqual("AWAITING_CURRENT_GAME_SOURCE_VALIDATION",
+                                 plan["status"])
+                self.assertIsNone(plan["selected_provider"])
+                self.assertEqual([], plan["qualified_provider_ids"])
+                self.assertFalse(plan["can_dispatch"])
+                self.assertFalse(plan["can_start"])
+                self.assertTrue(all(not x["can_execute"]
+                                    for x in plan["possible_methods"]))
+                self.assertFalse(preview["can_start"])
+        mob = self.view.preview("mob", "geospider-s4")
+        self.assertEqual("AWAITING_CURRENT_GAME_MOB_ROUTE",
+                         mob["acquisition_plan"]["status"])
+        self.assertFalse(mob["acquisition_plan"]["can_dispatch"])
+
     def test_preview_includes_source_provenance_without_execution(self):
         preview = self.view.preview("material", "ff-mech-core", "50")
         self.assertEqual("FF Mech Core", preview["target"]["name"])
