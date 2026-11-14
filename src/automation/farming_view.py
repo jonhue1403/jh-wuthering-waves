@@ -7,7 +7,7 @@ and explicit user authorization are wired through this boundary.
 """
 
 from src.automation.farming_selection import (
-    FarmingCatalog, TargetKind, starting_catalog,
+    FarmingCatalog, SCREENSHOT_MATERIALS, TargetKind, starting_catalog,
 )
 from src.automation.farming_evidence import FarmingEvidenceAudit
 from src.automation.farming_route_audit import FarmingRouteAudit
@@ -15,9 +15,45 @@ from src.automation.farming_reconciliation import reconcile_candidate_audits
 from src.automation.farming_preflight import build_calibration_preflight
 from src.automation.farming_calibration_guide import build_calibration_guide
 from src.automation.farming_acquisition_reference import documented_acquisition
+from src.automation.farming_strategy import (
+    plan_material_acquisition, plan_mob_hunt,
+)
 
 MAX_GOAL = 9_999_999
 MAX_QUERY_LENGTH = 120
+_KNOWN_SCREENSHOT_MATERIAL_IDS = frozenset(
+    slug for slug, _ in SCREENSHOT_MATERIALS
+)
+
+
+def _material_reference(target_id: str) -> dict:
+    # Tests and extensions can inject additional catalog entries. Unknown
+    # materials must remain discoverable even without a research reference;
+    # never turn the absence of a wiki claim into an executable provider.
+    if target_id in _KNOWN_SCREENSHOT_MATERIAL_IDS:
+        return documented_acquisition(target_id)
+    return {
+        "status": "NO_RESEARCH_REFERENCE",
+        "methods": [], "possible_mob_source": False,
+        "executable_source_ids": [], "can_start": False,
+        "requires_game_verification": True,
+        "note": "No documented acquisition method for this catalog target.",
+    }
+
+
+def _material_plan(target_id: str) -> dict:
+    if target_id in _KNOWN_SCREENSHOT_MATERIAL_IDS:
+        return plan_material_acquisition(target_id)
+    return {
+        "status": "NO_DOCUMENTED_PROVIDER",
+        "target_kind": TargetKind.MATERIAL.value,
+        "material_id": target_id, "possible_methods": [],
+        "possible_automation_adapter_count": 0, "selected_provider": None,
+        "qualified_provider_ids": [], "can_dispatch": False,
+        "can_start": False,
+        "source_auto_selection": "NOT_PERMITTED_WITH_REFERENCE_ONLY_DATA",
+        "next_action": "Observe and independently qualify the actual acquisition source.",
+    }
 
 
 class FarmingAssistantView:
@@ -163,7 +199,7 @@ class FarmingAssistantView:
             # Documented acquisition methods are not automatically executable
             # sources. They cover domain/quest/synthesis as well as mob cases.
             "acquisition_reference": (
-                documented_acquisition(target_id)
+                _material_reference(target_id)
                 if target_kind == TargetKind.MATERIAL else {
                     "status": "NOT_APPLICABLE_TO_MOB",
                     "methods": [], "possible_mob_source": False,
@@ -171,6 +207,11 @@ class FarmingAssistantView:
                     "requires_game_verification": True,
                     "note": "A mob target still needs a current-runtime route.",
                 }
+            ),
+            "acquisition_plan": (
+                _material_plan(target_id)
+                if target_kind == TargetKind.MATERIAL else
+                plan_mob_hunt(target_id, catalog=self.catalog)
             ),
             "source_candidates": [
                 {
