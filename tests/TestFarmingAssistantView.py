@@ -23,6 +23,40 @@ class TestFarmingAssistantView(unittest.TestCase):
         self.assertEqual([], self.view.targets("mob", "FF Mech"))
         self.assertEqual(5, len(self.view.targets("mob")))
 
+    def test_extended_material_catalog_preserves_featured_entry_and_preview_safety(self):
+        listed = self.view.targets("material")
+        self.assertEqual(27, len(listed))
+        self.assertEqual("ff-mech-core", listed[0]["id"])
+        self.assertEqual("SOURCE_DOCUMENTED", listed[0]["readiness"])
+        self.assertEqual(27, len({entry["id"] for entry in listed}))
+        for name, slug in (
+            ("Premium Resonance Potion", "premium-resonance-potion"),
+            ("FF Autopuppet Kernel", "ff-autopuppet-kernel"),
+            ("Mysterious Code", "mysterious-code"),
+            ("Waveworn Residue 239", "waveworn-residue-239"),
+        ):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    [slug],
+                    [entry["id"] for entry in self.view.targets("material", name)],
+                )
+                preview = self.view.preview("material", slug, "10")
+                self.assertEqual(name, preview["target"]["name"])
+                self.assertEqual("SOURCE_UNRESOLVED", preview["readiness"])
+                self.assertEqual([], preview["source_candidates"])
+                self.assertEqual([], preview["verified_mob_ids"])
+                self.assertEqual([], preview["qualified_route_ids"])
+                self.assertEqual("INVENTORY_TOTAL",
+                                 preview["stop_criterion"]["mode"])
+                self.assertEqual(10, preview["stop_criterion"]["requested"])
+                self.assertEqual("PLANNED_ONLY",
+                                 preview["stop_criterion"]["state"])
+                self.assertIsNone(preview["owned_quantity"])
+                self.assertFalse(preview["can_start"])
+                self.assertFalse(preview["can_pause"])
+                self.assertFalse(preview["can_stop"])
+                self.assertNotIn("profile.json", repr(preview))
+
     def test_preview_includes_source_provenance_without_execution(self):
         preview = self.view.preview("material", "ff-mech-core", "50")
         self.assertEqual("FF Mech Core", preview["target"]["name"])
