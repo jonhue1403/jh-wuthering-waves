@@ -36,6 +36,8 @@ class TestFarmingOneShot(unittest.TestCase):
         self.assertIn("tests.TestFarmingAssistantQt", TARGET_MODULES)
         self.assertIn("tests.TestFarmingStandaloneWeb", TARGET_MODULES)
         self.assertIn("tests.TestFarmingSelection", TARGET_MODULES)
+        self.assertIn("tests.TestFarmingStrategy", TARGET_MODULES)
+        self.assertIn("tests.TestFarmingStopPolicy", TARGET_MODULES)
         self.assertTrue(any("Terra" in gate for gate in LIVE_GATES))
 
     @staticmethod
