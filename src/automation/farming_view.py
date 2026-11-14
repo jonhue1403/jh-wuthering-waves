@@ -138,47 +138,9 @@ class FarmingAssistantView:
             self.catalog.documented_sources(target_id)
             if target_kind == TargetKind.MATERIAL else ()
         )
-        # Local, hash-matched observations remain untrusted historical
-        # candidates. They never populate verified_mob_ids or route IDs.
-        calibration = (
-            self.evidence_audit.summary(target_id)
-            if target_kind == TargetKind.MATERIAL else {
-                "status": "NO_MOB_ROUTE_QUALIFICATION",
-                "receipt_candidate_count": 0,
-                "rejected_manifest_count": 0,
-                "sources": [],
-                "can_start": False,
-                "note": "A documented mob name does not qualify a live route.",
-            }
-        )
-        # A static local manifest/hash audit is not an executable permission.
-        # In particular, a display-name mob slug is not a numeric game mob ID.
-        route_calibration = (
-            self.route_audit.summary(target_id)
-            if target_kind == TargetKind.MATERIAL else {
-                "status": "NO_MOB_ROUTE_QUALIFICATION",
-                "route_candidate_count": 0,
-                "rejected_manifest_count": 0,
-                "routes": [],
-                "can_start": False,
-                "note": "A mob display name does not qualify a current-game route.",
-            }
-        )
-        reconciliation = (
-            reconcile_candidate_audits(
-                target_id, calibration, route_calibration, catalog=self.catalog,
-            ) if target_kind == TargetKind.MATERIAL else {
-                "status": "NOT_APPLICABLE_MOB",
-                "candidate_match_count": 0,
-                "matches": [],
-                "can_start": False,
-                "note": "A mob display slug cannot establish a numeric game ID.",
-            }
-        )
-        # Use the researched acquisition *method*, never a guessed mob
-        # source, to select the relevant read-only calibration steps. For
-        # example quest/event-only or domain items must not request enemy IDs
-        # or surface routes.
+        # Only mob-drop research warrants scanning historical enemy receipts
+        # and surface routes. Quest, domain, synthesis and historical rewards
+        # cannot be converted to mob hunts by an unrelated local manifest.
         acquisition_reference = (
             _material_reference(target_id)
             if target_kind == TargetKind.MATERIAL else {
@@ -194,6 +156,69 @@ class FarmingAssistantView:
             if target_kind == TargetKind.MATERIAL else
             plan_mob_hunt(target_id, catalog=self.catalog)
         )
+        mob_drop_plausible = (
+            target_kind == TargetKind.MATERIAL
+            and any(method["kind"] == "MOB_DROP"
+                    for method in acquisition_reference["methods"])
+        )
+        # Local, hash-matched observations remain untrusted historical
+        # candidates. They never populate verified_mob_ids or route IDs.
+        calibration = (
+            self.evidence_audit.summary(target_id)
+            if mob_drop_plausible else {
+                "status": "NOT_APPLICABLE_TO_NON_MOB_MATERIAL",
+                "receipt_candidate_count": 0,
+                "rejected_manifest_count": 0,
+                "sources": [], "can_start": False,
+                "note": "No documented mob drop for this material; enemy receipts are not an acquisition source.",
+            } if target_kind == TargetKind.MATERIAL else {
+                "status": "NO_MOB_ROUTE_QUALIFICATION",
+                "receipt_candidate_count": 0,
+                "rejected_manifest_count": 0,
+                "sources": [],
+                "can_start": False,
+                "note": "A documented mob name does not qualify a live route.",
+            }
+        )
+        # A static local manifest/hash audit is not an executable permission.
+        # In particular, a display-name mob slug is not a numeric game mob ID.
+        route_calibration = (
+            self.route_audit.summary(target_id)
+            if mob_drop_plausible else {
+                "status": "NOT_APPLICABLE_TO_NON_MOB_MATERIAL",
+                "route_candidate_count": 0,
+                "rejected_manifest_count": 0,
+                "routes": [], "can_start": False,
+                "note": "No documented mob drop; a surface route cannot qualify a domain or manual source.",
+            } if target_kind == TargetKind.MATERIAL else {
+                "status": "NO_MOB_ROUTE_QUALIFICATION",
+                "route_candidate_count": 0,
+                "rejected_manifest_count": 0,
+                "routes": [],
+                "can_start": False,
+                "note": "A mob display name does not qualify a current-game route.",
+            }
+        )
+        reconciliation = (
+            reconcile_candidate_audits(
+                target_id, calibration, route_calibration, catalog=self.catalog,
+            ) if mob_drop_plausible else {
+                "status": "NOT_APPLICABLE_TO_NON_MOB_MATERIAL",
+                "candidate_match_count": 0,
+                "matches": [], "can_start": False,
+                "note": "Enemy/route ID matching is irrelevant without a documented mob-drop source.",
+            } if target_kind == TargetKind.MATERIAL else {
+                "status": "NOT_APPLICABLE_MOB",
+                "candidate_match_count": 0,
+                "matches": [],
+                "can_start": False,
+                "note": "A mob display slug cannot establish a numeric game ID.",
+            }
+        )
+        # Use the researched acquisition *method*, never a guessed mob
+        # source, to select the relevant read-only calibration steps. For
+        # example quest/event-only or domain items must not request enemy IDs
+        # or surface routes.
         preflight = build_calibration_preflight(
             target_kind.value, calibration, route_calibration, reconciliation,
             acquisition_methods=(
