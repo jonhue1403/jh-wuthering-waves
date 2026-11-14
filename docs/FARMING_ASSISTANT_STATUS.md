@@ -1,5 +1,18 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — enforce real resource-source/provider compatibility (GitHub-only)
+
+- **Base:** `b8e9fa64ab3bb2551d3815ec90167c6f16c1534d`; **source + regression commit:** `0c44695d2d43c67d1c16591a266a30a1507acf3f` on `agent/material-first-farming`.
+- `src/automation/goals.py` now accepts only the correct **source kind -> inherited executor** mapping: boss -> `CultivationTask`; overworld -> `BoundedRouteTask`; domain -> `ForgeryTask`, `SimulationTask`, or `TacetTask`. This closes a planning/dispatch mismatch where a wrong class could be selected from otherwise plausible local metadata. No synthesis, historical event/quest or boss-Echo task can masquerade as a repeatable mob route.
+- Only a literal `qualified is True` can match, and runtime, evidence and profile fields must be meaningful strings. This is a **necessary matching filter, not an authorization**: local `qualified` flags and SHA checks do NOT independently qualify current-game routes, permit spending, or prove a receipt.
+- Resource-goal preview now explains whether mappings are missing, ambiguous or merely candidates that still require inherited current-runtime identity, input, budget and receipt gates. It preserves the existing `READY` status for structurally matched candidates but explicitly says that this **does not mean live-ready**.
+- Three focused regressions added to `tests/TestResourceGoals.py` for 12 compatible/incompatible pairs, truthy/missing qualification and preview gate clarity. The deferred one-shot Codex runner now runs that test module separately and compiles the modified code/tests.
+- **Tests actually run:** NONE — GitHub source writes/readback only; Windows/Python/Qt/browser/full suite/game and independent Terra review **NOT RUN**. No input or spending was attempted; no master, PR #4, or unrelated worktree changed.
+- **Status:** `BLOCKED_FOR_LIVE_QUALIFICATION`. The 27 screenshot materials and their informational source methods remain read-only. No source has an independently approved current-game provider/route or validated before/after receipt. UI Start/Pause/Stop remain disabled.
+- **Next scoped change:** inspect the existing resource-policy and exact per-producer runtime preflight for any remaining source/route or budget cross-gate omissions. Do not invent source IDs or add more capture wrappers. Codex later runs `.\\.venv\\Scripts\\python.exe -m unittest tests.TestResourceGoals tests.TestResourceRoutineTask -v` and the existing `run-farming-one-shot.cmd` consolidated Windows acceptance.
+
+---
+
 ## 2026-11-14 — receipt/cancellation race hardening (GitHub-only)
 
 - **Base:** `f0f23e57f5393a73028ccd2b3d3c39ba81d80417` on
