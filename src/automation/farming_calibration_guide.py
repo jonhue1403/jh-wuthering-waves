@@ -17,6 +17,126 @@ def _step(step_id: str, title: str, instruction: str, *, historical: bool = Fals
     }
 
 
+_NON_MOB_FAMILIES = {
+    "DOMAIN_CHALLENGE_CANDIDATE": "DOMAIN_SOURCE_UNVERIFIED",
+    "SYNTHESIS_REFERENCE_ONLY": "NON_EXECUTABLE_REFERENCE",
+    "HISTORICAL_REFERENCE_ONLY": "NON_EXECUTABLE_REFERENCE",
+    "MANUAL_REWARD_REFERENCE_ONLY": "NON_EXECUTABLE_REFERENCE",
+    "SOURCE_UNKNOWN": "SOURCE_UNRESOLVED",
+}
+
+
+def _non_mob_guide(preflight):
+    family = preflight.get("source_family")
+    if (preflight.get("source_check") != _NON_MOB_FAMILIES[family]
+            or preflight.get("route_check") != "NOT_APPLICABLE"
+            or preflight.get("identity_check") != "NOT_APPLICABLE"
+            or preflight.get("runtime_qualification") != "NOT_CHECKED"
+            or preflight.get("fresh_inventory_check") != "NOT_OBSERVED"
+            or preflight.get("input_safety_check") != "NOT_CHECKED"
+            or preflight.get("game_version_check") != "VERSION_NOT_OBSERVED"):
+        raise ValueError("Unsupported non-mob calibration evidence state")
+    if family == "DOMAIN_CHALLENGE_CANDIDATE":
+        steps = [
+            _step(
+                "observe-domain-source", "Verify exact challenge and material",
+                "In the installed client, capture the current challenge identity, "
+                "selected F2 entry and exact reward material on fresh frames. "
+                "A static task index or wiki reference is not source proof.",
+            ),
+            _step(
+                "observe-installed-version", "Verify current client and runtime",
+                "Independently observe the installed game and OK Script versions "
+                "before binding any selector or adapter.",
+            ),
+            _step(
+                "qualify-domain-claim", "Qualify bounded claims and debit receipts",
+                "Independently review the selected challenge, actual claim cost, "
+                "fresh Waveplates balance, journal PENDING before input, exact "
+                "debit, no reserve or refill, and fail-closed interruption.",
+            ),
+            _step(
+                "verify-live-inventory", "Verify material receipt and stopping goal",
+                "Capture the exact item's inventory before and after the reward. "
+                "A combat victory or claim confirmation does not prove receipt.",
+            ),
+            _step(
+                "verify-input-safety", "Verify focus, stop and cancellation",
+                "Independently test single-controller ownership, distinct fresh "
+                "frames, pause/stop, held-input cleanup and no-skip Story Watch.",
+            ),
+        ]
+    elif family == "SYNTHESIS_REFERENCE_ONLY":
+        steps = [
+            _step(
+                "verify-current-recipe", "Verify synthesis availability",
+                "Observe the current recipe, output item, required ingredients, "
+                "conversion quantity and whether the option is available.",
+            ),
+            _step(
+                "review-consumption", "Review ingredient consumption",
+                "Synthesis can consume valuable materials. No automatic "
+                "conversion or inventory destruction is authorized.",
+            ),
+            _step(
+                "verify-live-inventory", "Verify manual result",
+                "Only an actual item-detail inventory change can establish "
+                "receipt. This preview never triggers synthesis.",
+            ),
+        ]
+    elif family == "HISTORICAL_REFERENCE_ONLY":
+        steps = [
+            _step(
+                "verify-current-availability", "Check current reward availability",
+                "Independently check whether the historical subscription or "
+                "reward exists in the installed game. An old guide is not proof.",
+            ),
+            _step(
+                "verify-live-inventory", "Verify a separately obtained item",
+                "Review the actual current item and inventory. The assistant "
+                "does not automate purchases, claims or subscriptions.",
+            ),
+        ]
+    elif family == "MANUAL_REWARD_REFERENCE_ONLY":
+        steps = [
+            _step(
+                "verify-current-availability", "Check quest or reward eligibility",
+                "Check whether this item is obtainable from the current quest, "
+                "exploration, event or exchange; do not substitute a mob route.",
+            ),
+            _step(
+                "verify-live-inventory", "Confirm manual reward receipt",
+                "Validate the item's identity and actual inventory after "
+                "a separately authorized user-driven acquisition.",
+            ),
+        ]
+    else:
+        steps = [
+            _step(
+                "identify-material-source", "Discover an actual material source",
+                "Inspect the current game for a valid reward or acquisition "
+                "method. Do not infer enemy drops from the material name.",
+            ),
+            _step(
+                "verify-live-inventory", "Observe item identity and quantity",
+                "Use fresh current-game item-detail observations before "
+                "considering any new adapter.",
+            ),
+        ]
+
+    return {
+        "mode": "GUIDED_READ_ONLY",
+        "next_step_id": steps[0]["id"],
+        "steps": steps,
+        "verified_step_count": 0,
+        "can_start": False,
+        "notice": (
+            "This source does not have a qualified mob route. The guide is "
+            "informational only; no auto farming or spending is enabled."
+        ),
+    }
+
+
 def build_calibration_guide(kind: str, preflight: dict) -> dict:
     """Describe next calibration actions without promoting historical records.
 
@@ -30,6 +150,10 @@ def build_calibration_guide(kind: str, preflight: dict) -> dict:
             or preflight.get("status") != "CALIBRATION_REQUIRED"
             or preflight.get("can_start") is not False):
         raise ValueError("A blocked calibration preflight is required")
+
+    family = preflight.get("source_family")
+    if kind == "material" and family in _NON_MOB_FAMILIES:
+        return _non_mob_guide(preflight)
 
     source_state = preflight.get("source_check")
     route_state = preflight.get("route_check")
