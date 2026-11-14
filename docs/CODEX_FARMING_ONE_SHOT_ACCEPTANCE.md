@@ -86,8 +86,14 @@ quantities, max three bounded attempts and explicit conservative stop
 decisions. An unverified number below target must not trigger automatic
 continuation. Check that mode changes in BOTH UIs clear an old search filter.
 
-The one-shot runner includes `TestFarmingStrategy.py` and
-`TestFarmingStopPolicy.py`, along with Qt/API integration regressions.
+The one-shot runner includes `TestFarmingStrategy.py`,
+`TestFarmingStopPolicy.py` and `TestMaterialRoute.py`, along with Qt/API
+integration regressions. The material route tests must verify that Stop
+before pickup prevents any pickup input; Stop during pickup prevents a
+subsequent inventory UI read or receipt; cancellation during inventory
+observation cannot commit a receipt; missing baselines fail closed; and
+one camp produces only one CLEARED transition. A completed combat clear
+is still not evidence of a successful item drop.
 Repair real failures and rerun the complete exact-SHA suite before reporting
 offline acceptance.
 
