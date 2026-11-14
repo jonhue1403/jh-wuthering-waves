@@ -99,7 +99,8 @@ def _phase(name: str, command: list[str], *, timeout: int, output: Path) -> dict
     return result
 
 
-def _module_counts(verification_dir: Path, *, expected_sha: str) -> dict:
+def _module_counts(verification_dir: Path, *, expected_sha: str,
+                   expected_modules: set[str] | None = None) -> dict:
     """Derive actual counts from the verifier, not optimistic command success."""
     report_path = verification_dir / "results.json"
     if not report_path.is_file():
@@ -111,6 +112,12 @@ def _module_counts(verification_dir: Path, *, expected_sha: str) -> dict:
     if not isinstance(modules, list) or not modules:
         raise ValueError("Verifier produced no module results")
     failures = []
+    found_names = [entry.get("module") for entry in modules
+                   if isinstance(entry, dict)]
+    if len(found_names) != len(set(found_names)):
+        failures.append("Duplicate module results")
+    if expected_modules is not None and set(found_names) != expected_modules:
+        failures.append("Incomplete or unexpected full-suite module coverage")
     skipped = 0
     tests = 0
     for module in modules:
@@ -244,9 +251,14 @@ def main(argv: list[str] | None = None) -> int:
         ("python-compile", [sys.executable, "-m", "py_compile", *PY_FILES], 120),
         ("node-web-module", ["node", "--check", JS_FILES[0]], 90),
         ("node-standalone-module", ["node", "--check", JS_FILES[1]], 90),
-        ("farming-targeted", [sys.executable, "-m", "unittest", "-v",
-                             *TARGET_MODULES], 450),
     ]
+    # Isolate each framework/Qt test in its own Python process; this matches
+    # verify_core_routes.py and prevents cross-module GUI state contamination.
+    commands.extend(
+        ("target-" + module.split(".")[-1],
+         [sys.executable, "-u", "run_test.py", module], 150)
+        for module in TARGET_MODULES
+    )
     if not args.smoke:
         commands.append((
             "full-repository-isolated",
@@ -260,8 +272,13 @@ def main(argv: list[str] | None = None) -> int:
         _atomic_json(report_path, report)
     if not args.smoke:
         try:
+            expected = {
+                path.stem for path in (ROOT / "tests").glob("*.py")
+                if path.stem != "__init__"
+            }
             report["full_suite"] = _module_counts(
-                base / "full-suite", expected_sha=sha)
+                base / "full-suite", expected_sha=sha,
+                expected_modules=expected)
         except (OSError, ValueError, TypeError, json.JSONDecodeError) as error:
             report["full_suite_error"] = type(error).__name__ + ": " + str(error)
 
