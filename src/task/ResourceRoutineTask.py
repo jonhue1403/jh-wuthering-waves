@@ -133,11 +133,65 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             return (False, f'{executor}: UNSUPPORTED_MATERIAL_PROVIDER; no adapted goal receipt')
         return (True, 'CANDIDATE_ONLY: runtime, route, spending and inventory gates still apply')
 
+    @staticmethod
+    def _prepare_bounded_material_overrides(overrides, queued_goals):
+        """Bind a material to one reviewed route before creating an attempt.
+
+        This is a read-only local preflight, NOT proof of live game success.
+        HuntMobTask independently checks the actual runtime source hashes and
+        qualified stage again when the inherited executor starts.
+        """
+        if type(overrides) is not dict or len(queued_goals) != 1:
+            raise ResourcePolicyError('One material and explicit route configuration are required')
+        for key in ('Route Manifest', 'Runtime Qualification', 'Observed Game Version'):
+            if type(overrides.get(key)) is not str or not overrides[key].strip():
+                raise ResourcePolicyError(f'BOUNDED_ROUTE_NOT_QUALIFIED: explicit {key} required')
+        for key, expected in (('Preview Only', False), ('Localization Only', False),
+                              ('Test Walk Only', False), ('Safe Test Mode', True),
+                              ('Use Teleport', False), ('Use Motorcycle', False),
+                              ('Surface Only', True)):
+            if key in overrides and overrides[key] is not expected:
+                raise ResourcePolicyError(f'Incompatible bounded material route option: {key}')
+
+        from src.overworld.material_route import MaterialRoute
+        from src.overworld.navigation.player_locator import SurfaceProfile
+        from src.overworld.qualification import RuntimeQualification
+        try:
+            route = MaterialRoute.load(overrides['Route Manifest'])
+            profile = SurfaceProfile.load(route.profile_path)
+            RuntimeQualification.load(overrides['Runtime Qualification']).assert_compatible(
+                str(route.profile_path), profile,
+                runtime_version=importlib.metadata.version('ok-script'),
+                game_version=overrides['Observed Game Version'],
+                stage='MATERIAL_ROUTE', source_root=Path(__file__).resolve().parents[2])
+        except (OSError, ValueError, TypeError, KeyError) as error:
+            raise ResourcePolicyError(f'BOUNDED_ROUTE_NOT_QUALIFIED: {error}') from error
+        if route.target_mob != profile.target_mob or route.layer != profile.layer:
+            raise ResourcePolicyError('Reviewed material route disagrees with the mob or map layer')
+        goal = queued_goals[0]
+        if goal.name not in (route.material_id, route.inventory_reader['item_text']):
+            raise ResourcePolicyError('Reviewed route material does not match the queued material')
+        derived = {'Target Mob': route.target_mob, 'Max Camps': len(route.segments),
+                   'User Material Target': goal.required}
+        for key, expected in derived.items():
+            if key in overrides and (type(overrides[key]) is not type(expected)
+                                     or overrides[key] != expected):
+                raise ResourcePolicyError(f'Configured {key} disagrees with reviewed route/goal')
+        if 'Hunt Profile' in overrides and overrides['Hunt Profile']:
+            if (type(overrides['Hunt Profile']) is not str
+                    or Path(overrides['Hunt Profile']).resolve() != route.profile_path):
+                raise ResourcePolicyError('Configured Hunt Profile differs from reviewed route')
+        return {**overrides, **derived, 'Preview Only': False,
+                'Localization Only': False, 'Test Walk Only': False}
+
     def _dispatch(self, name, overrides, ledger, queued_goals=None):
         if queued_goals:
             supported, reason = self._material_provider_readiness(name)
             if not supported:
                 raise ResourcePolicyError(reason)
+        if name == 'BoundedRouteTask' and queued_goals:
+            # No fallback to a previously reused task's manifest or game version.
+            overrides = self._prepare_bounded_material_overrides(overrides, queued_goals)
         if name not in self.EXECUTORS:
             raise ResourcePolicyError('No qualified registered executor for this source')
         module, class_name = self.EXECUTORS[name]
@@ -146,14 +200,6 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         overrides = dict(overrides)
         if name == 'CultivationTask' and queued_goals:
             overrides['Preview Only'] = False
-        if name == 'BoundedRouteTask' and queued_goals:
-            if len(queued_goals) != 1:
-                raise ResourcePolicyError('A bounded material route supports one explicit material target')
-            overrides['User Material Target'] = queued_goals[0].required
-            from src.overworld.material_route import MaterialRoute
-            route = MaterialRoute.load(overrides.get('Route Manifest', task.config.get('Route Manifest', '')))
-            if queued_goals[0].name not in (route.material_id, route.inventory_reader['item_text']):
-                raise ResourcePolicyError('Reviewed route material does not match the queued material')
         if any(k not in task.default_config for k in overrides):
             raise ResourcePolicyError('Unknown inherited task configuration key')
         additional = overrides.get('Additional Tasks to Run After Daily Task',
@@ -295,6 +341,14 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             # incompatible multi-goal plans before any inventory/journal write.
             if source.executor == 'BoundedRouteTask' and len(source_goals) != 1:
                 raise ResourcePolicyError('Bounded material route requires exactly one unmet material goal')
+            executor_config = plan.get('executor_config', {})
+            if type(executor_config) is not dict:
+                raise ResourcePolicyError('Executor configuration must be a mapping')
+            overrides = executor_config.get(source.executor, {})
+            if source.executor == 'BoundedRouteTask':
+                # Reject stale, missing, or mismatched route evidence BEFORE
+                # inventory reads, game input and durable attempt creation.
+                overrides = self._prepare_bounded_material_overrides(overrides, source_goals)
             observer = RoutineObserver(self, path.parent / source.profile, source.kind)
             before, inventory_before = observer.observe()
             if any(inventory_before.get(g.name) != g.owned for g in source_goals):
@@ -310,8 +364,7 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             if not journal.begin_activity(attempt, before.evidence):
                 raise ResourcePolicyError('This material attempt was already completed; refresh the observed inventory')
             try:
-                self._dispatch(source.executor, plan.get('executor_config', {}).get(source.executor, {}),
-                               ledger, queued_goals=source_goals)
+                self._dispatch(source.executor, overrides, ledger, queued_goals=source_goals)
                 ledger.check_time()
                 session.check()
                 after, inventory = observer.observe(inventory_before)
