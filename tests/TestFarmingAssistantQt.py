@@ -87,6 +87,21 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertEqual(5, self.tab.source_list.count())
         self.assertFalse(self.tab.start_button.isEnabled())
 
+    def test_provider_planning_stays_blocked_for_challenge_and_quest_materials(self):
+        self.tab.search.setText("presto helix")
+        self.assertIn("forgery challenge", self.tab.strategy_label.text())
+        self.assertIn("Waveplates", self.tab.strategy_label.text())
+        self.assertFalse(self.tab._preview["acquisition_plan"]["can_dispatch"])
+        self.assertFalse(self.tab.start_button.isEnabled())
+
+        self.tab.search.setText("mysterious code")
+        self.assertIn("No supported automated", self.tab.strategy_label.text())
+        self.assertFalse(self.tab.start_button.isEnabled())
+
+        self.tab.mob_button.click()
+        self.assertIn("bounded overworld", self.tab.strategy_label.text())
+        self.assertFalse(self.tab.start_button.isEnabled())
+
     def test_mob_search_and_optional_inventory_goal(self):
         self.tab.mob_button.click()
         self.assertIn("encounters", self.tab.goal_label.text().lower())
