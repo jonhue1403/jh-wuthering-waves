@@ -87,6 +87,28 @@ class TestFarmingStandaloneWeb(unittest.TestCase):
         self.assertFalse(detail["can_pause"])
         self.assertFalse(detail["can_stop"])
 
+    def test_acquisition_methods_are_cited_but_not_authorized(self):
+        for slug, kind in (
+            ("premium-sealed-tube", "TACET_FIELD"),
+            ("ff-howler-core", "MOB_DROP"),
+            ("melodic-string", "FORGERY_CHALLENGE"),
+            ("mysterious-code", "EXPLORATION_OR_QUEST"),
+        ):
+            with self.subTest(material=slug):
+                data = self.read_json("/api/preview?" + urlencode({
+                    "kind": "material", "target_id": slug,
+                }))
+                acquisition = data["acquisition_reference"]
+                self.assertEqual("REFERENCE_ONLY", acquisition["status"])
+                self.assertIn(kind, [m["kind"] for m in acquisition["methods"]])
+                self.assertTrue(all(
+                    m["reference_url"].startswith("https://")
+                    for m in acquisition["methods"]
+                ))
+                self.assertFalse(acquisition["can_start"])
+                self.assertFalse(data["can_start"])
+                self.assertEqual([], data["qualified_route_ids"])
+
     def test_source_discovery_is_documented_not_executable(self):
         data = self.read_json("/api/preview?" + urlencode({
             "kind": "material", "target_id": "ff-mech-core",
