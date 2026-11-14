@@ -9,45 +9,48 @@ recipes, domains, camps, routes or direct game-controlled farming jobs.
 
 | # | Material name | Stable UI ID | Acquisition evidence | Automated farming |
 | ---: | --- | --- | --- | --- |
-| 1 | Premium Tuner | `premium-tuner` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 2 | Premium Sealed Tube | `premium-sealed-tube` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 3 | Premium Resonance Potion | `premium-resonance-potion` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 4 | Heterized Metallic Drip | `heterized-metallic-drip` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 5 | Mysterious Code | `mysterious-code` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 6 | FF Whisperin Core | `ff-whisperin-core` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 7 | FF Howler Core | `ff-howler-core` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 8 | Tailored Ring | `tailored-ring` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 9 | Mask of Insanity | `mask-of-insanity` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 10 | Flawless Phlogiston | `flawless-phlogiston` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 11 | Presto Helix | `presto-helix` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 12 | Waveworn Residue 239 | `waveworn-residue-239` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 13 | Cadence Blossom | `cadence-blossom` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 14 | Premium Energy Core | `premium-energy-core` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 15 | FF Tidal Residuum | `ff-tidal-residuum` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 16 | FF Polygon Core | `ff-polygon-core` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 17 | Echo Modifier | `echo-modifier` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 18 | FF Exoswarm Core | `ff-exoswarm-core` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 19 | Reverb Combustor | `reverb-combustor` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 20 | FF Mech Core | `ff-mech-core` | Possible enemy sources documented; actual drops not verified | **NOT QUALIFIED** |
-| 21 | Intact Exoswarm Pendant | `intact-exoswarm-pendant` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 22 | Layered Wing Polarizer | `layered-wing-polarizer` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 23 | Melodic String | `melodic-string` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 24 | FF Carved Crystal | `ff-carved-crystal` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 25 | FF Waveworn Shard | `ff-waveworn-shard` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 26 | Transducer | `transducer` | Unknown; needs in-game verification | **NOT QUALIFIED** |
-| 27 | FF Autopuppet Kernel | `ff-autopuppet-kernel` | Unknown; needs in-game verification | **NOT QUALIFIED** |
+| 1 | Premium Tuner | `premium-tuner` | [Tacet Field / synthesis](https://wutheringwaves.fandom.com/wiki/Premium_Tuner) — reference-only | **NOT QUALIFIED** |
+| 2 | Premium Sealed Tube | `premium-sealed-tube` | [Tacet Field / exploration](https://wutheringwaves.fandom.com/wiki/Premium_Sealed_Tube) — reference-only | **NOT QUALIFIED** |
+| 3 | Premium Resonance Potion | `premium-resonance-potion` | [Simulation / quest rewards](https://wutheringwaves.fandom.com/wiki/Premium_Resonance_Potion) — reference-only | **NOT QUALIFIED** |
+| 4 | Heterized Metallic Drip | `heterized-metallic-drip` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/Heterized_Metallic_Drip) — reference-only | **NOT QUALIFIED** |
+| 5 | Mysterious Code | `mysterious-code` | [Casket Delivery / quests (non-mob)](https://wutheringwaves.fandom.com/wiki/Mysterious_Code) — reference-only | **NOT QUALIFIED** |
+| 6 | FF Whisperin Core | `ff-whisperin-core` | [Whisperin enemies / synthesis](https://wutheringwaves.fandom.com/wiki/FF_Whisperin_Core) — reference-only | **NOT QUALIFIED** |
+| 7 | FF Howler Core | `ff-howler-core` | [Howler enemies / synthesis](https://wutheringwaves.fandom.com/wiki/FF_Howler_Core) — reference-only | **NOT QUALIFIED** |
+| 8 | Tailored Ring | `tailored-ring` | [Exile enemies / synthesis](https://wutheringwaves.fandom.com/wiki/Tailored_Ring) — reference-only | **NOT QUALIFIED** |
+| 9 | Mask of Insanity | `mask-of-insanity` | [Fractsidus enemies / synthesis](https://wutheringwaves.fandom.com/wiki/Mask_of_Insanity) — reference-only | **NOT QUALIFIED** |
+| 10 | Flawless Phlogiston | `flawless-phlogiston` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/Flawless_Phlogiston) — reference-only | **NOT QUALIFIED** |
+| 11 | Presto Helix | `presto-helix` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/Presto_Helix) — reference-only | **NOT QUALIFIED** |
+| 12 | Waveworn Residue 239 | `waveworn-residue-239` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/Waveworn_Residue_239) — reference-only | **NOT QUALIFIED** |
+| 13 | Cadence Blossom | `cadence-blossom` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/Cadence_Blossom) — reference-only | **NOT QUALIFIED** |
+| 14 | Premium Energy Core | `premium-energy-core` | [Simulation / quest rewards](https://wutheringwaves.fandom.com/wiki/Premium_Energy_Core) — reference-only | **NOT QUALIFIED** |
+| 15 | FF Tidal Residuum | `ff-tidal-residuum` | [Dark Tide enemies / synthesis / Forgery](https://wutheringwaves.fandom.com/wiki/FF_Tidal_Residuum) — reference-only | **NOT QUALIFIED** |
+| 16 | FF Polygon Core | `ff-polygon-core` | [Clamoring/Tranquilite enemies / synthesis](https://wutheringwaves.fandom.com/wiki/FF_Polygon_Core) — reference-only | **NOT QUALIFIED** |
+| 17 | Echo Modifier | `echo-modifier` | [Events/exchange (item name needs confirmation)](https://wutheringwaves.fandom.com/wiki/Modifier) — reference-only | **NOT QUALIFIED** |
+| 18 | FF Exoswarm Core | `ff-exoswarm-core` | [Exoswarm enemies / synthesis](https://wutheringwaves.fandom.com/wiki/FF_Exoswarm_Core) — reference-only | **NOT QUALIFIED** |
+| 19 | Reverb Combustor | `reverb-combustor` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/Reverb_Combustor) — reference-only | **NOT QUALIFIED** |
+| 20 | FF Mech Core | `ff-mech-core` | [Clamorling enemies / synthesis / Forgery](https://wutheringwaves.fandom.com/wiki/FF_Mech_Core) — reference-only | **NOT QUALIFIED** |
+| 21 | Intact Exoswarm Pendant | `intact-exoswarm-pendant` | [Roya Outcast enemies / synthesis](https://wutheringwaves.fandom.com/wiki/Intact_Exoswarm_Pendant) — reference-only | **NOT QUALIFIED** |
+| 22 | Layered Wing Polarizer | `layered-wing-polarizer` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/Layered_Wing_Polarizer) — reference-only | **NOT QUALIFIED** |
+| 23 | Melodic String | `melodic-string` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/Melodic_String) — reference-only | **NOT QUALIFIED** |
+| 24 | FF Carved Crystal | `ff-carved-crystal` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/FF_Carved_Crystal) — reference-only | **NOT QUALIFIED** |
+| 25 | FF Waveworn Shard | `ff-waveworn-shard` | [Forgery / synthesis](https://wutheringwaves.fandom.com/wiki/FF_Waveworn_Shard) — reference-only | **NOT QUALIFIED** |
+| 26 | Transducer | `transducer` | [Historical subscription (not assumed currently available)](https://senseos.gg/guides/wuthering-waves/wuthering-waves-echoes/) — reference-only | **NOT QUALIFIED** |
+| 27 | FF Autopuppet Kernel | `ff-autopuppet-kernel` | [Autopuppet enemies / synthesis](https://wuthering.th.gl/db/inventory/item_41100094) — reference-only | **NOT QUALIFIED** |
 
 FF Mech Core retains the five existing **community-documented possible enemy
 sources**: Geospider S4, Sabercat Reaver, Spacetrek Explorer, Twin Nova:
 Collapsar Blade and Twin Nova: Nebulous Cannon. Those are informational only;
 neither numeric game IDs nor verified loot receipts/eligible routes are present.
 
-No source relationships have been created for the other 26 materials. Do not
-assume all items are enemy drops or can be farmed. Some items may have a
-non-combat acquisition method (synthesis, challenge rewards, shops, other UI
-flows); these are hypotheses and **must be checked from actual game evidence**
-before implementation. No icons were extracted from the screenshot. The
-catalog contains display names and stable UI slugs only.
+The catalogue now includes **reference-only acquisition categories and URLs
+for all 27 materials** under `src/automation/farming_acquisition_reference.py`.
+These are community/guide statements, not qualified game sources. Actual item
+identities, eligibility, live drops, route geometry and any resource cost remain
+unknown. Only FF Mech Core's existing five possible named enemies are
+documented as catalog mob entries; the other materials have no verified
+mob-to-route relationships. Never assume all 27 can be farmed by combat,
+or that time-limited/event/shop items are repeatable. No icons were extracted
+from the screenshot.
 
 ## Implementation contract
 
