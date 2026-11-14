@@ -57,6 +57,24 @@ class TestFarmingAssistantView(unittest.TestCase):
                 self.assertFalse(preview["can_stop"])
                 self.assertNotIn("profile.json", repr(preview))
 
+    def test_material_acquisition_method_reference_is_separate_from_route_readiness(self):
+        for slug, kind in (
+            ("premium-resonance-potion", "SIMULATION_TRAINING"),
+            ("flawless-phlogiston", "FORGERY_CHALLENGE"),
+            ("ff-autopuppet-kernel", "MOB_DROP"),
+            ("mysterious-code", "EXPLORATION_OR_QUEST"),
+            ("transducer", "HISTORICAL_SUBSCRIPTION"),
+        ):
+            with self.subTest(slug=slug):
+                result = self.view.preview("material", slug)
+                reference = result["acquisition_reference"]
+                self.assertEqual("REFERENCE_ONLY", reference["status"])
+                self.assertIn(kind, {m["kind"] for m in reference["methods"]})
+                self.assertFalse(reference["can_start"])
+                self.assertEqual("SOURCE_UNRESOLVED", result["readiness"])
+                self.assertEqual([], result["qualified_route_ids"])
+                self.assertFalse(result["can_start"])
+
     def test_preview_includes_source_provenance_without_execution(self):
         preview = self.view.preview("material", "ff-mech-core", "50")
         self.assertEqual("FF Mech Core", preview["target"]["name"])
