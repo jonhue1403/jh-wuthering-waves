@@ -1,6 +1,8 @@
 from ok import Logger
 from src.task.BaseCombatTask import BaseCombatTask, CharRevivedException
 from src.task.WWOneTimeTask import WWOneTimeTask
+from src.automation.domain_selection import validate_domain_selector
+from src.automation.resource_policy import ResourcePolicyError
 from src.task.task_icons import task_icon
 
 logger = Logger.get_logger(__name__)
@@ -44,6 +46,8 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
         self.stamina_once = 60
 
     def run(self):
+        validate_domain_selector('TacetTask', self.config.get('Which Tacet Suppression to Farm', 1),
+                                 count=self.total_number)
         super().run()
         self.ensure_main(time_out=180)
         self.wait_in_team_and_world(esc=True)
@@ -52,6 +56,8 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
     def farm_tacet(self, daily=False, used_stamina=0, config=None, max_recovery_retries=3):
         if config is None:
             config = self.config
+        serial_number = validate_domain_selector(
+            'TacetTask', config.get('Which Tacet Suppression to Farm', 1), count=self.total_number)
         if daily:
             must_use = 180 - used_stamina
         else:
@@ -70,7 +76,7 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
                 return self.not_enough_stamina()
 
             self.open_boss_book('wuyin')
-            index = config.get('Which Tacet Suppression to Farm', 1) - 1
+            index = serial_number - 1
             self.teleport_to_tacet(index)
             self.click_team_challenge()
             while True:
@@ -112,7 +118,8 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
             self.back(after_sleep=1)
 
     def teleport_to_tacet(self, index):
+        if type(index) is not int:
+            raise ResourcePolicyError('Tacet F2 index must be a zero-based integer')
+        validate_domain_selector('TacetTask', index + 1, count=self.total_number)
         self.info_set('Teleport to Tacet Suppression', index)
-        if index >= self.total_number:
-            raise IndexError(self.tr('Index out of range, max is {total_number}').format(total_number=self.total_number))
         return self.click_on_book_target(index + 1, self.total_number, self.structure)

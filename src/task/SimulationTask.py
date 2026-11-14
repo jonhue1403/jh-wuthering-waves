@@ -2,6 +2,7 @@ import re
 
 from ok import Logger
 from src.task.DomainTask import DomainTask
+from src.automation.domain_selection import validate_domain_selector
 from src.task.task_icons import task_icon
 
 logger = Logger.get_logger(__name__)
@@ -28,6 +29,7 @@ class SimulationTask(DomainTask):
         self.stamina_once = 40
 
     def run(self):
+        validate_domain_selector('SimulationTask', self.config.get('Material Selection', 'Shell Credit'))
         super().run()
         self.make_sure_in_world()
         self.farm_simulation()
@@ -39,7 +41,7 @@ class SimulationTask(DomainTask):
             must_use = 0
         if config is None:
             config = self.config
-        selection = config.get('Material Selection', 'Shell Credit')
+        selection = validate_domain_selector('SimulationTask', config.get('Material Selection', 'Shell Credit'))
 
         def teleport_once():
             self.teleport_into_domain(selection)
@@ -47,13 +49,14 @@ class SimulationTask(DomainTask):
         self.farm_domain_with_recovery_loop(must_use, teleport_once)
 
     def teleport_into_domain(self, selection):
+        validate_domain_selector('SimulationTask', selection)
         self.open_boss_book('moni')
         self.info_set('Target Simulation Challenge', selection)
         if selection == 'Resonator EXP':
             index = 0
         elif selection == 'Weapon EXP':
             index = 1
-        else:  # selection == 'Shell Credit'
+        else:  # The only remaining validated option is Shell Credit.
             index = 2
         # go buttom
         self.click(0.9730, 0.8806, after_sleep=1)

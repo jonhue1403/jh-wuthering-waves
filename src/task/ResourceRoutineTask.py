@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 
 from src.automation.goals import MaterialGoal, ResourceGoalQueue, SourceMapping
+from src.automation.domain_selection import inspect_domain_selector
 from src.automation.observations import RoutineObserver
 from src.automation.identity import observe_identity
 from src.automation.resource_policy import ActionJournal, ResourceBudget, ResourceLedger, ResourcePolicyError
@@ -185,6 +186,13 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             choices = [s for s in queue.mappings if s.matches(goal, runtime)]
             if len(choices) == 1:
                 supported, reason = self._material_provider_readiness(choices[0].executor)
+                if choices[0].executor in self._UNADAPTED_MATERIAL_PROVIDERS:
+                    # Static selector checks expose bad or missing local F2
+                    # configurations, never a verified current-game challenge.
+                    configs = plan.get('executor_config', {})
+                    override = (configs.get(choices[0].executor, {})
+                                if type(configs) is dict else None)
+                    reason += '; ' + inspect_domain_selector(choices[0].executor, override)
                 provider_readiness[goal.name] = reason
                 if not supported:
                     blocked_providers.append(goal.name)

@@ -2,6 +2,7 @@ import cv2
 
 from ok import Logger, find_color_rectangles
 from src.task.DomainTask import DomainTask
+from src.automation.domain_selection import validate_domain_selector
 from src.task.task_icons import task_icon
 
 logger = Logger.get_logger(__name__)
@@ -29,6 +30,8 @@ class ForgeryTask(DomainTask):
         self.material_mat = None
 
     def run(self):
+        validate_domain_selector('ForgeryTask', self.config.get('Which Forgery Challenge to Farm', 1),
+                                 count=self.total_number)
         super().run()
         self.make_sure_in_world()
         self.farm_forgery()
@@ -40,7 +43,8 @@ class ForgeryTask(DomainTask):
             must_use = 0
         if config is None:
             config = self.config
-        serial = config.get('Which Forgery Challenge to Farm', 1)
+        serial = validate_domain_selector('ForgeryTask', config.get('Which Forgery Challenge to Farm', 1),
+                                          count=self.total_number)
 
         def teleport_once():
             self.teleport_into_domain(serial, daily)
@@ -62,10 +66,9 @@ class ForgeryTask(DomainTask):
         self.ensure_main()
 
     def teleport_into_domain(self, serial_number, daily=False):
+        validate_domain_selector('ForgeryTask', serial_number, count=self.total_number)
         self.open_boss_book('ningsu')
         self.info_set('Teleport to Forgery Challenge', serial_number - 1)
-        if serial_number > self.total_number:
-            raise IndexError(self.tr('Index out of range, max is {total_number}').format(total_number=self.total_number))
         self.click_on_book_target(serial_number, self.total_number, self.structure)
         self.click(0.891, 0.910, after_sleep=1)
         self.click_team_challenge()

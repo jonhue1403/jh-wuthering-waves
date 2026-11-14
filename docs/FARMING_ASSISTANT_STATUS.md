@@ -1,5 +1,16 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — reject invalid F2 challenge selectors before any inherited navigation (GitHub-only)
+
+- **Starting SHA:** `604a4c88391925dcbd45052c95a6a2256783d946` on `agent/material-first-farming`; see latest live branch HEAD for this increment's commit.
+- **Code:** New `src/automation/domain_selection.py` performs strict Forgery (1..20), Tacet (1..21) and Simulation (three declared choices) selector-shape validation, with layout-drift checks on the numbered tasks. The inherited `run`, `farm_*` and F2 navigation entry points now reject malformed values, booleans, zero, out-of-range and unknown Simulation selections **before their initial game input**. Previously an invalid Simulation value could silently select Shell Credit, and nonpositive Forgery/Tacet indices could reach F2 navigation.
+- **Diagnostics:** `ResourceRoutineTask` preview additionally labels missing, malformed, or structurally valid local domain selectors; even a valid selector is marked `CURRENT_GAME_CHALLENGE_UNOBSERVED`. `PROVIDER_ADAPTER_PENDING` remains a hard execution block for all domain material goals. No gameplay or spending has been enabled; no static option identifies a current-game source.
+- **Focused contracts:** Added `tests/TestDomainSelection.py` for selection bounds, shape-only diagnostics and no-input rejection at native navigation entry points, and included it and changed Python files in the deferred one-shot Codex runner. **Tests NOT RUN** in GitHub-only environment; no Windows/Qt/game validation or independent Terra review.
+- **Status:** `BLOCKED_FOR_LIVE_QUALIFICATION`. The next meaningful work is fresh challenge identity/selector evidence and per-claim debit + actual inventory receipt adapters, with independent spending gates; do not bypass the existing domain adapter block. Codex later runs `.\\.venv\\Scripts\\python.exe -m unittest tests.TestDomainSelection tests.TestResourceRoutineTask -v` before the consolidated `run-farming-one-shot.cmd`.
+
+---
+
+
 ## 2026-11-14 — prevent unadapted domain material-goal spending (GitHub-only)
 
 - **Reviewed live baseline:** `1765fe01dcb9d71a7ca0470d9011058f1bb86840` on `agent/material-first-farming`. Code/test commits: [`6ff2b327`](https://github.com/jonhue1403/jh-wuthering-waves/commit/6ff2b327d9148858b71e37b14a996ded2ed576a6), [`e2b5dfbd`](https://github.com/jonhue1403/jh-wuthering-waves/commit/e2b5dfbd75c38e51f276f5d116c0104a7d1a1ade), [`94e3be79`](https://github.com/jonhue1403/jh-wuthering-waves/commit/94e3be797531fe573ef55262bf61c5c310fe2464), and allowlist hardening [`f57f439d`](https://github.com/jonhue1403/jh-wuthering-waves/commit/f57f439d74728faa5ef73039a2db75680466fd97). Always re-read live branch HEAD before writes.
