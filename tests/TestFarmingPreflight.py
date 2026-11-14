@@ -137,6 +137,75 @@ class TestFarmingPreflight(unittest.TestCase):
         result = self.check(*self.summaries(), hint="custom-version-hint")
         self.assertNotIn("custom-version-hint", repr(result))
 
+    def test_non_mob_materials_show_source_specific_preflight(self):
+        view = FarmingAssistantView()
+        for material, family, source_state, phrase in (
+            ("presto-helix", "DOMAIN_CHALLENGE_CANDIDATE",
+             "DOMAIN_SOURCE_UNVERIFIED", "Forgery Challenge"),
+            ("premium-resonance-potion", "DOMAIN_CHALLENGE_CANDIDATE",
+             "DOMAIN_SOURCE_UNVERIFIED", "Simulation Training"),
+            ("premium-tuner", "DOMAIN_CHALLENGE_CANDIDATE",
+             "DOMAIN_SOURCE_UNVERIFIED", "Tacet Field"),
+            ("mysterious-code", "MANUAL_REWARD_REFERENCE_ONLY",
+             "NON_EXECUTABLE_REFERENCE", "quest"),
+            ("transducer", "HISTORICAL_REFERENCE_ONLY",
+             "NON_EXECUTABLE_REFERENCE", "historical"),
+        ):
+            with self.subTest(material=material):
+                p = view.preview("material", material)
+                preflight = p["preflight"]
+                self.assertEqual(family, preflight["source_family"])
+                self.assertEqual(source_state, preflight["source_check"])
+                self.assertEqual("NOT_APPLICABLE", preflight["route_check"])
+                self.assertEqual("NOT_APPLICABLE", preflight["identity_check"])
+                self.assertIn(phrase.lower(), preflight["next_action"].lower())
+                self.assertNotIn("enemy encounter", preflight["next_action"])
+                self.assertNotIn("numeric enemy", preflight["next_action"])
+                self.assertFalse(p["can_start"])
+                self.assertFalse(p["can_stop"])
+                self.assertEqual("PREVIEW_ONLY", p["run_state"])
+                self.assertIn("no qualified current-game provider", p["reason"])
+
+    def test_material_without_research_reference_never_gets_mob_assumption(self):
+        from src.automation.farming_selection import (
+            FarmingCatalog, FarmingTarget, TargetKind,
+        )
+        view = FarmingAssistantView(FarmingCatalog(targets=(
+            FarmingTarget(TargetKind.MATERIAL, "local-test-item", "Local Test"),
+        )))
+        preview = view.preview("material", "local-test-item", "25")
+        self.assertEqual("SOURCE_UNKNOWN",
+                         preview["preflight"]["source_family"])
+        self.assertEqual("SOURCE_UNRESOLVED",
+                         preview["preflight"]["source_check"])
+        self.assertEqual("NOT_APPLICABLE",
+                         preview["preflight"]["route_check"])
+        self.assertIsNone(preview["owned_quantity"])
+        self.assertEqual(25, preview["desired_total"])
+        self.assertFalse(preview["can_start"])
+
+    def test_mixed_mob_and_domain_refs_never_authorize_or_autoselect(self):
+        r = build_calibration_preflight(
+            "material", *self.summaries(),
+            acquisition_methods=["MOB_DROP", "FORGERY_CHALLENGE", "SYNTHESIS"],
+        )
+        self.assertEqual("MOB_DROP_CANDIDATE", r["source_family"])
+        self.assertEqual("HISTORICAL_ONLY", r["source_check"])
+        self.assertEqual("STATIC_ONLY", r["route_check"])
+        self.assertFalse(r["can_start"])
+
+    def test_unrecognized_duplicate_or_malformed_source_methods_rejected(self):
+        for methods in (
+            "MOB_DROP", [True], ["UNKNOWN"], ["MOB_DROP", "MOB_DROP"],
+            ["MOB_DROP"] * 9, {"MOB_DROP"}, [None], [1],
+        ):
+            with self.subTest(methods=methods):
+                with self.assertRaises(ValueError):
+                    build_calibration_preflight(
+                        "material", *self.summaries(),
+                        acquisition_methods=methods,
+                    )
+
     def test_mob_preview_has_distinct_blocking_checklist(self):
         result = build_calibration_preflight("mob", None, None, None)
         self.assertEqual("NO_VERIFIED_MOB_ROUTE", result["route_check"])
