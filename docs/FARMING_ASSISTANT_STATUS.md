@@ -1,5 +1,40 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — receipt/cancellation race hardening (GitHub-only)
+
+- **Base:** `f0f23e57f5393a73028ccd2b3d3c39ba81d80417` on
+  `agent/material-first-farming`.
+- **Implementation:** `135600c88ab7ea197982043d04499dd10f572ae1`
+  changed `src/overworld/material_route.py` to honor boolean cancellation
+  before issuing a pickup, after pickup and on both sides of inventory
+  observation. Previously, ignoring a returned `True` could allow new
+  UI input after Stop. The controller now owns the single CLEARED transition,
+  rather than receiving an early duplicate from `camp_cleared`.
+  A camp receipt requires an observed baseline; cancellation never adds a
+  new receipt or treats an issued pickup/combat clear as a reward.
+- **Synthetic contract tests:** `6535784d54070b8847e762a828f15ac97c2e1baa`
+  added five tests to `tests/TestMaterialRoute.py`: cancellation before
+  pickup; cancellation during pickup; cancellation during inventory read;
+  missing baseline; and exactly one CLEARED transition per camp.
+- **One-shot integration:** `f571cb95016501406bddb9c88ddf77c26a3c0173`
+  added `tests.TestMaterialRoute` as a focused run and compiled both
+  modified code/test files within `scripts/qualify_farming_one_shot.py`.
+- **Execution:** NOT RUN. GitHub connector writes and static source inspection
+  are not Windows/Python/Qt/game tests, live inventory or independent review.
+  Do not spend Waveplates or launch the game in this automation.
+- **Blocking state:** `BLOCKED_FOR_LIVE_QUALIFICATION`. Exact current-game
+  item/enemy identities, available reward/source identity, native inventory
+  receipts, source-specific runtime qualification and independent route/spend
+  authority remain missing. No new material becomes executable; browser
+  remains localhost-only and read-only; Qt Start/Pause/Stop stay disabled.
+- **Next:** valuable targeted review of existing provider dispatch and
+  resource ledger, without inventing any source approval. Codex later runs
+  `run-farming-one-shot.cmd` once on a clean exact-SHA Windows checkout,
+  verifies both UIs and investigates source-specific current-game gates.
+
+---
+
+
 ## 2026-11-14 — immediate source-aware strategy / bounded stop implementation
 
 User requested proceeding immediately instead of waiting for the hourly run.
