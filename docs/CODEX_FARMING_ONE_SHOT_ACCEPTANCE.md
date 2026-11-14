@@ -97,6 +97,27 @@ is still not evidence of a successful item drop.
 Repair real failures and rerun the complete exact-SHA suite before reporting
 offline acceptance.
 
+## Source-aware blocked calibration UX (additional offline contracts)
+
+For non-mob material references, verify that the preview does not silently
+reinterpret a Forgery, Simulation, Tacet, quest/event, synthesis or historical
+subscription reward as a surface mob drop. The preflight's
+`source_family`, `source_check`, `route_check` and read-only guide
+should select the appropriate next action: exact domain challenge and
+per-claim debit/inventory qualification for domain references, recipe and
+ingredient-cost review for synthesis, or manual availability checks for
+quest/event/historical items. A non-mob reference must **not** scan or
+present an unrelated local enemy receipt/route manifest as a candidate,
+or instruct the user to identify a numeric mob ID. Mixed candidate
+references such as FF Mech Core may still offer a read-only mob-drop
+calibration path but must never select or execute an unverified route.
+
+The one-shot runner now explicitly compiles both modified guide/preflight
+modules and executes `tests.TestFarmingPreflight` and
+`tests.TestFarmingCalibrationGuide` as separate focused modules.
+Inspect these test reports on the exact fetched HEAD. Preserve the disabled
+Start/Pause/Stop state for all reference-only and unqualified materials.
+
 ## Phase 2 — GUI and HTTP acceptance
 
 Launch native Qt with `main.py` and standalone read-only browser with
