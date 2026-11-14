@@ -10,6 +10,16 @@ import unicodedata
 from src.automation.resource_policy import ResourcePolicyError, verify_inventory
 
 
+# Only these existing executors can consume their matching resource source.
+# A reviewed source mapping must not turn a Forgery/Tacet/Simulation reward
+# into an overworld hunt, or route a boss claim through another producer.
+_SOURCE_EXECUTORS = {
+    'boss': frozenset({'CultivationTask'}),
+    'domain': frozenset({'ForgeryTask', 'SimulationTask', 'TacetTask'}),
+    'overworld': frozenset({'BoundedRouteTask'}),
+}
+
+
 def compact_text(text):
     return re.sub(r'\s+', '', unicodedata.normalize('NFKC', text))
 
@@ -51,9 +61,12 @@ class SourceMapping:
     qualified: bool = False
 
     def matches(self, goal, runtime):
-        return (self.material == goal.name and self.kind in ('boss', 'domain', 'overworld')
-                and self.executor and self.profile and self.evidence
-                and self.runtime == runtime and self.qualified)
+        return (self.material == goal.name
+                and self.executor in _SOURCE_EXECUTORS.get(self.kind, ())
+                and isinstance(self.profile, str) and bool(self.profile.strip())
+                and isinstance(self.evidence, str) and bool(self.evidence.strip())
+                and isinstance(self.runtime, str) and bool(self.runtime)
+                and self.runtime == runtime and self.qualified is True)
 
 
 @dataclass
@@ -85,11 +98,27 @@ class ResourceGoalQueue:
         for goal in self.goals:
             choices = [s for s in self.mappings if s.matches(goal, runtime)]
             source = choices[0] if len(choices) == 1 else None
+            if not goal.missing:
+                status, reason = 'COMPLETE', 'Configured material target is already met.'
+            elif len(choices) > 1:
+                status, reason = 'UNRESOLVED', 'Ambiguous: multiple qualified source mappings.'
+            elif source is None:
+                status, reason = (
+                    'UNRESOLVED',
+                    'No compatible, uniquely qualified source for this material and runtime. '
+                    'Verify the source kind, matching task, evidence and current version.',
+                )
+            else:
+                status, reason = (
+                    'READY',
+                    'Mapping candidate only; inherited task runtime, identity, '
+                    'spending and post-dispatch inventory gates must still pass.',
+                )
             result.append({'material': goal.name, 'owned': goal.owned, 'target': goal.required,
                            'origin': goal.origin, 'deficit': goal.missing,
                            'executor': source.executor if source else None,
                            'profile': source.profile if source else None,
-                           'state': 'COMPLETE' if not goal.missing else 'READY' if source else 'UNRESOLVED'})
+                           'state': status, 'reason': reason})
         return result
 
     def next_source(self, runtime):

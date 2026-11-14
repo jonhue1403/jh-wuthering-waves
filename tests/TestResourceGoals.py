@@ -213,6 +213,60 @@ class TestResourceGoals(unittest.TestCase):
         self.assertEqual('READY', queue.preview('3.0.4')[0]['state'])
         self.assertEqual(mapping, queue.next_source('3.0.4')[1])
 
+    def test_source_kind_must_match_existing_producer_before_selection(self):
+        goal = MaterialGoal('material', 1, 10, origin='user_supplied')
+        cases = (
+            ('boss', 'CultivationTask', True),
+            ('domain', 'ForgeryTask', True),
+            ('domain', 'SimulationTask', True),
+            ('domain', 'TacetTask', True),
+            ('overworld', 'BoundedRouteTask', True),
+            ('boss', 'BoundedRouteTask', False),
+            ('domain', 'BoundedRouteTask', False),
+            ('overworld', 'ForgeryTask', False),
+            ('overworld', 'CultivationTask', False),
+            ('domain', 'FarmEchoTask', False),
+            ('daily', 'DailyTask', False),
+            ('synthesis', 'BoundedRouteTask', False),
+        )
+        for kind, executor, permitted in cases:
+            with self.subTest(kind=kind, executor=executor):
+                mapping = SourceMapping(
+                    'material', kind, executor, 'observed-profile',
+                    'hashed evidence', '3.0.4', True,
+                )
+                queue = ResourceGoalQueue([goal], [mapping])
+                self.assertEqual(permitted, mapping.matches(goal, '3.0.4'))
+                self.assertEqual('READY' if permitted else 'UNRESOLVED',
+                                 queue.preview('3.0.4')[0]['state'])
+                self.assertEqual(permitted, queue.next_source('3.0.4') is not None)
+
+    def test_truthy_qualification_and_missing_evidence_never_select_a_producer(self):
+        goal = MaterialGoal('material', 1, 10, origin='user_supplied')
+        for qualified, evidence in ((1, 'hash'), ('true', 'hash'), (True, ''),
+                                    (True, '  '), (False, 'hash')):
+            with self.subTest(qualified=qualified, evidence=evidence):
+                source = SourceMapping(
+                    'material', 'overworld', 'BoundedRouteTask', 'profile',
+                    evidence, '3.0.4', qualified,
+                )
+                queue = ResourceGoalQueue([goal], [source])
+                self.assertEqual('UNRESOLVED', queue.preview('3.0.4')[0]['state'])
+                self.assertIsNone(queue.next_source('3.0.4'))
+
+    def test_preview_explains_runtime_gate_and_ambiguous_mapping(self):
+        goal = MaterialGoal('material', 1, 10, origin='user_supplied')
+        source = SourceMapping(
+            'material', 'boss', 'CultivationTask', 'profile',
+            'hash', '3.0.4', True,
+        )
+        one = ResourceGoalQueue([goal], [source]).preview('3.0.4')[0]
+        self.assertEqual('READY', one['state'])
+        self.assertIn('runtime', one['reason'])
+        two = ResourceGoalQueue([goal], [source, source]).preview('3.0.4')[0]
+        self.assertEqual('UNRESOLVED', two['state'])
+        self.assertIn('Ambiguous', two['reason'])
+
     def test_combat_and_reward_confirmation_do_not_complete_goal(self):
         goal = MaterialGoal('material', 4, 8, origin='user_supplied')
         queue = ResourceGoalQueue([goal])
