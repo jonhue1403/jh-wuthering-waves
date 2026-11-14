@@ -9,7 +9,7 @@ from src.task.BaseCombatTask import NotInCombatException
 from src.task.BaseWWTask import BaseWWTask
 from src.task.CultivationTask import CultivationError, CultivationTask, MaterialGoal, parse_quantity
 from src.task.DomainTask import DomainTask
-from src.automation.resource_policy import ActionJournal, ClaimIdentity, ResourceBudget, ResourceLedger, UncertainReceipt
+from src.automation.resource_policy import ActionJournal, ClaimIdentity, ResourceBudget, ResourceLedger, ResourcePolicyError, UncertainReceipt
 
 
 class TestCultivationTask(unittest.TestCase):
@@ -90,11 +90,11 @@ class TestCultivationTask(unittest.TestCase):
     def test_queued_cultivation_goals_reject_unrequested_deficit_and_stale_count(self):
         self.task.goals = [MaterialGoal('Needed', 4, 28),
                            MaterialGoal('Also needed', 9, 10)]
-        with self.assertRaisesRegex(Exception, 'Guidebook row does not match'):
+        with self.assertRaisesRegex(ResourcePolicyError, 'Guidebook row does not match'):
             self.task._bind_queued_goals([
                 MaterialGoal('Needed', 4, 28, origin='user_supplied')])
         self.task.goals[1].owned = 10
-        with self.assertRaisesRegex(Exception, 'Queued inventory differs'):
+        with self.assertRaisesRegex(ResourcePolicyError, 'Queued inventory differs'):
             self.task._bind_queued_goals([
                 MaterialGoal('Needed', 5, 28, origin='user_supplied')])
 
