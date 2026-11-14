@@ -7,7 +7,7 @@ import tempfile
 import unittest
 from unittest.mock import Mock
 
-from src.overworld.controller import HuntAbort, HuntState
+from src.overworld.controller import HuntAbort, HuntCancelled, HuntState
 from src.overworld.material_route import (
     CampSegment, InventoryObservation, MaterialRoute, MaterialRouteRuntime,
     ReviewedNavigator, TransitionObservation, known_beacon_transition, run_material_route,
@@ -146,6 +146,77 @@ class TestMaterialRoute(unittest.TestCase):
         with self.assertRaisesRegex(HuntAbort, "time limit"):
             self.run_route()
         self.assertEqual(("stop",), self.runtime.events[-1])
+
+    def test_completed_route_emits_one_cleared_transition_per_camp(self):
+        run, material = self.run_route()
+        self.assertEqual(HuntState.COMPLETE, run.state)
+        self.assertEqual(2, len(material.receipts))
+        self.assertEqual(
+            len(material.receipts),
+            sum(event == ("CLEARED",) for event in self.runtime.events),
+        )
+
+    def test_cancel_before_pickup_refuses_new_input_and_receipt(self):
+        pickup = Mock()
+        material = MaterialRouteRuntime(
+            self.runtime, self.route, 10,
+            read_inventory=self.inventory, pickup=pickup,
+            clock=lambda: self.runtime.time,
+        )
+        material.observe_inventory()
+        self.runtime.cancel = True
+        with self.assertRaises(HuntCancelled):
+            material.camp_cleared(self.camps[0], Mock())
+        pickup.assert_not_called()
+        self.assertEqual(1, self.reads)
+        self.assertEqual([], material.receipts)
+
+    def test_cancel_during_pickup_prevents_inventory_ui_reentry(self):
+        def cancel_on_pickup(_camp):
+            self.runtime.cancel = True
+
+        pickup = Mock(side_effect=cancel_on_pickup)
+        material = MaterialRouteRuntime(
+            self.runtime, self.route, 10,
+            read_inventory=self.inventory, pickup=pickup,
+            clock=lambda: self.runtime.time,
+        )
+        material.observe_inventory()
+        with self.assertRaises(HuntCancelled):
+            material.camp_cleared(self.camps[0], Mock())
+        pickup.assert_called_once()
+        self.assertEqual(1, self.reads)
+        self.assertIsNotNone(material.observation)
+        self.assertEqual([], material.receipts)
+
+    def test_cancel_during_inventory_observation_is_not_a_receipt(self):
+        def interrupted_read(material_id):
+            self.runtime.cancel = True
+            return InventoryObservation(
+                material_id, 25, self.runtime.time, "interrupted", "ITEM_DETAIL"
+            )
+
+        material = MaterialRouteRuntime(
+            self.runtime, self.route, 30,
+            read_inventory=interrupted_read, pickup=Mock(),
+            clock=lambda: self.runtime.time,
+        )
+        with self.assertRaises(HuntCancelled):
+            material.observe_inventory()
+        self.assertIsNone(material.observation)
+        self.assertEqual([], material.receipts)
+
+    def test_camp_receipt_requires_prior_inventory_baseline(self):
+        pickup = Mock()
+        material = MaterialRouteRuntime(
+            self.runtime, self.route, 10,
+            read_inventory=self.inventory, pickup=pickup,
+            clock=lambda: self.runtime.time,
+        )
+        with self.assertRaisesRegex(HuntAbort, "baseline"):
+            material.camp_cleared(self.camps[0], Mock())
+        pickup.assert_not_called()
+        self.assertEqual([], material.receipts)
 
     def manifest(self):
         (self.folder / "evidence.txt").write_text("Synthetic test data, not live evidence.", encoding="utf-8")
