@@ -255,6 +255,48 @@ class TestResourceRoutineTask(unittest.TestCase):
         records = ActionJournal(self.folder / 'automation-actions.json').snapshot()['activities']
         self.assertEqual(['COMPLETE'], [item['state'] for item in records.values()])
 
+    def test_satisfied_goal_is_excluded_from_bounded_receipt_batch(self):
+        stack, queue, _, _, _ = self._material_run_context(
+            other_goal=True, after_inventory={'Known material': 6})
+        queue.goals[1].required = queue.goals[1].owned  # Already complete.
+        dispatch = Mock()
+        with stack, patch.object(self.task, '_dispatch', dispatch):
+            self.task.run()
+        self.assertEqual(['Known material'],
+                         [g.name for g in dispatch.call_args.kwargs['queued_goals']])
+        self.assertEqual(6, queue.goals[0].owned)
+        self.assertEqual(2, queue.goals[1].owned)
+        self.assertEqual(
+            ['COMPLETE'],
+            [item['state'] for item in ActionJournal(
+                self.folder / 'automation-actions.json').snapshot()['activities'].values()])
+
+    def test_incidental_gain_for_satisfied_goal_cannot_confirm_active_goal(self):
+        stack, queue, _, _, _ = self._material_run_context(
+            other_goal=True,
+            after_inventory={'Known material': 4, 'Other material': 3})
+        queue.goals[1].required = queue.goals[1].owned
+        dispatch = Mock()
+        with stack, patch.object(self.task, '_dispatch', dispatch):
+            with self.assertRaisesRegex(UncertainReceipt, 'no actual target inventory increase'):
+                self.task.run()
+        dispatch.assert_called_once()
+        self.assertEqual(4, queue.goals[0].owned)
+        self.assertEqual(
+            ['UNCERTAIN'],
+            [item['state'] for item in ActionJournal(
+                self.folder / 'automation-actions.json').snapshot()['activities'].values()])
+
+    def test_multi_material_bounded_route_rejects_before_inventory_or_journal(self):
+        stack, _, observer, _, _ = self._material_run_context(other_goal=True)
+        dispatch = Mock()
+        with stack, patch.object(self.task, '_dispatch', dispatch):
+            with self.assertRaisesRegex(ResourcePolicyError, 'exactly one unmet material goal'):
+                self.task.run()
+        observer.observe.assert_not_called()
+        dispatch.assert_not_called()
+        self.assertFalse((self.folder / 'automation-actions.json').exists())
+
     def test_missing_weekly_profile_stops_before_legacy_claim_navigation(self):
         with self.assertRaisesRegex(ResourcePolicyError, 'LIVE_VERIFICATION_PENDING'):
             WeeklyActivityAdapter(self.task, '')
