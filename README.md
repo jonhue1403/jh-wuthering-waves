@@ -97,6 +97,17 @@
 | [deploy](.agents/skills/deploy/SKILL.md) | 提交已完成的修改，创建版本标签并发布。 |
 | [use-local-venv](.agents/skills/use-local-venv/SKILL.md) | 运行 Python 命令时优先使用仓库的本地虚拟环境。 |
 
+### Farming Assistant 本地浏览器预览（只读）
+
+Windows 可运行 `run-farming-web.cmd`，或使用
+`.\.venv\Scripts\python.exe main_farming_web.py`。
+该页面只监听 `127.0.0.1`，可以搜索 FF Mech Core、查看怪物资料及校准状态，
+但**不能开始战斗、移动、拾取或消耗资源**。实际游戏自动化仍需独立验证。
+
+OK Script 3 已移除旧 WebCustomTab；`main_web.py` 和
+`run-local-web.cmd` 仅作为 Qt 桌面程序的兼容启动器。
+详情见 [独立 Web 预览指南](docs/FARMING_STANDALONE_WEB.md)。
+
 ### 命令行参数
 
 您可以通过命令行参数实现自动化启动。
