@@ -290,6 +290,8 @@ class ActionJournal:
             raise ResourcePolicyError('Observed precondition evidence required')
         with self._transaction() as data:
             activities = data.setdefault('activities', {})
+            if identity.key in data['completed']:
+                return False
             # Atomic cross-source replay gate: a different material, profile or
             # reset cycle cannot hide an earlier uncertain acquisition attempt.
             if (identity.activity.startswith('material-goal:')
@@ -298,8 +300,6 @@ class ActionJournal:
             previous = activities.get(identity.key)
             if previous and previous['state'] in ('PENDING', 'UNCERTAIN'):
                 raise UncertainReceipt('Interrupted routine requires observed reconciliation before dispatch')
-            if identity.key in data['completed']:
-                return False
             activities[identity.key] = {'identity': asdict(identity), 'state': 'PENDING',
                                         'evidence': evidence, 'started_at': time.time()}
         return True

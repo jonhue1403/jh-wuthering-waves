@@ -213,9 +213,10 @@ class TestResourceRoutineTask(unittest.TestCase):
                                    101.0, True, False, 'observed-after')
         initial = {'Known material': 4, **({'Other material': 2} if other_goal else {})}
         observer = Mock()
-        observer.observe.side_effect = [(before, initial)]
+        observations = [(before, initial)]
         if after_inventory is not None:
-            observer.observe.side_effect.append((after, after_inventory))
+            observations.append((after, after_inventory))
+        observer.observe.side_effect = observations
         stack = ExitStack()
         stack.enter_context(patch.object(self.task, '_load_plan', return_value=(self.path, plan, queue)))
         stack.enter_context(patch.object(WWOneTimeTask, 'run', return_value=None))
@@ -376,7 +377,7 @@ class TestResourceRoutineTask(unittest.TestCase):
                                 inventory_reader={'item_text': 'Known material'},
                                 layer=(7, 'surface'), segments=(object(), object()))
         profile = SimpleNamespace(target_mob='verified-mob', layer=(7, 'surface'))
-        qualification = Mock()
+        qualification = SimpleNamespace(assert_compatible=Mock())
         planned = {'Route Manifest': str(self.folder / 'route.json'),
                    'Runtime Qualification': str(self.folder / 'reviewed.json'),
                    'Observed Game Version': 'unit-game'}
@@ -431,7 +432,8 @@ class TestResourceRoutineTask(unittest.TestCase):
         with patch('src.overworld.material_route.MaterialRoute.load', return_value=route), \
              patch('src.overworld.navigation.player_locator.SurfaceProfile.load',
                    return_value=profile), \
-             patch('src.overworld.qualification.RuntimeQualification.load'), \
+             patch('src.overworld.qualification.RuntimeQualification.load',
+                   return_value=SimpleNamespace(assert_compatible=Mock())), \
              patch('src.task.ResourceRoutineTask.importlib.metadata.version',
                    return_value='unit-runtime'):
             for key, value in (('Target Mob', 'wrong-mob'), ('Max Camps', 2),
@@ -460,8 +462,9 @@ class TestResourceRoutineTask(unittest.TestCase):
              patch('src.overworld.material_route.MaterialRoute.load', return_value=route), \
              patch('src.overworld.navigation.player_locator.SurfaceProfile.load',
                    return_value=profile), \
-             patch('src.overworld.qualification.RuntimeQualification.load') as qualification:
-            qualification.return_value.assert_compatible.side_effect = ValueError('stale source hash')
+             patch('src.overworld.qualification.RuntimeQualification.load',
+                   return_value=SimpleNamespace(assert_compatible=Mock(
+                       side_effect=ValueError('stale source hash')))):
             with self.assertRaisesRegex(ResourcePolicyError, 'BOUNDED_ROUTE_NOT_QUALIFIED'):
                 self.task.run()
         observer.observe.assert_not_called()

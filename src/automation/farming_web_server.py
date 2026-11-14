@@ -99,7 +99,20 @@ class FarmingWebHandler(BaseHTTPRequestHandler):
             self._json(403, {"error": "Cross-origin access forbidden"})
             return False
         fetch_site = self.headers.get("Sec-Fetch-Site")
-        if fetch_site not in (None, "same-origin", "none"):
+        if fetch_site == "cross-site":
+            # A user can follow a launch link from another site into this
+            # harmless application shell. Keep cross-site API/data requests
+            # blocked; only permit a top-level GET of the exact landing page.
+            top_level_landing = (
+                self.command == "GET" and self.path == "/"
+                and self.headers.get("Sec-Fetch-Mode") == "navigate"
+                and self.headers.get("Sec-Fetch-Dest") == "document"
+                and not origins
+            )
+            if not top_level_landing:
+                self._json(403, {"error": "Cross-site access forbidden"})
+                return False
+        elif fetch_site not in (None, "same-origin", "none"):
             self._json(403, {"error": "Cross-site access forbidden"})
             return False
         if self.headers.get("Transfer-Encoding") is not None:

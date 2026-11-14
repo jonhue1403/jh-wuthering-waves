@@ -82,7 +82,7 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertEqual("SOURCE_UNRESOLVED", self.tab._preview["readiness"])
         self.assertFalse(self.tab.start_button.isEnabled())
 
-        self.tab.search.setText("ff-mech core")
+        self.tab.search.setText("ff mech core")
         self.assertIn("Clamorling", self.tab.acquisition_label.text())
         self.assertEqual(5, self.tab.source_list.count())
         self.assertFalse(self.tab.start_button.isEnabled())

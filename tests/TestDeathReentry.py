@@ -36,6 +36,7 @@ class TestTacetDeathReentry(unittest.TestCase):
     def make_task(self, deaths):
         task = TacetTask.__new__(TacetTask)
         task.stamina_once = 60
+        task.total_number = 21
         task.teleports = []
         task.logs = []
         task.combat_once, task.combat_calls = combat_results(deaths)

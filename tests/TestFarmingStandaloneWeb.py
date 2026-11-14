@@ -206,6 +206,22 @@ class TestFarmingStandaloneWeb(unittest.TestCase):
         status, _, _ = self.request("GET", "/", headers=(("Origin", origin),))
         self.assertEqual(200, status)
 
+    def test_cross_site_top_level_landing_is_safe_but_api_stays_blocked(self):
+        navigation = (
+            ("Sec-Fetch-Site", "cross-site"),
+            ("Sec-Fetch-Mode", "navigate"),
+            ("Sec-Fetch-Dest", "document"),
+        )
+        status, headers, body = self.request("GET", "/", headers=navigation)
+        self.assertEqual(200, status)
+        self.assertIn(b"Local read-only preview", body)
+        self.assertIn("text/html", headers["Content-Type"])
+        status, _, _ = self.request("GET", "/api/targets", headers=navigation)
+        self.assertEqual(403, status)
+        status, _, _ = self.request(
+            "GET", "/", headers=navigation + (("Origin", "https://attacker.example"),))
+        self.assertEqual(403, status)
+
     def test_only_get_is_supported(self):
         for method in ("HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"):
             with self.subTest(method=method):
