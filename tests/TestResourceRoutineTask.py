@@ -191,7 +191,7 @@ class TestResourceRoutineTask(unittest.TestCase):
         self.assertEqual(1, len(journal.snapshot()['activities']))
         self.task.click.assert_not_called()
 
-    def _material_run_context(self, *, other_goal=False, after_inventory=None):
+    def _material_run_context(self, *, other_goal=False, after_inventory=None, stub_route_preflight=True):
         from contextlib import ExitStack
         self.task.config['Maximum Activities'] = 1
         self.task.config['Preview Only'] = False
@@ -225,6 +225,12 @@ class TestResourceRoutineTask(unittest.TestCase):
                                   return_value=ClaimIdentity('uid', 'Asia', 'resource_budget', 'cycle-42')))
         stack.enter_context(patch('src.task.ResourceRoutineTask.RoutineObserver',
                                   return_value=observer))
+        if stub_route_preflight:
+            # Existing material-loop contracts isolate dispatch journaling;
+            # the new reviewed-route preflight is covered by dedicated tests.
+            stack.enter_context(patch.object(
+                self.task, '_prepare_bounded_material_overrides',
+                return_value={'Route Manifest': 'unit-reviewed-route.json'}))
         return stack, queue, observer, initial, source
 
     def test_material_cycle_mismatch_rejects_before_dispatch_or_journal(self):
@@ -358,6 +364,105 @@ class TestResourceRoutineTask(unittest.TestCase):
         dispatch = Mock()
         with stack, patch.object(self.task, '_dispatch', dispatch):
             with self.assertRaisesRegex(ResourcePolicyError, 'exactly one unmet material goal'):
+                self.task.run()
+        observer.observe.assert_not_called()
+        dispatch.assert_not_called()
+        self.assertFalse((self.folder / 'automation-actions.json').exists())
+
+    def test_bounded_route_derives_executor_controls_from_reviewed_route(self):
+        goal = MaterialGoal('Known material', 4, 28, origin='user_supplied')
+        route = SimpleNamespace(profile_path=(self.folder / 'surface.json').resolve(),
+                                material_id='Known material', target_mob='verified-mob',
+                                inventory_reader={'item_text': 'Known material'},
+                                layer=(7, 'surface'), segments=(object(), object()))
+        profile = SimpleNamespace(target_mob='verified-mob', layer=(7, 'surface'))
+        qualification = Mock()
+        planned = {'Route Manifest': str(self.folder / 'route.json'),
+                   'Runtime Qualification': str(self.folder / 'reviewed.json'),
+                   'Observed Game Version': 'unit-game'}
+        with patch('src.overworld.material_route.MaterialRoute.load', return_value=route) as loader, \
+             patch('src.overworld.navigation.player_locator.SurfaceProfile.load',
+                   return_value=profile), \
+             patch('src.overworld.qualification.RuntimeQualification.load',
+                   return_value=qualification), \
+             patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                   return_value='unit-runtime'):
+            derived = self.task._prepare_bounded_material_overrides(planned, [goal])
+        self.assertEqual(28, derived['User Material Target'])
+        self.assertEqual('verified-mob', derived['Target Mob'])
+        self.assertEqual(2, derived['Max Camps'])
+        self.assertIs(derived['Preview Only'], False)
+        self.assertIs(derived['Localization Only'], False)
+        self.assertIs(derived['Test Walk Only'], False)
+        self.assertNotIn('Target Mob', planned)
+        loader.assert_called_once_with(planned['Route Manifest'])
+        self.assertEqual('MATERIAL_ROUTE',
+                         qualification.assert_compatible.call_args.kwargs['stage'])
+        self.assertEqual('unit-game',
+                         qualification.assert_compatible.call_args.kwargs['game_version'])
+
+    def test_bounded_route_rejects_missing_proof_and_conflicting_controls(self):
+        goal = MaterialGoal('Known material', 4, 28, origin='user_supplied')
+        self.task.get_task_by_class = Mock(side_effect=AssertionError('child task looked up'))
+        with self.assertRaisesRegex(ResourcePolicyError, 'explicit Route Manifest'):
+            self.task._dispatch('BoundedRouteTask', {}, self.ledger(), queued_goals=[goal])
+        self.task.get_task_by_class.assert_not_called()
+        base = {'Route Manifest': 'route.json', 'Runtime Qualification': 'reviewed.json',
+                'Observed Game Version': 'unit-game'}
+        for key, value in (('Preview Only', True), ('Localization Only', True),
+                           ('Test Walk Only', True), ('Safe Test Mode', False),
+                           ('Use Teleport', True), ('Use Motorcycle', True),
+                           ('Surface Only', False)):
+            with self.subTest(key=key):
+                with self.assertRaisesRegex(ResourcePolicyError, 'Incompatible bounded material'):
+                    self.task._prepare_bounded_material_overrides(
+                        {**base, key: value}, [goal])
+        self.assertFalse((self.folder / 'journal.json').exists())
+
+    def test_bounded_route_rejects_conflicting_mob_and_target(self):
+        goal = MaterialGoal('Known material', 4, 28, origin='user_supplied')
+        route = SimpleNamespace(profile_path=(self.folder / 'surface.json').resolve(),
+                                material_id='Known material', target_mob='verified-mob',
+                                inventory_reader={'item_text': 'Known material'},
+                                layer=(7, 'surface'), segments=(object(),))
+        profile = SimpleNamespace(target_mob='verified-mob', layer=(7, 'surface'))
+        base = {'Route Manifest': 'route.json', 'Runtime Qualification': 'reviewed.json',
+                'Observed Game Version': 'unit-game'}
+        with patch('src.overworld.material_route.MaterialRoute.load', return_value=route), \
+             patch('src.overworld.navigation.player_locator.SurfaceProfile.load',
+                   return_value=profile), \
+             patch('src.overworld.qualification.RuntimeQualification.load'), \
+             patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                   return_value='unit-runtime'):
+            for key, value in (('Target Mob', 'wrong-mob'), ('Max Camps', 2),
+                               ('User Material Target', 27)):
+                with self.subTest(key=key):
+                    with self.assertRaisesRegex(ResourcePolicyError, 'disagrees with reviewed'):
+                        self.task._prepare_bounded_material_overrides(
+                            {**base, key: value}, [goal])
+            with self.assertRaisesRegex(ResourcePolicyError, 'material does not match'):
+                self.task._prepare_bounded_material_overrides(
+                    base, [MaterialGoal('Other material', 1, 3, origin='user_supplied')])
+
+    def test_stale_runtime_qualification_rejects_before_observation_or_journal(self):
+        stack, _, observer, _, _ = self._material_run_context(stub_route_preflight=False)
+        plan = self.task._load_plan.return_value[1]
+        plan['executor_config'] = {'BoundedRouteTask': {
+            'Route Manifest': 'route.json', 'Runtime Qualification': 'reviewed.json',
+            'Observed Game Version': 'unit-game'}}
+        route = SimpleNamespace(profile_path=(self.folder / 'surface.json').resolve(),
+                                material_id='Known material', target_mob='verified-mob',
+                                inventory_reader={'item_text': 'Known material'},
+                                layer=(7, 'surface'), segments=(object(),))
+        profile = SimpleNamespace(target_mob='verified-mob', layer=(7, 'surface'))
+        dispatch = Mock()
+        with stack, patch.object(self.task, '_dispatch', dispatch), \
+             patch('src.overworld.material_route.MaterialRoute.load', return_value=route), \
+             patch('src.overworld.navigation.player_locator.SurfaceProfile.load',
+                   return_value=profile), \
+             patch('src.overworld.qualification.RuntimeQualification.load') as qualification:
+            qualification.return_value.assert_compatible.side_effect = ValueError('stale source hash')
+            with self.assertRaisesRegex(ResourcePolicyError, 'BOUNDED_ROUTE_NOT_QUALIFIED'):
                 self.task.run()
         observer.observe.assert_not_called()
         dispatch.assert_not_called()
