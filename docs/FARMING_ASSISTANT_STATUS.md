@@ -1,5 +1,53 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — source-category research, acquisition guidance and one-shot Codex QA
+
+- Added `src/automation/farming_acquisition_reference.py` with community/guide
+  reference URLs and possible acquisition methods for **all 27 screenshot
+  materials**, differentiated into MOB_DROP, FORGERY_CHALLENGE,
+  SIMULATION_TRAINING, TACET_FIELD, SYNTHESIS, EXPLORATION_OR_QUEST,
+  EVENT_OR_EXCHANGE and HISTORICAL_SUBSCRIPTION. All are strictly
+  `REFERENCE_ONLY` and `NOT_OBSERVED_CURRENT_GAME`. The special historical
+  Transducer subscription is not presumed currently available; "Echo Modifier"
+  identity versus the community "Modifier" entry needs in-game confirmation.
+- The view, native Qt and standalone Web now show possible acquisition methods
+  and their documentation references. This prevents a quest/Simulation/Forgery
+  item from being treated as a mob drop just because it appears on the farming
+  screen. The 27 existing catalog targets, FF Mech Core five possible named
+  enemies, source/route qualification and all disabled gameplay buttons remain
+  unchanged.
+- Added regressions `TestFarmingAcquisitionReference.py` plus new view,
+  Qt and HTTP API coverage. The real game has **not** been observed or
+  controlled by this GitHub-only implementation session.
+- Added `scripts/qualify_farming_one_shot.py`, `run-farming-one-shot.cmd`,
+  and `tests/TestFarmingOneShot.py` for a single Codex-run offline
+  qualification campaign. The runner records exact Git SHA/cleanliness,
+  27 material previews and reference kinds, Python/Node checks, isolated
+  focused suites, complete separate-process full suite, per-module counts,
+  logs and separate unqualified live gates. It refuses to label a dirty
+  incomplete run as offline acceptance.
+- Added `docs/CODEX_FARMING_ONE_SHOT_ACCEPTANCE.md`, and updated the
+  27-row `docs/FARMING_MATERIAL_CATALOG.md` with URL-backed possible
+  acquisition methods. They are documentary hints, not executable providers.
+- **Tests not executed in this connector-only implementation session**:
+  Windows/Python/Qt/Node/browser/live game, individual 27 material
+  receipts, route permissions and independent Terra review are still
+  pending. The previous measured full run from Codex remains the most
+  recent verified run until the new one-shot suite is actually executed.
+- The existing hourly JH Wuthering development automation was explicitly
+  resumed on the owner's renewed instruction to continue implementation,
+  not duplicated. It is to focus on real code/UX readiness; Codex will
+  own a consolidated local acceptance run later.
+
+**Next:** finish internal verified-source/producer dispatch integration
+without enabling unreviewed gameplay; then Codex executes the one-shot
+offline suite, both actual UIs, independent Terra review and material-specific
+current-game evidence. Full live farming remains
+`LIVE_VERIFICATION_PENDING`.
+
+---
+
+
 ## 2026-11-14 — 27 screenshot materials added to the Farming Assistant catalog
 
 - Transcribed the user's 9×3 in-game material grid into 27 explicit material
