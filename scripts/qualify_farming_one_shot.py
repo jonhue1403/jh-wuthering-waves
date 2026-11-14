@@ -24,6 +24,7 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 TARGET_MODULES = (
     "tests.TestFarmingSelection",
+    "tests.TestFarmingAcquisitionReference",
     "tests.TestFarmingAssistantView",
     "tests.TestFarmingAssistantQt",
     "tests.TestFarmingStandaloneWeb",
@@ -32,6 +33,7 @@ TARGET_MODULES = (
 )
 PY_FILES = (
     "src/automation/farming_selection.py",
+    "src/automation/farming_acquisition_reference.py",
     "src/automation/farming_view.py",
     "src/automation/farming_web_server.py",
     "src/gui/FarmingAssistantTab.py",
@@ -190,6 +192,12 @@ def _catalog_snapshot() -> dict:
                 or preview["can_stop"] is not False
                 or preview["qualified_route_ids"]):
             raise ValueError("Unqualified material presented as executable: " + name)
+        reference = preview["acquisition_reference"]
+        if (reference["status"] != "REFERENCE_ONLY"
+                or reference["can_start"] is not False
+                or not reference["methods"]
+                or reference["executable_source_ids"]):
+            raise ValueError("Unreviewed acquisition method was promoted: " + name)
         expected = "SOURCE_DOCUMENTED" if slug == "ff-mech-core" else "SOURCE_UNRESOLVED"
         if preview["readiness"] != expected:
             raise ValueError("Material acquisition state changed without approval: " + name)
@@ -197,6 +205,9 @@ def _catalog_snapshot() -> dict:
             "id": slug, "name": name,
             "readiness": preview["readiness"],
             "documented_possible_source_count": len(preview["source_candidates"]),
+            "acquisition_reference_kinds": [
+                source["kind"] for source in reference["methods"]
+            ],
             "qualified_route_count": 0,
             "live_qualification": "NOT_RUN",
             "can_start": False,
