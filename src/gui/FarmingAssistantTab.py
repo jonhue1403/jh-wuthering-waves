@@ -118,6 +118,15 @@ class FarmingAssistantTab(CustomTab):
         self.reference_button.clicked.connect(self._open_reference)
         detail.addWidget(self.reference_button)
 
+        self.acquisition_label = QLabel(
+            self.tr("Acquisition methods: not verified"), right
+        )
+        self.acquisition_label.setWordWrap(True)
+        self.acquisition_label.setAccessibleName(
+            self.tr("Documented acquisition methods")
+        )
+        detail.addWidget(self.acquisition_label)
+
         goal_row = QHBoxLayout()
         self.goal_label = QLabel(self.tr("Desired inventory total (optional)"), right)
         self.goal = QLineEdit(right)
@@ -245,6 +254,9 @@ class FarmingAssistantTab(CustomTab):
             self.readiness_label.setText(self.tr("Unresolved"))
             self.reason_label.clear()
             self.source_list.clear()
+            self.acquisition_label.setText(
+                self.tr("Acquisition methods: select a material to inspect")
+            )
             self.inventory_label.setText(self.tr("Current inventory: not measured"))
             self.calibration_label.setText(self.tr("Local receipts: none reviewed for execution"))
             self.route_calibration_label.setText(self.tr("Local routes: none qualified for execution"))
@@ -288,6 +300,21 @@ class FarmingAssistantTab(CustomTab):
             item.setData(Qt.UserRole, source["source_url"])
             self.source_list.addItem(item)
         self._update_source_button()
+        acquisition = result["acquisition_reference"]
+        methods = acquisition["methods"]
+        if methods:
+            display = " · ".join(method["label"] for method in methods)
+            self.acquisition_label.setText(
+                self.tr("Reference-only acquisition methods: ") + display
+            )
+            self.acquisition_label.setToolTip(
+                self.tr("Unverified community references. Not an executable route.")
+            )
+        else:
+            self.acquisition_label.setText(
+                self.tr("Acquisition method not verified for this target")
+            )
+            self.acquisition_label.setToolTip("")
         self.inventory_label.setText(
             self.tr("Mob encounters: not observed (preview only)")
             if result["stop_criterion"]["mode"] == "ENCOUNTER_LIMIT"
