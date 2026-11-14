@@ -263,12 +263,14 @@ class FarmingAssistantView:
             "can_stop": False,
             "run_state": "PREVIEW_ONLY",
             "reason": (
+                "No documented acquisition method or qualified provider for "
+                "this material. Verify the current-game source."
+                if target_kind == TargetKind.MATERIAL
+                and not acquisition_reference["methods"] else
                 "Known acquisition reference, but this material has no "
                 "qualified current-game provider or automatic route."
                 if target_kind == TargetKind.MATERIAL
-                and not any(method["kind"] == "MOB_DROP"
-                            for method in acquisition_reference["methods"])
-                else resolution.explanation
+                and not mob_drop_plausible else resolution.explanation
             ),
             "next_step": preflight["next_action"],
         }
