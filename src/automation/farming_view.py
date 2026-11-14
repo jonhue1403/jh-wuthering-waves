@@ -61,7 +61,12 @@ class FarmingAssistantView:
         target_kind = self._kind(kind)
         if not isinstance(query, str) or len(query) > MAX_QUERY_LENGTH:
             raise ValueError("Search must be a short text query")
-        matches = self.catalog.search(query, kind=target_kind, limit=30)
+        matches = list(self.catalog.search(query, kind=target_kind, limit=30))
+        # Preserve the previously selected FF Mech Core as the default preview
+        # when browsing the now-expanded material list. Filtered results still
+        # follow their normal alphabetical search order.
+        if target_kind == TargetKind.MATERIAL and not query.strip():
+            matches.sort(key=lambda target: target.target_id != "ff-mech-core")
         return [
             {
                 "id": target.target_id,
