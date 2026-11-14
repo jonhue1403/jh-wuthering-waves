@@ -1,5 +1,18 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — exclude completed materials from dispatch receipts (GitHub-only)
+
+- **Starting HEAD:** `f41d97317a89ebcdac3437687257f83a1d09e148`; code commit `59d951246dd82550443079035a54cae459a528ca`; focused contracts `18fb8e63ae57cf1f5519ed3d5a190c47de6a0554`, all on `agent/material-first-farming`.
+- **Fixed:** The material-goal loop previously included already-satisfied goals in same-provider receipt batches. An unrelated inventory increase for a satisfied material could satisfy the generic *any increase* check even though an unmet goal had not progressed, and change the attempt fingerprint for another retry. Only goals with a current deficit are now included. The selected goal must be part of that unique qualified binding.
+- **Preflight:** A `BoundedRouteTask` provider shared by multiple **unmet** materials now rejects before target inventory observation and attempt-journal creation, rather than recording an `UNCERTAIN` attempt after a dispatch-shape error. This does not authorize or calibrate any route.
+- **Contracts added:** `tests/TestResourceRoutineTask.py` covers exclusion of completed goals, rejection of incidental completed-goal receipts, and early multi-material route rejection. Existing one-shot runner already includes `tests.TestResourceRoutineTask`; no extra runner or evidence wrapper created.
+- **Verification:** GitHub file commits/readback only; Python unit tests, Windows/Qt/browser/game and independent Terra review **NOT RUN**. No live game, navigation, resource spend or new material source authorization.
+- **Release gate:** `BLOCKED_FOR_LIVE_QUALIFICATION`. Community acquisition links and 27 catalog materials remain informational, domain provider adapters remain blocked, independent route and spending gates unchanged.
+- **Next increment:** audit current-game challenge identity-to-selector binding and per-claim ledger/actual inventory receipt adapters for Forgery, Simulation and Tacet without enabling execution on static selector shape alone. Later Codex runs `.\\.venv\\Scripts\\python.exe -m unittest tests.TestResourceRoutineTask -v` and one consolidated `run-farming-one-shot.cmd`.
+
+---
+
+
 ## 2026-11-14 — reject invalid F2 challenge selectors before any inherited navigation (GitHub-only)
 
 - **Starting SHA:** `604a4c88391925dcbd45052c95a6a2256783d946` on `agent/material-first-farming`; see latest live branch HEAD for this increment's commit.
