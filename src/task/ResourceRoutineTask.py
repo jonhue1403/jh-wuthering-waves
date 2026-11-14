@@ -77,6 +77,28 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             mappings.append(SourceMapping(**item))
         return path, plan, ResourceGoalQueue(goals, mappings)
 
+    @staticmethod
+    def _goal_attempt_identity(identity, source, goals, inventory_before):
+        """Bind a durable material attempt to its observed initial inventory.
+
+        A verified quantity increase changes the next attempt's identity, while
+        an interrupted run with the same baseline cannot silently repeat.
+        This is a journal correlation key, NOT live provider qualification.
+        """
+        names = tuple(sorted(goal.name for goal in goals))
+        if (not names or any(name not in inventory_before
+                             or type(inventory_before[name]) is not int
+                             or inventory_before[name] < 0 for name in names)):
+            raise ResourcePolicyError('Fresh inventory baseline required for every selected material')
+        binding = {
+            'executor': source.executor, 'kind': source.kind,
+            'profile': source.profile, 'evidence': source.evidence,
+            'runtime': source.runtime,
+            'inventory_before': {name: inventory_before[name] for name in names},
+        }
+        fingerprint = hashlib.sha256(json.dumps(binding, sort_keys=True).encode('utf-8')).hexdigest()
+        return replace(identity, activity='material-goal:' + fingerprint)
+
     def _dispatch(self, name, overrides, ledger, queued_goals=None):
         if name not in self.EXECUTORS:
             raise ResourcePolicyError('No qualified registered executor for this source')
@@ -182,26 +204,45 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             if selected is None:
                 break
             goal, source = selected
-            source_goals = [g for g in queue.goals if any(s.matches(g, runtime)
-                            and (s.executor, s.profile) == (source.executor, source.profile) for s in queue.mappings)]
+            # Batch only uniquely mapped goals bound to this exact producer
+            # evidence; another candidate sharing an executor/profile must not
+            # enter the same receipt or silently redirect a challenge.
+            source_goals = []
+            for candidate in queue.goals:
+                choices = [s for s in queue.mappings if s.matches(candidate, runtime)]
+                if len(choices) == 1 and choices[0] == source:
+                    source_goals.append(candidate)
             observer = RoutineObserver(self, path.parent / source.profile, source.kind)
             before, inventory_before = observer.observe()
-            if goal.name not in inventory_before or inventory_before[goal.name] != goal.owned:
-                raise ResourcePolicyError('Fresh inventory disagrees with configured goal; refresh the plan preview')
+            if any(inventory_before.get(g.name) != g.owned for g in source_goals):
+                raise ResourcePolicyError('Fresh inventory disagrees with one or more queued goals; refresh the plan preview')
             if (before.account, before.server) != (budget_identity.account, budget_identity.server):
                 raise ResourcePolicyError('Goal account/server differs from the observed shared budget identity')
+            attempt = self._goal_attempt_identity(before.identity, source, source_goals, inventory_before)
             ledger = ResourceLedger(journal, before.identity, budget, budget_scope=budget_scope)
             ledger.started = started
             session.check()
-            self._dispatch(source.executor, plan.get('executor_config', {}).get(source.executor, {}),
-                           ledger, queued_goals=source_goals)
             ledger.check_time()
-            session.check()
-            after, inventory = observer.observe(inventory_before)
-            if after.identity != before.identity:
-                raise ResourcePolicyError('Goal inventory identity/cycle changed')
-            names = {g.name for g in source_goals}
-            queue.receive({name: inventory[name] for name in names if name in inventory}, materials=names)
+            if journal.unresolved(before.identity):
+                raise ResourcePolicyError('Prior unconfirmed spending requires reconciliation before another material attempt')
+            if not journal.begin_activity(attempt, before.evidence):
+                raise ResourcePolicyError('This material attempt was already completed; refresh the observed inventory')
+            try:
+                self._dispatch(source.executor, plan.get('executor_config', {}).get(source.executor, {}),
+                               ledger, queued_goals=source_goals)
+                ledger.check_time()
+                session.check()
+                after, inventory = observer.observe(inventory_before)
+                if after.identity != before.identity or after.observed_at <= before.observed_at:
+                    raise ResourcePolicyError('Goal inventory identity/cycle changed or post-observation is stale')
+                names = {g.name for g in source_goals}
+                queue.receive({name: inventory[name] for name in names if name in inventory}, materials=names)
+                journal.complete(attempt, after.evidence)
+            except BaseException as error:
+                # A crash, cancellation, absent receipt or a mismatched OCR
+                # result must not allow a second automatic dispatch.
+                journal.uncertain_activity(attempt, error)
+                raise
             self.info_set('Goal queue progress', queue.preview(runtime))
             count += 1
         self.info_set('Queue result', queue.preview(runtime))

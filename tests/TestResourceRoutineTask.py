@@ -5,12 +5,13 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 
-from src.automation.goals import MaterialGoal, ResourceGoalQueue
+from src.automation.goals import MaterialGoal, ResourceGoalQueue, SourceMapping
 from src.automation.observations import RoutineObserver
 from src.automation.resource_policy import (
-    ActionJournal, ClaimIdentity, ResourceBudget, ResourceLedger, ResourcePolicyError,
+    ActionJournal, ClaimIdentity, ResourceBudget, ResourceLedger, ResourcePolicyError, UncertainReceipt,
 )
 from src.automation.session import get_session
+from src.automation.routines import RoutineObservation
 from src.automation.weekly import WeeklyActivityAdapter
 from src.task.ResourceRoutineTask import ResourceRoutineTask
 from src.task.WWOneTimeTask import WWOneTimeTask
@@ -87,6 +88,92 @@ class TestResourceRoutineTask(unittest.TestCase):
         with self.assertRaises(ResourcePolicyError):
             self.task._dispatch('arbitrary.module.DestructiveTask', {}, self.ledger())
         self.task.run_task_by_class.assert_not_called()
+
+    def _material_run_context(self, *, other_goal=False, after_inventory=None):
+        from contextlib import ExitStack
+        self.task.config['Maximum Activities'] = 1
+        goals = [MaterialGoal('Known material', 4, 28, origin='user_supplied')]
+        if other_goal:
+            goals.append(MaterialGoal('Other material', 2, 9, origin='user_supplied'))
+        source = SourceMapping('Known material', 'overworld', 'BoundedRouteTask',
+                               'reviewed-source.json', 'unit-evidence', 'unit-runtime', True)
+        mappings = [source]
+        if other_goal:
+            mappings.append(SourceMapping('Other material', 'overworld', 'BoundedRouteTask',
+                                          'reviewed-source.json', 'unit-evidence', 'unit-runtime', True))
+        queue = ResourceGoalQueue(goals, mappings)
+        plan = {'activities': [], 'sources': [], 'budget_identity_profile': 'budget.json',
+                'budget': self.plan['budget'], 'executor_config': {}}
+        before = RoutineObservation('uid', 'Asia', 'overworld', 'cycle-42',
+                                    100.0, True, False, 'observed-before')
+        after = RoutineObservation('uid', 'Asia', 'overworld', 'cycle-42',
+                                   101.0, True, False, 'observed-after')
+        initial = {'Known material': 4, **({'Other material': 2} if other_goal else {})}
+        observer = Mock()
+        observer.observe.side_effect = [(before, initial)]
+        if after_inventory is not None:
+            observer.observe.side_effect.append((after, after_inventory))
+        stack = ExitStack()
+        stack.enter_context(patch.object(self.task, '_load_plan', return_value=(self.path, plan, queue)))
+        stack.enter_context(patch.object(WWOneTimeTask, 'run', return_value=None))
+        stack.enter_context(patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                                  return_value='unit-runtime'))
+        stack.enter_context(patch('src.task.ResourceRoutineTask.observe_identity',
+                                  return_value=ClaimIdentity('uid', 'Asia', 'resource_budget', 'cycle-42')))
+        stack.enter_context(patch('src.task.ResourceRoutineTask.RoutineObserver',
+                                  return_value=observer))
+        return stack, queue, observer, initial, source
+
+    def test_goal_attempt_identity_binds_source_and_fresh_inventory(self):
+        identity = ClaimIdentity('uid', 'Asia', 'overworld', 'cycle-42')
+        source = SourceMapping('Known material', 'overworld', 'BoundedRouteTask',
+                               'one-profile', 'evidence', 'unit-runtime', True)
+        goal = MaterialGoal('Known material', 4, 28, origin='user_supplied')
+        create = ResourceRoutineTask._goal_attempt_identity
+        first = create(identity, source, [goal], {'Known material': 4})
+        self.assertEqual(first, create(identity, source, [goal], {'Known material': 4}))
+        self.assertNotEqual(first, create(identity, source, [goal], {'Known material': 5}))
+        changed = SourceMapping('Known material', 'overworld', 'BoundedRouteTask',
+                                'different-profile', 'evidence', 'unit-runtime', True)
+        self.assertNotEqual(first, create(identity, changed, [goal], {'Known material': 4}))
+        with self.assertRaises(ResourcePolicyError):
+            create(identity, source, [goal], {})
+
+    def test_failed_material_dispatch_records_uncertain_and_blocks_replay(self):
+        stack, queue, observer, before, source = self._material_run_context()
+        dispatch = Mock(side_effect=RuntimeError('inherited executor interrupted'))
+        with stack, patch.object(self.task, '_dispatch', dispatch):
+            with self.assertRaisesRegex(RuntimeError, 'interrupted'):
+                self.task.run()
+            records = ActionJournal(self.folder / 'automation-actions.json').snapshot()['activities']
+            self.assertEqual(['UNCERTAIN'], [item['state'] for item in records.values()])
+            # Recreate a fresh read, but the same material and inventory baseline.
+            observer.observe.side_effect = [(RoutineObservation(
+                'uid', 'Asia', 'overworld', 'cycle-42', 102, True, False, 'new-frame'), before)]
+            with self.assertRaises(UncertainReceipt):
+                self.task.run()
+        dispatch.assert_called_once()
+        self.assertEqual(4, queue.goals[0].owned)
+
+    def test_material_batch_requires_all_baselines_before_input(self):
+        stack, _, _, _, _ = self._material_run_context(other_goal=True)
+        # The observer read lacks the second material; the primary goal alone
+        # must never authorize an inherited multi-material executor.
+        dispatch = Mock()
+        with stack, patch.object(self.task, '_dispatch', dispatch):
+            with self.assertRaises(ResourcePolicyError):
+                self.task.run()
+        dispatch.assert_not_called()
+
+    def test_observed_material_gain_completes_durable_attempt(self):
+        stack, queue, _, _, _ = self._material_run_context(after_inventory={'Known material': 6})
+        dispatch = Mock()
+        with stack, patch.object(self.task, '_dispatch', dispatch):
+            self.task.run()
+        dispatch.assert_called_once()
+        self.assertEqual(6, queue.goals[0].owned)
+        records = ActionJournal(self.folder / 'automation-actions.json').snapshot()['activities']
+        self.assertEqual(['COMPLETE'], [item['state'] for item in records.values()])
 
     def test_missing_weekly_profile_stops_before_legacy_claim_navigation(self):
         with self.assertRaisesRegex(ResourcePolicyError, 'LIVE_VERIFICATION_PENDING'):
