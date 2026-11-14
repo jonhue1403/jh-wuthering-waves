@@ -71,6 +71,26 @@ root cause on `agent/material-first-farming`, add regression coverage and
 rerun the one-shot full qualification against the corrected clean SHA. Do not
 replace tests with mocks of the functionality under qualification.
 
+## Additional source-strategy/stop acceptance (new implementation)
+
+The source planner now returns per-material workflow candidates for
+overworld, Forgery, Simulation, Tacet, synthesis and manual/event sources.
+Verify in Qt, Web API and Python tests that the user sees correct
+**potential** source families and relevant Waveplate/material-consumption
+warnings. The planner must never select a provider, request a route file,
+issue input or mark a reference-only material executable.
+
+Validate `farming_stop_policy.evaluate_stop_criterion` for material inventory
+totals versus mob encounter caps, unknown/stale observations, invalid
+quantities, max three bounded attempts and explicit conservative stop
+decisions. An unverified number below target must not trigger automatic
+continuation. Check that mode changes in BOTH UIs clear an old search filter.
+
+The one-shot runner includes `TestFarmingStrategy.py` and
+`TestFarmingStopPolicy.py`, along with Qt/API integration regressions.
+Repair real failures and rerun the complete exact-SHA suite before reporting
+offline acceptance.
+
 ## Phase 2 — GUI and HTTP acceptance
 
 Launch native Qt with `main.py` and standalone read-only browser with
