@@ -244,12 +244,47 @@ class FarmingCatalog:
         )
 
 
-def starting_catalog() -> FarmingCatalog:
-    """FF Mech Core discovery from a community reference; NO live routes.
+# Explicit names and stable UI slugs transcribed from the operator's
+# 2026-11-14 in-game material screenshot, in screenshot row order.
+# Names are discovery records, NOT evidence of acquisition method, drop tables,
+# numeric game IDs, qualified routes or current-game inventory receipts.
+SCREENSHOT_MATERIALS: tuple[tuple[str, str], ...] = (
+    ("premium-tuner", "Premium Tuner"),
+    ("premium-sealed-tube", "Premium Sealed Tube"),
+    ("premium-resonance-potion", "Premium Resonance Potion"),
+    ("heterized-metallic-drip", "Heterized Metallic Drip"),
+    ("mysterious-code", "Mysterious Code"),
+    ("ff-whisperin-core", "FF Whisperin Core"),
+    ("ff-howler-core", "FF Howler Core"),
+    ("tailored-ring", "Tailored Ring"),
+    ("mask-of-insanity", "Mask of Insanity"),
+    ("flawless-phlogiston", "Flawless Phlogiston"),
+    ("presto-helix", "Presto Helix"),
+    ("waveworn-residue-239", "Waveworn Residue 239"),
+    ("cadence-blossom", "Cadence Blossom"),
+    ("premium-energy-core", "Premium Energy Core"),
+    ("ff-tidal-residuum", "FF Tidal Residuum"),
+    ("ff-polygon-core", "FF Polygon Core"),
+    ("echo-modifier", "Echo Modifier"),
+    ("ff-exoswarm-core", "FF Exoswarm Core"),
+    ("reverb-combustor", "Reverb Combustor"),
+    ("ff-mech-core", "FF Mech Core"),
+    ("intact-exoswarm-pendant", "Intact Exoswarm Pendant"),
+    ("layered-wing-polarizer", "Layered Wing Polarizer"),
+    ("melodic-string", "Melodic String"),
+    ("ff-carved-crystal", "FF Carved Crystal"),
+    ("ff-waveworn-shard", "FF Waveworn Shard"),
+    ("transducer", "Transducer"),
+    ("ff-autopuppet-kernel", "FF Autopuppet Kernel"),
+)
 
-    The slug identifiers below are UI/catalog identifiers, not in-game mob IDs.
-    Actual game identifiers, coordinates and drop evidence must be qualified
-    independently before a farming executor can use them.
+
+def starting_catalog() -> FarmingCatalog:
+    """The 27 screenshot materials plus five possible FF Mech Core mobs.
+
+    Screenshot catalog entries are selectable and searchable only. They must
+    not imply that every item can be obtained from mobs or that farming is
+    possible. UI slugs are not verified game IDs.
     """
     material_id = "ff-mech-core"
     names = (
@@ -260,12 +295,19 @@ def starting_catalog() -> FarmingCatalog:
         ("twin-nova-nebulous-cannon", "Twin Nova: Nebulous Cannon"),
     )
     source_url = "https://wutheringwaves.fandom.com/wiki/FF_Mech_Core"
+    material_targets = tuple(
+        FarmingTarget(
+            TargetKind.MATERIAL, slug, name,
+            ("5-star weapon/skill material; Lahai-Roi. Possible enemy sources "
+             "documented; actual drops and routes not qualified.")
+            if slug == material_id else
+            "Listed material. Acquisition source not verified; farming unavailable.",
+        )
+        for slug, name in SCREENSHOT_MATERIALS
+    )
     return FarmingCatalog(
         targets=(
-            FarmingTarget(
-                TargetKind.MATERIAL, material_id, "FF Mech Core",
-                "5-star weapon/skill material; Lahai-Roi. Drops vary with enemy and world level.",
-            ),
+            *material_targets,
             *(FarmingTarget(TargetKind.MOB, mob_id, name) for mob_id, name in names),
         ),
         documented_drops=tuple(
