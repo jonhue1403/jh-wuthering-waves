@@ -14,6 +14,7 @@ from src.automation.farming_route_audit import FarmingRouteAudit
 from src.automation.farming_reconciliation import reconcile_candidate_audits
 from src.automation.farming_preflight import build_calibration_preflight
 from src.automation.farming_calibration_guide import build_calibration_guide
+from src.automation.farming_acquisition_reference import documented_acquisition
 
 MAX_GOAL = 9_999_999
 MAX_QUERY_LENGTH = 120
@@ -159,6 +160,18 @@ class FarmingAssistantView:
             "stop_criterion": stop_criterion,
             "owned_quantity": None,  # Actual inventory was NOT measured.
             "readiness": resolution.readiness.value,
+            # Documented acquisition methods are not automatically executable
+            # sources. They cover domain/quest/synthesis as well as mob cases.
+            "acquisition_reference": (
+                documented_acquisition(target_id)
+                if target_kind == TargetKind.MATERIAL else {
+                    "status": "NOT_APPLICABLE_TO_MOB",
+                    "methods": [], "possible_mob_source": False,
+                    "executable_source_ids": [], "can_start": False,
+                    "requires_game_verification": True,
+                    "note": "A mob target still needs a current-runtime route.",
+                }
+            ),
             "source_candidates": [
                 {
                     "mob_id": source.mob_id,
