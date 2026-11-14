@@ -127,6 +127,15 @@ class FarmingAssistantTab(CustomTab):
         )
         detail.addWidget(self.acquisition_label)
 
+        self.strategy_label = QLabel(
+            self.tr("Acquisition workflow: current-game verification required"), right
+        )
+        self.strategy_label.setWordWrap(True)
+        self.strategy_label.setAccessibleName(
+            self.tr("Potential farming workflows and resource safeguards")
+        )
+        detail.addWidget(self.strategy_label)
+
         goal_row = QHBoxLayout()
         self.goal_label = QLabel(self.tr("Desired inventory total (optional)"), right)
         self.goal = QLineEdit(right)
@@ -257,6 +266,9 @@ class FarmingAssistantTab(CustomTab):
             self.acquisition_label.setText(
                 self.tr("Acquisition methods: select a material to inspect")
             )
+            self.strategy_label.setText(
+                self.tr("Acquisition workflow: no target selected")
+            )
             self.inventory_label.setText(self.tr("Current inventory: not measured"))
             self.calibration_label.setText(self.tr("Local receipts: none reviewed for execution"))
             self.route_calibration_label.setText(self.tr("Local routes: none qualified for execution"))
@@ -315,6 +327,24 @@ class FarmingAssistantTab(CustomTab):
                 self.tr("Acquisition method not verified for this target")
             )
             self.acquisition_label.setToolTip("")
+        planning = result["acquisition_plan"]
+        candidate_methods = [
+            entry["workflow"] for entry in planning["possible_methods"]
+            if entry["automation_candidate_exists"]
+        ]
+        if candidate_methods:
+            names = ", ".join(dict.fromkeys(
+                workflow.replace("_", " ").lower()
+                for workflow in candidate_methods
+            ))
+            message = self.tr("Possible workflow adapters (not qualified): ") + names
+        else:
+            message = self.tr("No supported automated acquisition provider is qualified")
+        if any(entry["resource_policy"] == "POTENTIAL_WAVEPLATE_COST"
+               for entry in planning["possible_methods"]):
+            message += self.tr(" · May require Waveplates; spending disabled")
+        message += self.tr(" · Execution blocked pending live verification")
+        self.strategy_label.setText(message)
         self.inventory_label.setText(
             self.tr("Mob encounters: not observed (preview only)")
             if result["stop_criterion"]["mode"] == "ENCOUNTER_LIMIT"
