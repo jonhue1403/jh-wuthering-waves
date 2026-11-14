@@ -184,6 +184,30 @@ class TestFarmingPreflight(unittest.TestCase):
         self.assertEqual(25, preview["desired_total"])
         self.assertFalse(preview["can_start"])
 
+    def test_non_mob_methods_skip_unrelated_enemy_and_route_audits(self):
+        from unittest.mock import Mock
+        receipts = Mock()
+        routes = Mock()
+        receipts.summary.side_effect = AssertionError("unrelated enemy receipt scanned")
+        routes.summary.side_effect = AssertionError("unrelated surface route scanned")
+        view = FarmingAssistantView(
+            evidence_audit=receipts, route_audit=routes,
+        )
+        for material in ("presto-helix", "mysterious-code",
+                         "premium-tuner", "transducer"):
+            with self.subTest(material=material):
+                preview = view.preview("material", material)
+                self.assertEqual("NOT_APPLICABLE_TO_NON_MOB_MATERIAL",
+                                 preview["calibration"]["status"])
+                self.assertEqual("NOT_APPLICABLE_TO_NON_MOB_MATERIAL",
+                                 preview["route_calibration"]["status"])
+                self.assertEqual("NOT_APPLICABLE_TO_NON_MOB_MATERIAL",
+                                 preview["reconciliation"]["status"])
+                self.assertEqual([], preview["qualified_route_ids"])
+                self.assertFalse(preview["can_start"])
+        receipts.summary.assert_not_called()
+        routes.summary.assert_not_called()
+
     def test_mixed_mob_and_domain_refs_never_authorize_or_autoselect(self):
         r = build_calibration_preflight(
             "material", *self.summaries(),
