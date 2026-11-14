@@ -109,6 +109,24 @@ class TestFarmingStandaloneWeb(unittest.TestCase):
                 self.assertFalse(data["can_start"])
                 self.assertEqual([], data["qualified_route_ids"])
 
+    def test_source_strategy_cannot_dispatch_over_http(self):
+        for slug, kind in (
+            ("presto-helix", "FORGERY_CHALLENGE"),
+            ("ff-mech-core", "MOB_DROP"),
+            ("mysterious-code", "EXPLORATION_OR_QUEST"),
+        ):
+            with self.subTest(material=slug):
+                preview = self.read_json("/api/preview?" + urlencode({
+                    "kind": "material", "target_id": slug,
+                }))
+                plan = preview["acquisition_plan"]
+                self.assertIn(kind, [x["method"] for x in plan["possible_methods"]])
+                self.assertFalse(plan["can_dispatch"])
+                self.assertIsNone(plan["selected_provider"])
+                self.assertEqual([], plan["qualified_provider_ids"])
+                self.assertTrue(all(not x["can_execute"]
+                                    for x in plan["possible_methods"]))
+                self.assertFalse(preview["can_start"])
     def test_source_discovery_is_documented_not_executable(self):
         data = self.read_json("/api/preview?" + urlencode({
             "kind": "material", "target_id": "ff-mech-core",
