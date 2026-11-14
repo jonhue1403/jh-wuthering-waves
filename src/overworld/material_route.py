@@ -10,7 +10,7 @@ from math import isfinite
 from pathlib import Path
 import time
 
-from .controller import HuntAbort, HuntController, HuntOptions, HuntState
+from .controller import HuntAbort, HuntCancelled, HuntController, HuntOptions, HuntState
 from .models import HuntPosition, MapCoordinate
 from .navigation import NavigationResult, NavigationStatus
 from .planner import DryRunRoutePlanner, TravelCostModel, cluster_spawns
@@ -208,7 +208,14 @@ class MaterialRouteRuntime:
         return self.runtime.cancelled()
 
     def observe_inventory(self):
+        # The inventory reader may issue reviewed UI controls. A cancellation
+        # before or during observation must not permit another UI action or
+        # become a confirmed inventory/receipt result.
+        if self.cancelled():
+            raise HuntCancelled()
         value = self.read_inventory(self.route.material_id)
+        if self.cancelled():
+            raise HuntCancelled()
         if not isinstance(value, InventoryObservation):
             raise HuntAbort("Inventory observer returned no qualified item detail")
         value.validate(self.route.material_id, now=self.clock(), previous=self.observation)
@@ -222,15 +229,22 @@ class MaterialRouteRuntime:
 
     def camp_cleared(self, camp, run):
         before = self.observation
-        self.cancelled()
+        if before is None:
+            raise HuntAbort("Fresh pre-encounter material inventory baseline required")
+        # cancelled() is a boolean predicate. Ignoring True previously allowed
+        # a pickup and fresh UI navigation after Stop was already requested.
+        if self.cancelled():
+            raise HuntCancelled()
         self.pickup(camp)  # Issued pickup is deliberately not a receipt.
-        self.cancelled()
+        if self.cancelled():
+            raise HuntCancelled()
         after = self.observe_inventory()
         self.receipts.append({"camp_id": camp.camp_id,
                               "before": before.quantity, "after": after.quantity,
                               "received": after.quantity - before.quantity,
                               "frame_id": after.frame_id})
-        self.runtime.report(HuntState.CLEARED, camp, run)
+        # HuntController emits CLEARED once, after camp_cleared returns.
+        # Do not emit a duplicate transition before its receipt check finishes.
 
 
 def run_material_route(route, profile, spawns, navigator, runtime, *, target,
