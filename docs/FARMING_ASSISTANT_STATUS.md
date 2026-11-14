@@ -1,5 +1,13 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — local QA and acceptance checkpoint
+
+- The Windows checkout was advanced to the current `agent/material-first-farming` HEAD. Fix commit `86ad99d2c129a0ad671902d2df45fcd61c37b0b1` repaired the one-shot runner import path, a completed-identity journal ordering bug, a safe browser landing-navigation failure, and stale fixtures.
+- The exact clean implementation commit passed the full one-shot suite: 1,112 tests across 103 isolated modules, 1,110 passed, two private-capture skips, zero failed modules. `OFFLINE_TESTS_PASS_LIVE_PENDING`; full logs and the 27-row matrix are in [the 2026-11-14 qualification report](CODEX-FARMING-QUALIFICATION-20261114.md).
+- Native Qt and standalone Web material selection/preview was exercised for all 27 materials. The web HTTP suite passed 19/19, including loopback, Host/Origin, method, traversal, API and cross-site navigation checks. All execution buttons remain disabled.
+- Acceptance remains **QT_BLOCKED / WEB_BLOCKED for full visual qualification** because requested resize/focus/close-reopen and browser console checks were not completed. The elevated game window was not readable by the available UI helper. No live game input, claims, spending, drops or inventory changes were made.
+- All 27 materials remain `LIVE_VERIFICATION_PENDING`; none has an independently verified current-game source, inventory receipt or qualified route. Independent Terra review remains pending. Production readiness is not claimed.
+
 
 ## 2026-11-14 — source-aware calibration for domain, manual and historical materials (GitHub-only)
 
