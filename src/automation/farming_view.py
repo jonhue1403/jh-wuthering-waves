@@ -237,6 +237,13 @@ class FarmingAssistantView:
             "can_pause": False,
             "can_stop": False,
             "run_state": "PREVIEW_ONLY",
-            "reason": resolution.explanation,
+            "reason": (
+                "Known acquisition reference, but this material has no "
+                "qualified current-game provider or automatic route."
+                if target_kind == TargetKind.MATERIAL
+                and not any(method["kind"] == "MOB_DROP"
+                            for method in acquisition_reference["methods"])
+                else resolution.explanation
+            ),
             "next_step": preflight["next_action"],
         }
