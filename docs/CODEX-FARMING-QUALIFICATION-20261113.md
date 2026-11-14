@@ -1,5 +1,27 @@
 # Farming Assistant qualification — 2026-11-13
 
+## 2026-11-14 follow-up — standalone web implementation pending Windows verification
+
+The GitHub integration session implemented an independent localhost-only, read-only
+Farming Assistant browser service on `agent/material-first-farming`. New files:
+`main_farming_web.py`, `run-farming-web.cmd`,
+`src/automation/farming_web_server.py`, standalone HTML/CSS/JS adapter, and
+`tests/TestFarmingStandaloneWeb.py`. `config.py` and `TestConfig.py` now
+remove the unsupported OK Script 3 WebCustomTab registration/expectation.
+The existing `main_web.py` Qt compatibility launcher is unchanged.
+
+Architecture: two GET-only JSON APIs using `FarmingAssistantView`, allowlisted
+static assets and strict 127.0.0.1 Host/Origin checks; no gameplay controls.
+See `docs/FARMING_STANDALONE_WEB.md` for exact commands and review requirements.
+
+**Status of new remediation: COMMITTED, NOT YET RUN OR INDEPENDENTLY REVIEWED.**
+The 1,001 passed / 2 skipped / 1 error measurements below describe the prior
+framework-incompatible commit. They must NOT be reported as results for the
+new standalone frontend. FQ-01 remains pending full Windows/http/browser
+qualification; FQ-04 remains LIVE_VERIFICATION_PENDING.
+
+---
+
 ## Result
 
 **Offline qualification: NOT COMPLETE. Live qualification: LIVE_VERIFICATION_PENDING.**
