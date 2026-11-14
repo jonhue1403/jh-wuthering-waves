@@ -92,6 +92,7 @@ class TestResourceRoutineTask(unittest.TestCase):
     def _material_run_context(self, *, other_goal=False, after_inventory=None):
         from contextlib import ExitStack
         self.task.config['Maximum Activities'] = 1
+        self.task.config['Preview Only'] = False
         goals = [MaterialGoal('Known material', 4, 28, origin='user_supplied')]
         if other_goal:
             goals.append(MaterialGoal('Other material', 2, 9, origin='user_supplied'))
