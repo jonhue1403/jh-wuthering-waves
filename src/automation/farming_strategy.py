@@ -80,7 +80,7 @@ class AcquisitionOption:
             "resource_policy": (
                 "POTENTIAL_WAVEPLATE_COST" if self.may_spend_waveplates else
                 "MATERIAL_CONSUMPTION_UNVERIFIED" if self.may_consume_inventory else
-                "NO_SPEND_CONFIRMED_FALSE"
+                "RESOURCE_IMPACT_UNVERIFIED"
             ),
             "qualification": "CURRENT_GAME_EVIDENCE_REQUIRED",
             "can_execute": False,
@@ -153,7 +153,7 @@ def plan_mob_hunt(mob_id: str, *, catalog=None) -> dict:
             "label": "Bounded surface mob hunt (not calibrated)",
             "reference_url": None,
             "automation_candidate_exists": True,
-            "resource_policy": "NO_SPEND_CONFIRMED_FALSE",
+            "resource_policy": "RESOURCE_IMPACT_UNVERIFIED",
             "qualification": "CURRENT_GAME_EVIDENCE_REQUIRED",
             "can_execute": False,
         }],
