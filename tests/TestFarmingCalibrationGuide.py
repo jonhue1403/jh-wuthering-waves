@@ -85,6 +85,62 @@ class TestFarmingCalibrationGuide(unittest.TestCase):
         self.assertFalse(any(s["id"] == "observe-material-drop" for s in guide["steps"]))
         self.assertFalse(guide["can_start"])
 
+    def test_domain_material_guide_never_turns_into_mob_route(self):
+        for material in ("presto-helix", "premium-resonance-potion", "premium-tuner"):
+            with self.subTest(material=material):
+                preview = FarmingAssistantView().preview("material", material)
+                guide = preview["calibration_guide"]
+                ids = [step["id"] for step in guide["steps"]]
+                self.assertEqual("observe-domain-source", guide["next_step_id"])
+                self.assertIn("qualify-domain-claim", ids)
+                self.assertIn("verify-input-safety", ids)
+                self.assertNotIn("identify-game-enemy", ids)
+                self.assertNotIn("calibrate-reviewed-route", ids)
+                self.assertNotIn("observe-material-drop", ids)
+                self.assertEqual(0, guide["verified_step_count"])
+                self.assertFalse(guide["can_start"])
+                self.assertTrue(all(step["status"] == "NEEDS_LIVE_VERIFICATION"
+                                    for step in guide["steps"]))
+
+    def test_manual_historical_and_unknown_material_guides_are_non_executable(self):
+        for material, first_step in (
+            ("mysterious-code", "verify-current-availability"),
+            ("transducer", "verify-current-availability"),
+            ("echo-modifier", "verify-current-availability"),
+        ):
+            with self.subTest(material=material):
+                guide = FarmingAssistantView().preview(
+                    "material", material)["calibration_guide"]
+                self.assertEqual(first_step, guide["next_step_id"])
+                self.assertFalse(guide["can_start"])
+                self.assertFalse(any(
+                    step["id"] in (
+                        "identify-game-enemy", "calibrate-reviewed-route",
+                        "qualify-domain-claim", "observe-material-drop",
+                    ) for step in guide["steps"]
+                ))
+
+    def test_source_family_metadata_cannot_qualify_non_mob_guide(self):
+        preflight = build_calibration_preflight(
+            "material", None, None, None,
+            acquisition_methods=["FORGERY_CHALLENGE", "SYNTHESIS"],
+        )
+        for key, value in (
+            ("can_start", True),
+            ("source_check", "HISTORICAL_ONLY"),
+            ("route_check", "STATIC_ONLY"),
+            ("identity_check", "HISTORICAL_ID_OVERLAP_ONLY"),
+            ("runtime_qualification", "REVIEWED"),
+            ("fresh_inventory_check", "VERIFIED"),
+            ("input_safety_check", "PASSED"),
+            ("game_version_check", "HISTORICAL_EQUAL_UNVERIFIED"),
+        ):
+            with self.subTest(key=key):
+                with self.assertRaises(ValueError):
+                    build_calibration_guide(
+                        "material", {**preflight, key: value},
+                    )
+
     def test_invalid_preflight_can_never_trick_guide_into_ready(self):
         preflight = self.material_preflight()
         for value in (None, {}, {"status": "READY", "can_start": False},
