@@ -18,6 +18,7 @@ from src.automation.farming_acquisition_reference import documented_acquisition
 from src.automation.farming_strategy import (
     plan_material_acquisition, plan_mob_hunt,
 )
+from src.automation.farming_stop_policy import evaluate_stop_criterion
 
 MAX_GOAL = 9_999_999
 MAX_QUERY_LENGTH = 120
@@ -125,14 +126,7 @@ class FarmingAssistantView:
         # A requested stop condition is display-only until an independently
         # qualified runtime adapter measures progress and enforces a hard cap.
         # Material quantities and mob encounter counts are different units.
-        stop_criterion = {
-            "mode": ("INVENTORY_TOTAL" if target_kind == TargetKind.MATERIAL
-                     else "ENCOUNTER_LIMIT"),
-            "requested": goal,
-            "observed": None,
-            "enforced": False,
-            "state": "PLANNED_ONLY",
-        }
+        stop_criterion = evaluate_stop_criterion(target_kind, goal)
         # Deliberately no callbacks: a present source/route reference alone
         # cannot authenticate game observations, current runtime or input.
         resolution = self.catalog.resolve(target_kind, target_id)
