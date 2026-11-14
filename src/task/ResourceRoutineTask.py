@@ -190,7 +190,7 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         self.info_set('Material provider readiness', provider_readiness)
         if self.config.get('Preview Only', True):
             return
-        if blocked_providers:
+        if blocked_providers and not self.config.get('Reconcile Pending Only', False):
             raise ResourcePolicyError('Unadapted material providers cannot start: '
                                       + ', '.join(sorted(blocked_providers)))
         budget = ResourceBudget(**plan.get('budget', {}))

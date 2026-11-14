@@ -138,6 +138,30 @@ class TestResourceRoutineTask(unittest.TestCase):
         self.assertFalse((self.folder / 'automation-actions.json').exists())
         self.task.click.assert_not_called()
 
+    def test_readonly_reconciliation_remains_allowed_for_pending_domain_provider(self):
+        self.task.config.update({'Preview Only': False, 'Reconcile Pending Only': True})
+        source = SourceMapping('Known material', 'domain', 'TacetTask',
+                               'candidate-observation.json', 'unit-evidence', 'unit-runtime', True)
+        queue = ResourceGoalQueue([MaterialGoal('Known material', 4, 28,
+                                               origin='user_supplied')], [source])
+        plan = dict(self.plan, sources=[], activities=[])
+        self.task._load_plan = Mock(return_value=(self.path, plan, queue))
+        observer = Mock()
+        observer.observe.return_value = (RoutineObservation(
+            'uid', 'Asia', 'domain', 'cycle-42', 100, True, False,
+            'read-only observation'), {'Known material': 4})
+        observer.current_waveplates.return_value = 120
+        with patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                   return_value='unit-runtime'), patch(
+                   'src.task.ResourceRoutineTask.RoutineObserver', return_value=observer), patch.object(
+                   WWOneTimeTask, 'run', side_effect=AssertionError('reconciliation started game')):
+            self.task.run()
+        self.assertEqual('Fresh observations checked; no claim inputs sent',
+                         self.task.info['Reconciliation'])
+        self.assertIn('PROVIDER_ADAPTER_PENDING',
+                      self.task.info['Material provider readiness']['Known material'])
+        self.task.click.assert_not_called()
+
     def _material_run_context(self, *, other_goal=False, after_inventory=None):
         from contextlib import ExitStack
         self.task.config['Maximum Activities'] = 1
