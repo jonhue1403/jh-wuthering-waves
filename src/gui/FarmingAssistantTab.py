@@ -230,6 +230,11 @@ class FarmingAssistantTab(CustomTab):
         self.goal.setAccessibleName(self.goal_label.text())
         self.goal.clear()
         self._selected_id = None
+        # Search terms refer to the previous target type. Clear them so
+        # switching to Mobs never leaves an apparently empty target list.
+        self.search.blockSignals(True)
+        self.search.clear()
+        self.search.blockSignals(False)
         self._refresh_targets()
 
     def _refresh_targets(self, *_):
