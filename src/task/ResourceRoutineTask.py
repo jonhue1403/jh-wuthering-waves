@@ -260,12 +260,22 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             source_goals = []
             binding = (source.kind, source.executor, source.profile, source.evidence, source.runtime)
             for candidate in queue.goals:
+                # Satisfied targets are not pending receipts. An incidental gain
+                # for one must never validate a different unmet material goal.
+                if not candidate.missing:
+                    continue
                 choices = [s for s in queue.mappings if s.matches(candidate, runtime)]
                 if len(choices) == 1 and (
                     choices[0].kind, choices[0].executor, choices[0].profile,
                     choices[0].evidence, choices[0].runtime
                 ) == binding:
                     source_goals.append(candidate)
+            if not source_goals or goal not in source_goals:
+                raise ResourcePolicyError('Selected source has no uniquely bound unmet material goal')
+            # A reviewed bounded route certifies exactly one material. Reject
+            # incompatible multi-goal plans before any inventory/journal write.
+            if source.executor == 'BoundedRouteTask' and len(source_goals) != 1:
+                raise ResourcePolicyError('Bounded material route requires exactly one unmet material goal')
             observer = RoutineObserver(self, path.parent / source.profile, source.kind)
             before, inventory_before = observer.observe()
             if any(inventory_before.get(g.name) != g.owned for g in source_goals):
