@@ -55,6 +55,20 @@ class AcquisitionOption:
     may_consume_inventory: bool
     source_url: str
 
+    def __post_init__(self):
+        if not isinstance(self.kind, SourceKind) or not isinstance(self.workflow, Workflow):
+            raise ValueError("Unknown acquisition method or workflow")
+        if not isinstance(self.label, str) or not self.label.strip():
+            raise ValueError("Acquisition option needs a label")
+        if (self.code_task_candidate is not None
+                and (not isinstance(self.code_task_candidate, str)
+                     or not self.code_task_candidate.strip())):
+            raise ValueError("Invalid possible task identity")
+        if type(self.may_spend_waveplates) is not bool or type(self.may_consume_inventory) is not bool:
+            raise ValueError("Acquisition resource flags must be booleans")
+        if not isinstance(self.source_url, str) or not self.source_url.startswith("https://"):
+            raise ValueError("Invalid acquisition source reference")
+
     def public(self) -> dict:
         """Safe serializable UI data: no task name, manifest or file path."""
         return {
