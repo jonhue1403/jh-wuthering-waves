@@ -1186,3 +1186,41 @@ At each scheduled run inspect latest `agent/material-first-farming` SHA and this
 ```
 
 Test local UI interaction and setup, then carry out separately authorized current-version live qualification with an independently verified reviewer. Full live farming is **NOT YET APPROVED OR CLAIMED**.
+
+## 2026-11-15 Codex final-QA continuation
+
+- Pushed the reviewed three-commit fast-forward on `agent/material-first-farming`;
+  origin now matches `10939cb018d979405d5c488d6cded1ae78a2a131`. Other refs,
+  worktrees, and PR #4 (still open/draft at its existing head) were not changed.
+- Prior offline qualification remains **PASS at `86ad99d2`**: 1,110 passed,
+  two skipped, and all 21 phases passed. That run predates the responsive CSS
+  fix; the full suite was not repeated. The post-fix `TestFarmingStandaloneWeb.py`
+  passed 19/19 and `node --check src/web/farming_assistant/index.js` passed.
+- Native Qt and standalone Web search/selection/guard-state acceptance passed
+  for all 27 materials. A second Qt pass checked that all 27 previews show
+  unmeasured inventory, no receipt/route, and disabled Start/Pause/Stop. Web
+  mode switching cleared the search; no provider or live inventory was
+  fabricated. Representative screenshots were inspected; the full 27-by-2
+  per-material screenshot review is incomplete. The browser page reloaded and
+  reopened, and the loopback server port was released.
+- Terra's review caught a row-height overflow in the narrow Web view. The CSS
+  fix prevents target buttons from shrinking. The post-fix 1265x858 screenshot
+  looks correct; the exact same-size 306x858 retest remains unavailable. Terra's
+  independent source/report re-review found no further blocking defect, but it
+  could not view the later screenshot or approve live-game evidence.
+- The exact 1280x720, browser console, keyboard/focus, and Qt close/reopen
+  checks remain incomplete. CUA screenshots are visible in the QA conversation,
+  but no local export path or screenshot file hashes were available.
+- The supported read-only token check confirmed the game is elevated while
+  OK-WW and the observer are medium integrity. The existing input guard refused
+  the game window before input. No elevation workaround or gameplay action was
+  attempted.
+- FF Mech Core's current source identity, inventory receipt, and calibrated
+  route remain **BLOCKED**. The other 26 materials also remain pending
+  source-specific current-game acceptance; no repeatability or farmability is
+  assumed. No resources were spent.
+- The game-window screenshot exposed a visible account identifier and unrelated
+  desktop content; it is excluded from evidence and was not persisted or linked.
+  No live qualification or production readiness is claimed. The dated acceptance
+  report and 27-row matrix are in
+  `docs/CODEX-FARMING-QUALIFICATION-20261114.md`.
