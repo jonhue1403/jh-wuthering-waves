@@ -1,5 +1,58 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — immediate source-aware strategy / bounded stop implementation
+
+User requested proceeding immediately instead of waiting for the hourly run.
+Changes were committed directly on `agent/material-first-farming` after
+reading the current remote head. The existing automation and PR #4/master
+were not edited in this immediate implementation turn.
+
+- Added `src/automation/farming_strategy.py`: explicit, typed provider
+  candidate mapping (overworld `BoundedRouteTask`; Forgery, Simulation,
+  Tacet inherited tasks; synthesis and manual/quest/exchange/event sources
+  have **no** automatically supported executor). Every candidate remains
+  `CURRENT_GAME_EVIDENCE_REQUIRED`, without any route selection,
+  source spending authorization, game input or task dispatch.
+- Added `src/automation/farming_stop_policy.py`: deterministic
+  `INVENTORY_TOTAL` versus `ENCOUNTER_LIMIT` stop-first evaluation;
+  missing observations, reaching the goal and hitting the maximum three
+  bounded attempts are explicit outcomes. Neither a goal deficit nor a
+  reference-only source permits auto-continue. UI previews remain
+  `PLANNED_ONLY`, unobserved and non-executable.
+- `FarmingAssistantView.preview` now exposes a path-free
+  `acquisition_plan` and common stop-policy fields while preserving the
+  previous response contract. Unknown/extension materials without a
+  research record get a safe empty plan instead of causing source lookup
+  errors; regular 27-item catalog remains unchanged.
+- The native Qt and standalone browser views now show possible
+  workflow families and warn about possible Waveplate costs. They
+  NEVER enable Start/Pause/Stop or send game input. Switching target
+  modes clears stale search text in both UIs, fixing an apparent-empty-list
+  defect.
+- Added `TestFarmingStrategy.py`, `TestFarmingStopPolicy.py` and
+  focused Qt/view/HTTP regressions. The one-shot Codex runner now includes
+  the strategy and stop tests and checks that all 27 material plans remain
+  blocked. `docs/FARMING_MATERIAL_CATALOG.md` and
+  `docs/CODEX_FARMING_ONE_SHOT_ACCEPTANCE.md` record new acceptance gates.
+- **Tests actually executed in this GitHub connector environment: NONE.**
+  No Windows checkout, OK Script runtime, real browser, Antigravity CLI
+  or Terra Medium desktop session is attached. Successful GitHub
+  commits and static readback are not test execution.
+- **Critical remaining dependency:** authentic current-game source identity,
+  item and enemy numeric IDs, relevant available challenge/route,
+  independently reviewed current-version runtime qualification, real
+  same-item before/after inventory receipt, and bounded live execution
+  acceptance. `LIVE_VERIFICATION_PENDING` remains the accurate status.
+
+**Next:** implement internal, safe provider selection under real current-runtime
+qualification in the existing executor, not the read-only browser; do not
+convert documentary links or caller-supplied flags into authorization.
+Then run `scripts/qualify_farming_one_shot.py` once from the Codex Windows
+checkout after final implementation and independently review live evidence.
+
+---
+
+
 ## 2026-11-14 — source-category research, acquisition guidance and one-shot Codex QA
 
 - Added `src/automation/farming_acquisition_reference.py` with community/guide
