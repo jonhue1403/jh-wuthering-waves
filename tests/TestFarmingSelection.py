@@ -41,6 +41,55 @@ class TestFarmingSelection(unittest.TestCase):
             [item.target_id for item in catalog.search("geospider", kind=TargetKind.MOB)],
         )
 
+    def test_all_27_screenshot_materials_are_searchable_without_routes(self):
+        # Independent transcription of the uploaded material grid.
+        names = (
+            "Premium Tuner", "Premium Sealed Tube", "Premium Resonance Potion",
+            "Heterized Metallic Drip", "Mysterious Code", "FF Whisperin Core",
+            "FF Howler Core", "Tailored Ring", "Mask of Insanity",
+            "Flawless Phlogiston", "Presto Helix", "Waveworn Residue 239",
+            "Cadence Blossom", "Premium Energy Core", "FF Tidal Residuum",
+            "FF Polygon Core", "Echo Modifier", "FF Exoswarm Core",
+            "Reverb Combustor", "FF Mech Core", "Intact Exoswarm Pendant",
+            "Layered Wing Polarizer", "Melodic String", "FF Carved Crystal",
+            "FF Waveworn Shard", "Transducer", "FF Autopuppet Kernel",
+        )
+        catalog = starting_catalog()
+        material_items = catalog.search(kind=TargetKind.MATERIAL, limit=100)
+        self.assertEqual(27, len(material_items))
+        self.assertEqual(set(names), {item.name for item in material_items})
+        self.assertEqual(27, len({item.target_id for item in material_items}))
+        self.assertEqual(
+            "ff-mech-core",
+            next(item.target_id for item in material_items
+                 if item.name == "FF Mech Core"),
+        )
+        self.assertEqual(
+            ["waveworn-residue-239"],
+            [item.target_id for item in catalog.search(
+                "waveworn residue 239", kind=TargetKind.MATERIAL)],
+        )
+        self.assertEqual(
+            ["ff-autopuppet-kernel"],
+            [item.target_id for item in catalog.search(
+                "AUTOPUPPET", kind=TargetKind.MATERIAL)],
+        )
+
+        for item in material_items:
+            with self.subTest(material=item.name):
+                result = catalog.resolve(TargetKind.MATERIAL, item.target_id)
+                self.assertEqual((), result.candidate_mob_ids)
+                self.assertEqual((), result.qualified_route_ids)
+                if item.target_id == "ff-mech-core":
+                    self.assertEqual(FarmingReadiness.SOURCE_DOCUMENTED,
+                                     result.readiness)
+                    self.assertEqual(5, len(result.documented_mob_ids))
+                else:
+                    self.assertEqual(FarmingReadiness.SOURCE_UNRESOLVED,
+                                     result.readiness)
+                    self.assertEqual((), result.documented_mob_ids)
+                    self.assertEqual((), catalog.documented_sources(item.target_id))
+
     def test_search_by_kind_alias_and_unicode(self):
         catalog = self.catalog()
         self.assertEqual((self.material,), catalog.search("测试", kind=TargetKind.MATERIAL))
