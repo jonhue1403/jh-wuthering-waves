@@ -175,8 +175,31 @@ class FarmingAssistantView:
                 "note": "A mob display slug cannot establish a numeric game ID.",
             }
         )
+        # Use the researched acquisition *method*, never a guessed mob
+        # source, to select the relevant read-only calibration steps. For
+        # example quest/event-only or domain items must not request enemy IDs
+        # or surface routes.
+        acquisition_reference = (
+            _material_reference(target_id)
+            if target_kind == TargetKind.MATERIAL else {
+                "status": "NOT_APPLICABLE_TO_MOB",
+                "methods": [], "possible_mob_source": False,
+                "executable_source_ids": [], "can_start": False,
+                "requires_game_verification": True,
+                "note": "A mob target still needs a current-runtime route.",
+            }
+        )
+        acquisition_plan = (
+            _material_plan(target_id)
+            if target_kind == TargetKind.MATERIAL else
+            plan_mob_hunt(target_id, catalog=self.catalog)
+        )
         preflight = build_calibration_preflight(
             target_kind.value, calibration, route_calibration, reconciliation,
+            acquisition_methods=(
+                tuple(method["kind"] for method in acquisition_reference["methods"])
+                if target_kind == TargetKind.MATERIAL else None
+            ),
         )
         calibration_guide = build_calibration_guide(target_kind.value, preflight)
         return {
@@ -192,21 +215,8 @@ class FarmingAssistantView:
             "readiness": resolution.readiness.value,
             # Documented acquisition methods are not automatically executable
             # sources. They cover domain/quest/synthesis as well as mob cases.
-            "acquisition_reference": (
-                _material_reference(target_id)
-                if target_kind == TargetKind.MATERIAL else {
-                    "status": "NOT_APPLICABLE_TO_MOB",
-                    "methods": [], "possible_mob_source": False,
-                    "executable_source_ids": [], "can_start": False,
-                    "requires_game_verification": True,
-                    "note": "A mob target still needs a current-runtime route.",
-                }
-            ),
-            "acquisition_plan": (
-                _material_plan(target_id)
-                if target_kind == TargetKind.MATERIAL else
-                plan_mob_hunt(target_id, catalog=self.catalog)
-            ),
+            "acquisition_reference": acquisition_reference,
+            "acquisition_plan": acquisition_plan,
             "source_candidates": [
                 {
                     "mob_id": source.mob_id,
