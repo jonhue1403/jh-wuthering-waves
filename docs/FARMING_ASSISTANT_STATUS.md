@@ -1,5 +1,40 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-14 — 27 screenshot materials added to the Farming Assistant catalog
+
+- Transcribed the user's 9×3 in-game material grid into 27 explicit material
+  names and stable UI slugs in `src/automation/farming_selection.py`.
+  This adds 26 material entries beyond the existing FF Mech Core.
+- All items are searchable/selectable through shared `FarmingAssistantView`
+  on both the native Qt tab and standalone localhost browser. FF Mech Core
+  remains featured first in the unfiltered list to preserve the prior default
+  preview. Material goal semantics remain `INVENTORY_TOTAL`.
+- Preserved FF Mech Core's five **documented-only** enemy candidates. No drop
+  sources, item IDs, acquisition methods, map positions or routes were invented
+  for the other 26 materials. Their status is `SOURCE_UNRESOLVED`.
+- Added/updated regressions in `TestFarmingSelection.py`,
+  `TestFarmingAssistantView.py`, `TestFarmingAssistantQt.py` and
+  `TestFarmingStandaloneWeb.py` for all 27 entries, spelling, uniqueness,
+  read-only API/search, stop-target semantics and disabled controls.
+- Recorded every material and the exact individual Codex qualification gates
+  in `docs/FARMING_MATERIAL_CATALOG.md`. Do not equate showing a material
+  in the list with possessing a runnable farm route. Some items may not be
+  enemy drops; classify only from real current-game evidence.
+- **Verification in this connector-only run:** GitHub commits/readback and
+  static consistency checks; actual Python, Qt, browser, Windows and game tests
+  **NOT RUN**. Container `git ls-remote` could not resolve github.com. The user
+  intends Codex to perform the local qualification later.
+- No gameplay input, spending, merge, master update or independent Terra review.
+  The previous hourly development automation remains paused.
+
+**Next:** Codex runs all new target-list tests and both UI smoke tests; then
+verifies each material's genuine in-game source type, numeric ID, actual
+inventory receipts and applicable current-runtime routes individually.
+See `docs/FARMING_MATERIAL_CATALOG.md` for the exact list and commands.
+
+---
+
+
 ## 2026-11-14 — standalone read-only web server implementation (FQ-01)
 
 - Removed unsupported OK Script 3 `web_tabs` registration from `config.py`. The previously failing `TestConfig` case now checks the actual standalone server and confirms the old web task is not registered. Preserved Qt `custom_tabs`, `main.py` and the legacy `main_web.py` Qt compatibility alias.
