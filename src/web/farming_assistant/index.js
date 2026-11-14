@@ -35,6 +35,8 @@ export function mount(container, context) {
       if (state.kind === kind) return;
       state.kind = kind;
       state.goal = "";
+      state.query = "";
+      search.value = "";
       state.selectedId = null;
       state.detail = null;
       updateKinds();
