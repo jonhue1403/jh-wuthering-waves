@@ -52,6 +52,41 @@ mob-to-route relationships. Never assume all 27 can be farmed by combat,
 or that time-limited/event/shop items are repeatable. No icons were extracted
 from the screenshot.
 
+## Source-aware planning and stop-policy boundary
+
+The new `src/automation/farming_strategy.py` maps each **reference-only**
+acquisition method to its potential task family, without invoking it:
+
+| Reference method | Internal candidate task | Status / consideration |
+| --- | --- | --- |
+| Overworld mob | `BoundedRouteTask` | Exact numeric enemy ID, current map and reviewed route required |
+| Forgery Challenge | `ForgeryTask` | Current eligible challenge, exact reward and Waveplate budget required |
+| Simulation Training | `SimulationTask` | Current task/reward and resource budget required |
+| Tacet Field | `TacetTask` | Current reward eligibility and Waveplate budget required |
+| Synthesis | No qualified automatic task | Must verify recipe, ingredients and consumption |
+| Quest/exploration/event/exchange | No qualified automatic task | May be one-time or time-limited |
+| Historical subscription | No qualified automatic task | Do not assume current availability |
+
+These are code-side integration *candidates*, not qualified sources.
+`FarmingAssistantView.preview(...).acquisition_plan` exposes path-free
+workflow suggestions, possible resource warnings, `selected_provider=None`,
+`qualified_provider_ids=[]` and `can_dispatch=false`. A material being
+selectable is not permission to dispatch any task. The browser API never
+accepts a file path, arbitrary task class or an execution authorization flag.
+
+`src/automation/farming_stop_policy.py` implements a conservative
+`INVENTORY_TOTAL` versus `ENCOUNTER_LIMIT` stop-rule evaluation with at
+most three bounded attempts. Missing observations block decisions; reaching
+the target or attempt cap requests a stop. A value below goal does NOT enable
+another action without independently approved runtime input/safety gates.
+View previews keep `state=PLANNED_ONLY`, `enforced=false`,
+`can_continue=false` and `can_dispatch=false`.
+
+Codex must test these source/stop contracts in addition to the existing
+inventory receipt and route runtime tests. Actual game observations remain
+unauthenticated until independently reviewed. None of these modules is a
+new executor or a replacement for the current `RuntimeQualification`.
+
 ## Implementation contract
 
 - `src/automation/farming_selection.py` owns the 27 explicit material
