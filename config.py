@@ -302,11 +302,8 @@ config = {
     'custom_tabs': [
         ["src.gui.FarmingAssistantTab", "FarmingAssistantTab"],
     ],
-    # WebCustomTab pages are web-only; never register these as runnable
-    # onetime/trigger tasks or assume they appear in the classic Qt UI.
-    'web_tabs': [
-        ["src.task.FarmingAssistantTask", "FarmingAssistantTask"],
-    ],
+    # OK Script 3 removed WebCustomTab. The independent, read-only browser
+    # preview is served by main_farming_web.py, not this game executor config.
     'scene': ["src.scene.WWScene", "WWScene"],
     'update_pyappify': {
         'to_version': '1.2.3',
