@@ -11,20 +11,23 @@ class TestCalculatePcExePath(unittest.TestCase):
     def test_documented_daily_cli_task_index_remains_one(self):
         self.assertEqual(['src.task.DailyTask', 'DailyTask'], config.config['onetime_tasks'][0])
 
-    def test_farming_assistant_is_registered_only_as_a_web_custom_tab(self):
-        from ok import WebCustomTab
-        from src.task.FarmingAssistantTask import FarmingAssistantTask
+    def test_farming_assistant_standalone_web_does_not_register_with_executor(self):
+        from src.automation.farming_web_server import FarmingWebServer
 
-        entry = ['src.task.FarmingAssistantTask', 'FarmingAssistantTask']
-        self.assertEqual([entry], config.config.get('web_tabs'))
-        self.assertNotIn(entry, config.config.get('onetime_tasks', []))
-        self.assertNotIn(entry, config.config.get('trigger_tasks', []))
-        self.assertTrue(issubclass(FarmingAssistantTask, WebCustomTab))
-        self.assertEqual('farming-assistant', FarmingAssistantTask.web_tab.id)
-        self.assertFalse(FarmingAssistantTask.web_tab.task_controls)
-        self.assertTrue(
-            (FarmingAssistantTask.web_tab.asset_dir / 'index.js').is_file()
-        )
+        legacy_entry = ['src.task.FarmingAssistantTask', 'FarmingAssistantTask']
+        self.assertNotIn('web_tabs', config.config)
+        self.assertNotIn(legacy_entry, config.config.get('onetime_tasks', []))
+        self.assertNotIn(legacy_entry, config.config.get('trigger_tasks', []))
+        self.assertTrue(callable(FarmingWebServer))
+        root = Path(__file__).resolve().parents[1]
+        for relative in (
+            'main_farming_web.py',
+            'src/web/farming_assistant/standalone.html',
+            'src/web/farming_assistant/standalone.css',
+            'src/web/farming_assistant/standalone.js',
+            'src/web/farming_assistant/index.js',
+        ):
+            self.assertTrue((root / relative).is_file(), relative)
 
     def test_farming_assistant_qt_tab_registered_separately_from_web(self):
         expected = ['src.gui.FarmingAssistantTab', 'FarmingAssistantTab']
