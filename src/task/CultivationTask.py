@@ -378,6 +378,11 @@ class CultivationTask(DomainTask):
                 inventory = self.read_reward_inventory()
                 remaining = self.read_remaining_stamina()
                 verify_debit(before, remaining, self.COST)
+                # A gain for an already-satisfied Guidebook material is not a
+                # receipt for the material that this run still needs. Keep the
+                # prepared resource claim uncertain rather than confirming it.
+                if not any(inventory.get(g.name, -1) > g.owned for g in self.goals if g.missing):
+                    raise UncertainReceipt('No unmet cultivation material increased; target receipt unverified')
                 if used != self.COST or not self._pending_claim:
                     raise UncertainReceipt('Shared claim helper did not provide a valid persisted claim')
                 ledger.journal.confirm(self._pending_claim, current=remaining, inventory=inventory)
@@ -400,6 +405,29 @@ class CultivationTask(DomainTask):
                 return
             self.restart_challenge()
 
+    def _bind_queued_goals(self, queued):
+        """Verify active material goals against the full observed Guidebook row.
+
+        Already-satisfied side materials may appear in that row, but a missing
+        unrequested material, unknown name or stale quantity is never ignored.
+        """
+        targets = {g.name: g for g in queued}
+        observed = {g.name for g in self.goals}
+        if (not targets or len(targets) != len(queued)
+                or not set(targets).issubset(observed)
+                or any(g.missing and g.name not in targets for g in self.goals)):
+            raise ResourcePolicyError('Selected Guidebook row does not match the queued materials')
+        for goal in self.goals:
+            queued_goal = targets.get(goal.name)
+            if queued_goal is None:
+                continue  # Only an observed already-satisfied side material.
+            if queued_goal.owned != goal.owned:
+                raise ResourcePolicyError('Queued inventory differs from fresh Guidebook/item detail')
+            if queued_goal.origin == 'native_verified' and queued_goal.required != goal.required:
+                raise ResourcePolicyError('Queued native target differs from the observed Guidebook requirement')
+            goal.required = queued_goal.required
+            goal.origin = queued_goal.origin
+
     def run(self):
         self._combat_deadline = 0
         self.goals = []
@@ -417,17 +445,7 @@ class CultivationTask(DomainTask):
             self.goals = self.read_goals()
             queued = getattr(self, '_queued_goals', None)
             if queued:
-                if {g.name for g in queued} != {g.name for g in self.goals}:
-                    raise ResourcePolicyError('Selected Guidebook row does not match the queued materials')
-                targets = {g.name: g for g in queued}
-                for goal in self.goals:
-                    queued_goal = targets[goal.name]
-                    if queued_goal.owned != goal.owned:
-                        raise ResourcePolicyError('Queued inventory differs from fresh Guidebook/item detail')
-                    if queued_goal.origin == 'native_verified' and queued_goal.required != goal.required:
-                        raise ResourcePolicyError('Queued native target differs from the observed Guidebook requirement')
-                    goal.required = queued_goal.required
-                    goal.origin = queued_goal.origin
+                self._bind_queued_goals(queued)
             self.goal_queue = ResourceGoalQueue(self.goals)
             self.info_set('Goal queue preview', self.goal_queue.preview('current-selected-Guidebook'))
             stamina = self.read_current_stamina()
