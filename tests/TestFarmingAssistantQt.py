@@ -30,7 +30,7 @@ class TestFarmingAssistantQt(unittest.TestCase):
 
     def test_default_material_preview_is_read_only(self):
         self.assertEqual("Farming Assistant", self.tab.name)
-        self.assertEqual(1, self.tab.target_list.count())
+        self.assertEqual(27, self.tab.target_list.count())
         self.assertEqual("FF Mech Core", self.tab.target_name.text())
         self.assertEqual(5, self.tab.source_list.count())
         self.assertIn("not calibrated", self.tab.readiness_label.text().lower())
@@ -50,6 +50,22 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertFalse(self.tab._preview["calibration"]["can_start"])
         self.assertFalse(self.tab._preview["route_calibration"]["can_start"])
         self.assertEqual("PREVIEW_ONLY", self.tab._preview["run_state"])
+        self.assertFalse(self.tab.start_button.isEnabled())
+        self.assertFalse(self.tab.pause_button.isEnabled())
+        self.assertFalse(self.tab.stop_button.isEnabled())
+
+    def test_new_material_search_and_unqualified_read_only_preview(self):
+        self.tab.search.setText("premium tuner")
+        self.assertEqual(1, self.tab.target_list.count())
+        self.assertEqual("Premium Tuner", self.tab.target_name.text())
+        self.assertIn("unresolved", self.tab.readiness_label.text().lower())
+        self.assertEqual(0, self.tab.source_list.count())
+        self.tab.goal.setText("6")
+        self.assertEqual("INVENTORY_TOTAL",
+                         self.tab._preview["stop_criterion"]["mode"])
+        self.assertEqual(6, self.tab._preview["stop_criterion"]["requested"])
+        self.assertEqual("PLANNED_ONLY",
+                         self.tab._preview["stop_criterion"]["state"])
         self.assertFalse(self.tab.start_button.isEnabled())
         self.assertFalse(self.tab.pause_button.isEnabled())
         self.assertFalse(self.tab.stop_button.isEnabled())
