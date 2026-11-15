@@ -15,6 +15,49 @@ qualification was established by these source changes.
 
 ---
 
+## 2026-11-15 — current exact-SHA offline qualification
+
+- **Qualified source commit:** `c762eb86b7a01bb0f2c2d0dfbac8306db6353920`
+  on `agent/material-first-farming`, after fetching and fast-forwarding to the
+  requested source checkpoint `526208d75b93f09781307ff57ac8501cbced0157`.
+  The pre-existing November 15 local report edit was preserved in the
+  qualification checkout.
+- **Focused regressions:** 71/71 passed across the OCR label-binding,
+  material-receipt, resource queue and cultivation modules; the all-27
+  source-reference projection test module passed 10/10. Terra Medium
+  independently reviewed the test diff and found no actionable findings.
+  That projection test verifies catalog-to-workflow/resource-warning mapping
+  and blocked preview controls; it does not independently validate public
+  source claims.
+- **One-shot run:** `OFFLINE_TESTS_PASS_LIVE_PENDING`, 106 isolated test
+  modules, 1,138 tests, 1,136 passed, two private-capture skips, zero failed
+  modules. The exact-SHA worktree was clean. Python compilation, ES-module
+  syntax checks, focused farming modules, Qt/Web/API/config checks and the
+  full repository verifier all passed. Report and phase logs:
+  `logs/farming-one-shot/20261115T040806Z-c762eb86b/qualification.json`.
+- **Actual UI smoke:** the native Qt app showed all 27 material choices; a
+  Presto Helix search/selection and target-total entry worked, current
+  inventory stayed unmeasured and Start/Pause/Stop stayed disabled. The
+  standalone localhost Web preview was searched through all 27 material
+  names; each detail view appeared with Start/Pause/Stop disabled. Existing
+  HTTP security tests passed in the one-shot run. Full keyboard/focus,
+  resize/close-reopen and browser-console qualification remains open because
+  the preferred agent-browser/agent-desktop CLIs are not installed and the
+  CUA fallback does not expose browser console logs.
+- **27-row result:** the rows below retain their catalog hypotheses and
+  potential workflow families. In the exact-SHA report all 27 have
+  `live_qualification=NOT_RUN`, zero qualified routes and `can_start=false`.
+  No current-game source observations, inventory receipts, challenge/recipe
+  identities or route qualifications were established. Forgery, Simulation
+  and Tacet executors remain `PROVIDER_ADAPTER_PENDING`; manual/event and
+  historical sources remain reference-only. No game window was launched or
+  input sent, and no drops, claims, Waveplates or inventory changes occurred.
+- **Production decision: NO-GO.** This qualification establishes offline
+  code and preview behavior only. Publisher authorization and the current
+  runtime/source/receipt/independent-review gates remain unresolved.
+
+---
+
 **2026-11-15 (Malaysia) · Production: NO-GO.** The Qt and standalone Edge previews and the synthetic offline scenarios were exercised for all 27 materials. **0/27** current-game item/source observations, **0/27** verified live inventory receipts and **0/27** materials qualified for live execution. The 27 remain `GAME_OBSERVATION_BLOCKED`. No game input, resource spending, reward claim, inventory mutation or launch was issued.
 
 ## Environment and scope

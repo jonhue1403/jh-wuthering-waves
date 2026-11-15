@@ -227,3 +227,42 @@ it does not assert that the source is absent or non-repeatable.
   the change. The post-fix real-browser screenshot at 1265x858 confirms the row
   text stays inside its border. Production readiness remains **NOT READY**; do
   not enable or claim live farming.
+
+## 2026-11-15 follow-up — normal-launch feasibility
+
+- The qualification checkout was clean at exact branch tip
+  `878e8ef87b187eef85be358769c8c487c9f361a2`, and a fetch confirmed the origin
+  branch at the same SHA. No other worktree or branch was changed.
+- Read-only inspection of the public `Wuthering Waves.lnk` found the official
+  launcher target `Z:\Game\Wuthering Waves\launcher.exe` with arguments
+  `--game Aki`. No per-user AppCompat `RunAsAdministrator` override was set for
+  the launcher or game client. The launcher manifest contained no
+  `requestedExecutionLevel` declaration.
+- The installed client executable's embedded Windows manifest explicitly
+  requests `requireAdministrator` with `uiAccess=false`. Its SHA-256 is
+  `F648064A90FA818912CE037AF9D5C3FD6B94973A415A64862FF52B3CD23E3761`. The
+  launcher SHA-256 is
+  `CA6E3091A06CCD5549827DDED73BC50E6758CC4DBB554B55FAD8A38920F03234`.
+  Read-only process-token queries found `Wuthering Waves.exe` and the game
+  client at High integrity; they did not query `launcher.exe`. The launcher
+  file version reports `3.0.1.0`; the current in-game/client version could not
+  be observed.
+- The desktop observer's accessibility read explicitly refused the game window
+  because the target has higher Windows integrity than the helper and exposed
+  only the window shell. A second documented Computer Use capture path was
+  tried against the exact game window returned by its window listing, but it
+  returned the Codex desktop instead of a game image. No game screenshot could
+  be read or retained. No game input, restart, UAC/security change, anti-cheat
+  change, or game-state modification was attempted. Since the installed client
+  requires administrator integrity, a standard-integrity run is unsupported by
+  this installed build; restarting through the ordinary launcher would not
+  resolve the mismatch. The available observer API exposes no privilege-
+  elevation method.
+- **Stages B–D remain BLOCKED.** Material identity, current in-game sources,
+  inventory quantity, numeric enemy IDs, route/map evidence, runtime permit,
+  pickup, combat, inventory receipt, and input-cleanup outcomes remain
+  unobserved. The 27-material matrix above remains `BLOCKED` for live
+  source/receipt/route acceptance. There is no screenshot evidence or source
+  hash for in-game claims. No material is qualified and no farming trial ran.
+- No source code changed, so no tests were rerun. This documentation update has
+  not received an independent Terra review and is not committed or pushed.

@@ -1,5 +1,50 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-15 — exact-SHA offline qualification and real UI smoke
+
+- Fetched `agent/material-first-farming` and fast-forwarded from the local
+  `4ce64bb1` to the requested checkpoint `526208d75b93f09781307ff57ac8501cbced0157`,
+  preserving the pre-existing edit in
+  `docs/CODEX-FARMING-QUALIFICATION-20261114.md`. Added commit
+  `c762eb86b7a01bb0f2c2d0dfbac8306db6353920` with an all-27 source-reference
+  projection contract in `tests/TestFarmingStrategy.py`.
+- Focused regressions passed: **71/71** OCR, item-binding, receipt,
+  ResourceRoutineTask and CultivationTask tests; **10/10** FarmingStrategy
+  tests. Terra Medium independently reviewed the exact test diff and found no
+  actionable issues. The contract checks projection of the current reference
+  catalog into workflows/resource warnings and blocked preview controls; it
+  does not independently validate the external source claims.
+- The exact clean commit `c762eb86b7a01bb0f2c2d0dfbac8306db6353920` passed
+  `scripts/qualify_farming_one_shot.py` from a clean detached worktree using
+  the checkout's local virtual environment: **106 modules, 1,138 tests,
+  1,136 passed, 2 private-capture skips, 0 failed modules**. Status:
+  `OFFLINE_TESTS_PASS_LIVE_PENDING`. Python compile, both JS syntax checks,
+  all focused Farming Assistant phases and full repository verification
+  passed. The exact JSON report and phase logs are under
+  `logs/farming-one-shot/20261115T040806Z-c762eb86b/`.
+- Runtime used: Windows, Python 3.13.15, OK Script 3.0.4, PySide6 6.12.0.post2
+  and Node 22.23.1. The actual native Qt app displayed the 27-material list;
+  a Presto Helix preview showed Forgery/Synthesis references and accepted a
+  target total of 10 while inventory stayed unmeasured and Start/Pause/Stop
+  stayed disabled. The standalone localhost Web preview was also exercised:
+  searching each of the 27 materials selected its detail view and all 27
+  kept Start/Pause/Stop disabled. The existing HTTP/security tests passed in
+  the one-shot run. Full resize/focus/close-reopen and browser-console QA was
+  not completed; the preferred agent-browser/agent-desktop CLIs are absent,
+  so this campaign used the built-in UI observer.
+- **All 27 live rows remain unqualified:** the one-shot report records 27/27
+  `live_qualification=NOT_RUN`, 0 qualified routes and `can_start=false`.
+  There are still 0 current-game source observations and 0 verified live
+  inventory receipts. Forgery/Simulation/Tacet material dispatch remains
+  `PROVIDER_ADAPTER_PENDING`; no task was run against the game, and no game
+  input, claims, Waveplates or inventory changes occurred. Production remains
+  **NO-GO**.
+- Gemini 3.8 Flash Medium was available through native Antigravity CLI 1.5.9
+  and a read-only authentication probe returned successfully. Its headless
+  implementation session did not complete or return a patch; Codex took over
+  the bounded test work. Terra review was completed; no independent live
+  source/runtime qualification was possible.
+
 ## 2026-11-15 — shared daily-task OCR material binding and receipt integration
 
 Implementation follows the owner's request to reuse the existing
