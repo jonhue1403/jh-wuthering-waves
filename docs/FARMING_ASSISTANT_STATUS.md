@@ -1,5 +1,44 @@
 # JH Wuthering Waves — Farming Assistant implementation status
 
+## 2026-11-15 — shared daily-task OCR material binding and receipt integration
+
+Implementation follows the owner's request to reuse the existing
+`DailyTask` / `BaseWWTask` OCR and OK-WW session framework rather than
+implementing a parallel OCR/navigation/combat engine.
+
+- `src/automation/observations.py` (`RoutineObserver`) now rejects a
+  calibration profile whose credited inventory key differs from the **actual
+  item label it instructs OK-WW OCR to read**. It also rejects duplicate
+  normalized material names, including Unicode/spacing aliases. This closes
+  a wrong-item credit risk before any source dispatch or reward accounting.
+- `src/automation/material_receipt.py` (new) validates stable before/after
+  integer inventory data and requires **growth in the specifically selected
+  pending material**, not an unrelated material. Returns immutable per-item
+  quantities and deltas; performs no capture, OCR, input or authorization.
+- `ResourceRoutineTask` now requires the selected-target receipt before
+  `queue.receive` / durable attempt completion; `CultivationTask` reuses
+  the same check after its existing in-game item-detail OCR. Successful
+  observed deltas are reported as `OBSERVED_OCR_ONLY`, never as independent
+  live permit evidence.
+- Added `tests/TestMaterialReceipt.py`,
+  `tests/TestRoutineOCRItemBinding.py` and focused
+  `TestResourceRoutineTask.py` / `TestCultivationTask.py` regressions.
+  The updated `scripts/qualify_farming_one_shot.py` includes the new
+  cases and source files for Codex's next exact-SHA qualification.
+- **Tests NOT RUN here**: GitHub connected edits/readback only; the Windows
+  checkout and local virtual environment were unavailable through Devspace.
+  The earlier 1,117 passed / 2 skipped baseline belongs to commit
+  `fa8621cd37d7592564fb55d861be08567b0d963d`, **not** these edits.
+- No game input, live farming, spending, provider unblocking, PR merge,
+  independent Terra review or branch changes outside the canonical working
+  branch. The hourly automation stays paused.
+- **Next:** Codex runs the new focused OCR/receipt tests and a full
+  exact-commit suite. For actual live readiness, publisher authorization,
+  current-game source identity, independently verified item receipts,
+  calibrated routes and permitted runtime stages remain missing.
+
+---
+
 ## 2026-11-14 — local QA and acceptance checkpoint
 
 - The Windows checkout was advanced to the current `agent/material-first-farming` HEAD. Fix commit `86ad99d2c129a0ad671902d2df45fcd61c37b0b1` repaired the one-shot runner import path, a completed-identity journal ordering bug, a safe browser landing-navigation failure, and stale fixtures.
