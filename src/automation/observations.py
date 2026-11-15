@@ -35,6 +35,7 @@ class RoutineObserver:
             # The item-detail OCR label MUST name that same material, otherwise
             # a profile could credit FF Mech Core when a different item increased.
             # Do not infer aliases from UI slugs or community drop references.
+            normalized_names = set()
             for material, spec in p['inventory'].items():
                 if (not isinstance(material, str) or not material.strip()
                         or not isinstance(spec, dict)
@@ -42,6 +43,10 @@ class RoutineObserver:
                         or not spec['item_text'].strip()
                         or compact_text(material) != compact_text(spec['item_text'])):
                     raise ValueError('Inventory OCR item label is not bound to its credited material')
+                normalized = compact_text(material).casefold()
+                if normalized in normalized_names:
+                    raise ValueError('Ambiguous duplicate material names in routine OCR profile')
+                normalized_names.add(normalized)
             self.identity_profile = str((self.path.parent / p['identity_profile']).resolve())
         except (OSError, KeyError, TypeError, ValueError) as error:
             raise ResourcePolicyError(f'Invalid routine observation profile: {error}') from error
