@@ -2,13 +2,19 @@ from ok import Logger
 from src.task.BaseCombatTask import BaseCombatTask, CharRevivedException
 from src.task.WWOneTimeTask import WWOneTimeTask
 from src.automation.domain_selection import validate_domain_selector
+from src.automation.goals import MaterialGoal
+from src.automation.material_domain import MaterialDomainAdapter
 from src.automation.resource_policy import ResourcePolicyError
 from src.task.task_icons import task_icon
 
 logger = Logger.get_logger(__name__)
 
 
-class TacetTask(WWOneTimeTask, BaseCombatTask):
+class TacetTask(MaterialDomainAdapter, WWOneTimeTask, BaseCombatTask):
+
+    PROVIDER_NAME = 'TacetTask'
+    SELECTOR_KEY = 'Which Tacet Suppression to Farm'
+    COST = 60
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,14 +50,52 @@ class TacetTask(WWOneTimeTask, BaseCombatTask):
             11: [["a", 1.5], ["w", 3], ["a", 2.5]],
         }
         self.stamina_once = 60
+        self.init_material_adapter()
 
     def run(self):
+        queued = getattr(self, '_queued_goals', None)
+        target = self.config.get('Target Material', '')
+        if queued or target:
+            validate_domain_selector(self.PROVIDER_NAME, self.config.get(self.SELECTOR_KEY),
+                                     count=self.total_number)
+            goals = queued or [MaterialGoal(target, 0, 1, origin='user_supplied')]
+            self._load_material_binding(goals)
+            self._run_material_workflow(
+                enter=self._enter_material_tacet,
+                fight=self._fight_material_tacet,
+                claim_ui_ready=self.has_claim_stamina,
+                restart=self._restart_material_tacet,
+                leave=lambda: self.ensure_main(time_out=180),
+            )
+            return
         validate_domain_selector('TacetTask', self.config.get('Which Tacet Suppression to Farm', 1),
                                  count=self.total_number)
         super().run()
         self.ensure_main(time_out=180)
         self.wait_in_team_and_world(esc=True)
         self.farm_tacet()
+
+    def _enter_material_tacet(self):
+        serial = validate_domain_selector(self.PROVIDER_NAME, self.config[self.SELECTOR_KEY],
+                                          count=self.total_number)
+        self.openF2Book('gray_book_boss')
+        self.open_boss_book('wuyin')
+        self.teleport_to_tacet(serial - 1)
+        self._verify_selected_challenge()
+        self.click_team_challenge()
+        self.wait_in_team_and_world(time_out=120)
+
+    def _fight_material_tacet(self):
+        self.combat_once(target=True)
+        self.walk_to_treasure()
+        self.pick_f(handle_claim=False)
+        self.sleep(2)
+
+    def _restart_material_tacet(self):
+        self.click_relative(0.640, 0.851, hcenter=True, after_sleep=0.2)
+        if not self.wait_confirm_challenge_action('restart'):
+            raise RuntimeError('Tacet restart confirmation was not recognized; stopping')
+        self.wait_in_team_and_world(time_out=120)
 
     def farm_tacet(self, daily=False, used_stamina=0, config=None, max_recovery_retries=3):
         if config is None:

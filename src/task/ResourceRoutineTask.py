@@ -9,7 +9,6 @@ import time
 
 from src.automation.goals import MaterialGoal, ResourceGoalQueue, SourceMapping
 from src.automation.material_receipt import verify_selected_inventory_receipt
-from src.automation.domain_selection import inspect_domain_selector
 from src.automation.observations import RoutineObserver
 from src.automation.identity import observe_identity
 from src.automation.resource_policy import ActionJournal, ResourceBudget, ResourceLedger, ResourcePolicyError, UncertainReceipt
@@ -23,7 +22,10 @@ from src.task.task_icons import task_icon
 class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
     EXECUTORS = {**{cls: (module, cls) for module, cls in INHERITED_ACTIVITIES.values()},
                  'CultivationTask': ('src.task.CultivationTask', 'CultivationTask'),
-                 'BoundedRouteTask': ('src.task.BoundedRouteTask', 'BoundedRouteTask')}
+                 'BoundedRouteTask': ('src.task.BoundedRouteTask', 'BoundedRouteTask'),
+                 'ForgeryTask': ('src.task.ForgeryTask', 'ForgeryTask'),
+                 'SimulationTask': ('src.task.SimulationTask', 'SimulationTask'),
+                 'TacetTask': ('src.task.TacetTask', 'TacetTask')}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -72,8 +74,6 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             if item.get('executor') not in self.EXECUTORS:
                 item['qualified'] = False
             if any(g.name == item.get('material') and g.origin == 'native_verified' for g in goals):
-                # Only the adapted Guidebook task currently rechecks a native
-                # target requirement. Other producers may use labelled user goals.
                 if item.get('executor') != 'CultivationTask':
                     item['qualified'] = False
             mappings.append(SourceMapping(**item))
@@ -115,21 +115,16 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             raise ResourcePolicyError(
                 f'{context} account/server/reset cycle differs from the observed shared budget identity')
 
-    # The inherited domain tasks currently use DomainTask/TacetTask's generic
-    # use_stamina loop. Unlike CultivationTask, they do not bind a selected
-    # challenge to a fresh observed reward identity or journal each debit and
-    # inventory receipt through the injected ResourceLedger. Merely attaching
-    # the ledger to the task cannot make those inherited loops safe for goals.
-    _UNADAPTED_MATERIAL_PROVIDERS = frozenset({
-        'ForgeryTask', 'SimulationTask', 'TacetTask',
+    # Domain providers have an adapter now, but their source-specific live
+    # runtime and publisher-permission qualification is still unavailable.
+    _MATERIAL_GOAL_EXECUTORS = frozenset({
+        'CultivationTask', 'BoundedRouteTask', 'ForgeryTask', 'SimulationTask', 'TacetTask',
     })
-    _MATERIAL_GOAL_EXECUTORS = frozenset({'CultivationTask', 'BoundedRouteTask'})
 
     @classmethod
     def _material_provider_readiness(cls, executor):
-        if executor in cls._UNADAPTED_MATERIAL_PROVIDERS:
-            return (False, f'{executor}: PROVIDER_ADAPTER_PENDING; fresh challenge-identity '
-                    'binding, per-claim resource journal and actual material receipt are required')
+        if executor in {'ForgeryTask', 'SimulationTask', 'TacetTask'}:
+            return (False, f'{executor}: LIVE_VERIFICATION_PENDING; publisher permission and a reviewed current-runtime provider qualification are not configured')
         if executor not in cls._MATERIAL_GOAL_EXECUTORS:
             return (False, f'{executor}: UNSUPPORTED_MATERIAL_PROVIDER; no adapted goal receipt')
         return (True, 'CANDIDATE_ONLY: runtime, route, spending and inventory gates still apply')
@@ -185,7 +180,8 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         return {**overrides, **derived, 'Preview Only': False,
                 'Localization Only': False, 'Test Walk Only': False}
 
-    def _dispatch(self, name, overrides, ledger, queued_goals=None):
+    def _dispatch(self, name, overrides, ledger, queued_goals=None, source_profile_path=None,
+                  inventory_before=None):
         if queued_goals:
             supported, reason = self._material_provider_readiness(name)
             if not supported:
@@ -199,6 +195,24 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         cls = getattr(importlib.import_module(module), class_name)
         task = self.get_task_by_class(cls)
         overrides = dict(overrides)
+        if queued_goals and name in {'ForgeryTask', 'SimulationTask', 'TacetTask'}:
+            if len(queued_goals) != 1 or source_profile_path is None:
+                raise ResourcePolicyError(f'{name} requires one exact goal and its mapped source profile')
+            profile_path = Path(source_profile_path).resolve()
+            try:
+                source_profile = json.loads(profile_path.read_text(encoding='utf-8'))
+                binding = source_profile['source_binding']
+                selector_key = getattr(cls, 'SELECTOR_KEY')
+                if (binding.get('provider') != name
+                        or binding.get('material') != queued_goals[0].name
+                        or selector_key not in overrides
+                        or binding.get('selector') != overrides[selector_key]):
+                    raise ValueError('provider, material or selected challenge differs from calibrated mapping')
+                overrides['Observation Profile'] = str(profile_path)
+                overrides['Challenge Identity'] = binding['challenge_text']
+                overrides['Preview Only'] = False
+            except (OSError, KeyError, TypeError, ValueError) as error:
+                raise ResourcePolicyError(f'{name} source binding is not exact: {error}') from error
         if name == 'CultivationTask' and queued_goals:
             overrides['Preview Only'] = False
         if any(k not in task.default_config for k in overrides):
@@ -210,6 +224,7 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         original = {k: task.config.get(k) for k in overrides}
         old_ledger = getattr(task, '_resource_ledger', None)
         old_goals = getattr(task, '_queued_goals', None)
+        old_inventory = getattr(task, '_queued_inventory_before', None)
         old_external = getattr(task, '_external_resource_ledger', False)
         session = get_session(self)
         old_shared = getattr(session, 'resource_ledger', None)
@@ -221,12 +236,14 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             task._resource_ledger = ledger
             task._external_resource_ledger = True
             task._queued_goals = queued_goals
+            task._queued_inventory_before = inventory_before
             session.resource_ledger = ledger
             self.run_task_by_class(cls)
         finally:
             task._resource_ledger = old_ledger
             task._external_resource_ledger = old_external
             task._queued_goals = old_goals
+            task._queued_inventory_before = old_inventory
             session.resource_ledger = old_shared
             for key, value in original.items():
                 task.config[key] = value
@@ -247,13 +264,6 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             choices = [s for s in queue.mappings if s.matches(goal, runtime)]
             if len(choices) == 1:
                 supported, reason = self._material_provider_readiness(choices[0].executor)
-                if choices[0].executor in self._UNADAPTED_MATERIAL_PROVIDERS:
-                    # Static selector checks expose bad or missing local F2
-                    # configurations, never a verified current-game challenge.
-                    configs = plan.get('executor_config', {})
-                    override = (configs.get(choices[0].executor, {})
-                                if type(configs) is dict else None)
-                    reason += '; ' + inspect_domain_selector(choices[0].executor, override)
                 provider_readiness[goal.name] = reason
                 if not supported:
                     blocked_providers.append(goal.name)
@@ -263,7 +273,7 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
         if self.config.get('Preview Only', True):
             return
         if blocked_providers and not self.config.get('Reconcile Pending Only', False):
-            raise ResourcePolicyError('Unadapted material providers cannot start: '
+            raise ResourcePolicyError('Material providers remain disabled pending source/runtime qualification: '
                                       + ', '.join(sorted(blocked_providers)))
         budget = ResourceBudget(**plan.get('budget', {}))
         journal = ActionJournal(path.parent / plan.get('journal_path', 'automation-actions.json'))
@@ -362,10 +372,17 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             ledger.check_time()
             if journal.unresolved(before.identity):
                 raise ResourcePolicyError('Prior unconfirmed spending requires reconciliation before another material attempt')
-            if not journal.begin_activity(attempt, before.evidence):
+            # The adapted domain providers journal every individual reward
+            # confirmation in ActionJournal with its exact pre-claim inventory.
+            # Avoid a second activity marker that cannot be reconciled when a
+            # task is cancelled before its first claim.
+            provider_claim_journal = source.executor in {'ForgeryTask', 'SimulationTask', 'TacetTask'}
+            if not provider_claim_journal and not journal.begin_activity(attempt, before.evidence):
                 raise ResourcePolicyError('This material attempt was already completed; refresh the observed inventory')
             try:
-                self._dispatch(source.executor, overrides, ledger, queued_goals=source_goals)
+                self._dispatch(source.executor, overrides, ledger, queued_goals=source_goals,
+                               source_profile_path=path.parent / source.profile,
+                               inventory_before=inventory_before)
                 ledger.check_time()
                 session.check()
                 after, inventory = observer.observe(inventory_before)
@@ -380,7 +397,8 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
                     inventory_before, inventory, names
                 )
                 queue.receive({name: inventory[name] for name in names if name in inventory}, materials=names)
-                journal.complete(attempt, after.evidence)
+                if not provider_claim_journal:
+                    journal.complete(attempt, after.evidence)
                 self.info_set('Selected material OCR receipt', [
                     {'material': row.material, 'received': row.received,
                      'owned': row.after, 'status': 'OBSERVED_OCR_ONLY'}
@@ -389,7 +407,8 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
             except BaseException as error:
                 # A crash, cancellation, absent receipt or a mismatched OCR
                 # result must not allow a second automatic dispatch.
-                journal.uncertain_activity(attempt, error)
+                if not provider_claim_journal:
+                    journal.uncertain_activity(attempt, error)
                 raise
             self.info_set('Goal queue progress', queue.preview(runtime))
             count += 1

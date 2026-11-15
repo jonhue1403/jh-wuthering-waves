@@ -89,13 +89,13 @@ class TestResourceRoutineTask(unittest.TestCase):
             self.task._dispatch('arbitrary.module.DestructiveTask', {}, self.ledger())
         self.task.run_task_by_class.assert_not_called()
 
-    def test_unadapted_domain_material_providers_reject_before_task_lookup(self):
+    def test_domain_material_providers_require_runtime_qualification_before_task_lookup(self):
         self.task.get_task_by_class = Mock(side_effect=AssertionError('unsafe inherited task lookup'))
         self.task.run_task_by_class = Mock(side_effect=AssertionError('unsafe inherited task run'))
         goal = MaterialGoal('Known material', 4, 28, origin='user_supplied')
         for provider in ('ForgeryTask', 'SimulationTask', 'TacetTask'):
             with self.subTest(provider=provider):
-                with self.assertRaisesRegex(ResourcePolicyError, 'PROVIDER_ADAPTER_PENDING'):
+                with self.assertRaisesRegex(ResourcePolicyError, 'LIVE_VERIFICATION_PENDING'):
                     self.task._dispatch(provider, {}, self.ledger(), queued_goals=[goal])
         self.task.get_task_by_class.assert_not_called()
         self.task.run_task_by_class.assert_not_called()
@@ -114,7 +114,7 @@ class TestResourceRoutineTask(unittest.TestCase):
               patch.object(WWOneTimeTask, 'run', side_effect=AssertionError('preview started game'))):
             self.task.run()
         self.assertEqual('READY', self.task.info['Goal queue preview'][0]['state'])
-        self.assertIn('PROVIDER_ADAPTER_PENDING',
+        self.assertIn('LIVE_VERIFICATION_PENDING',
                       self.task.info['Material provider readiness']['Known material'])
         self.task.click.assert_not_called()
 
@@ -133,7 +133,7 @@ class TestResourceRoutineTask(unittest.TestCase):
             start = stack.enter_context(patch.object(WWOneTimeTask, 'run'))
             identity = stack.enter_context(patch('src.task.ResourceRoutineTask.observe_identity'))
             observer = stack.enter_context(patch('src.task.ResourceRoutineTask.RoutineObserver'))
-            with self.assertRaisesRegex(ResourcePolicyError, 'Unadapted material providers'):
+            with self.assertRaisesRegex(ResourcePolicyError, 'source/runtime qualification'):
                 self.task.run()
             start.assert_not_called()
             identity.assert_not_called()
@@ -161,8 +161,38 @@ class TestResourceRoutineTask(unittest.TestCase):
             self.task.run()
         self.assertEqual('Fresh observations checked; no claim inputs sent',
                          self.task.info['Reconciliation'])
-        self.assertIn('PROVIDER_ADAPTER_PENDING',
+        self.assertIn('LIVE_VERIFICATION_PENDING',
                       self.task.info['Material provider readiness']['Known material'])
+        self.task.click.assert_not_called()
+
+    def test_domain_claim_journal_recovers_from_fresh_exact_inventory_and_debit(self):
+        self.task.config.update({'Preview Only': False, 'Reconcile Pending Only': True})
+        source = SourceMapping('Known material', 'domain', 'ForgeryTask',
+                               'forgery-source.json', 'unit-evidence', 'unit-runtime', True)
+        queue = ResourceGoalQueue([MaterialGoal('Known material', 4, 28,
+                                               origin='user_supplied')], [source])
+        plan = dict(self.plan, sources=[], activities=[])
+        self.task._load_plan = Mock(return_value=(self.path, plan, queue))
+        journal = ActionJournal(self.folder / 'automation-actions.json')
+        identity = ClaimIdentity('uid', 'Asia', 'domain', 'cycle-42')
+        ledger = ResourceLedger(journal, identity, ResourceBudget(40, 1, 60, 1))
+        action = ledger.prepare(40, 100, {'Known material': 4})
+        journal.uncertain(action, 'interrupted after claim confirmation')
+        observer = Mock()
+        observer.observe.return_value = (RoutineObservation(
+            'uid', 'Asia', 'domain', 'cycle-42', 100, True, False,
+            'fresh exact material OCR'), {'Known material': 5})
+        observer.current_waveplates.return_value = 60
+        with patch('src.task.ResourceRoutineTask.importlib.metadata.version',
+                   return_value='unit-runtime'), patch(
+                   'src.task.ResourceRoutineTask.RoutineObserver', return_value=observer), patch.object(
+                   WWOneTimeTask, 'run', side_effect=AssertionError('reconciliation started game')):
+            self.task.run()
+        stored = journal.snapshot()['actions'][0]
+        self.assertEqual('CONFIRMED', stored['state'])
+        self.assertEqual({'Known material': 5}, stored['inventory_after'])
+        self.assertEqual('Fresh observations checked; no claim inputs sent',
+                         self.task.info['Reconciliation'])
         self.task.click.assert_not_called()
 
     def test_unfinished_material_attempt_blocks_before_game_startup(self):

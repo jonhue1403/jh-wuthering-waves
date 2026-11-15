@@ -3,12 +3,18 @@ import cv2
 from ok import Logger, find_color_rectangles
 from src.task.DomainTask import DomainTask
 from src.automation.domain_selection import validate_domain_selector
+from src.automation.goals import MaterialGoal, compact_text
+from src.automation.material_domain import MaterialDomainAdapter
 from src.task.task_icons import task_icon
 
 logger = Logger.get_logger(__name__)
 
 
-class ForgeryTask(DomainTask):
+class ForgeryTask(MaterialDomainAdapter, DomainTask):
+
+    PROVIDER_NAME = 'ForgeryTask'
+    SELECTOR_KEY = 'Which Forgery Challenge to Farm'
+    COST = 40
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,8 +34,24 @@ class ForgeryTask(DomainTask):
         self.structure = [5, 5, 5, 5]
         self.total_number = sum(self.structure)
         self.material_mat = None
+        self.init_material_adapter()
 
     def run(self):
+        queued = getattr(self, '_queued_goals', None)
+        target = self.config.get('Target Material', '')
+        if queued or target:
+            validate_domain_selector(self.PROVIDER_NAME, self.config.get(self.SELECTOR_KEY),
+                                     count=self.total_number)
+            goals = queued or [MaterialGoal(target, 0, 1, origin='user_supplied')]
+            self._load_material_binding(goals)
+            self._run_material_workflow(
+                enter=self._enter_material_forgery,
+                fight=self._fight_material_forgery,
+                claim_ui_ready=self.has_claim_stamina,
+                restart=self._restart_material_forgery,
+                leave=self.make_sure_in_world,
+            )
+            return
         validate_domain_selector('ForgeryTask', self.config.get('Which Forgery Challenge to Farm', 1),
                                  count=self.total_number)
         super().run()
@@ -50,6 +72,34 @@ class ForgeryTask(DomainTask):
             self.teleport_into_domain(serial, daily)
 
         self.farm_domain_with_recovery_loop(must_use, teleport_once)
+
+    def _enter_material_forgery(self):
+        serial = validate_domain_selector(self.PROVIDER_NAME, self.config[self.SELECTOR_KEY],
+                                           count=self.total_number)
+        self.open_boss_book('ningsu')
+        self.click_on_book_target(serial, self.total_number, self.structure)
+        self._verify_selected_challenge()
+        self.click(0.891, 0.910, after_sleep=1)
+        self.click_team_challenge()
+        self.wait_in_team_and_world(time_out=self.teleport_timeout)
+
+    def _restart_material_forgery(self):
+        buttons = {compact_text(b.name): b for b in self.ocr(0.25, 0.78, 0.76, 0.90)}
+        restart = buttons.get('重新挑战')
+        if restart is None:
+            raise RuntimeError('Forgery restart action was not recognized; stopping')
+        self.click(restart, after_sleep=1)
+        if not self.wait_confirm_challenge_action('restart', time_out=3):
+            raise RuntimeError('Forgery restart confirmation was not recognized; stopping')
+        self.wait_in_team_and_world(time_out=self.teleport_timeout)
+
+    def _fight_material_forgery(self):
+        self.walk_until_f(time_out=4, backward_time=0, raise_if_not_found=True)
+        self.pick_f()
+        self.combat_once(wait_combat_time=30, target=True)
+        self.sleep(3)
+        self.walk_to_treasure()
+        self.pick_f(handle_claim=False)
 
     def purification_material(self):
         self.send_key("esc")
