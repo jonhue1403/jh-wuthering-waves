@@ -327,10 +327,14 @@ class TestResourceRoutineTask(unittest.TestCase):
         self.assertEqual(6, queue.goals[0].owned)
         records = ActionJournal(self.folder / 'automation-actions.json').snapshot()['activities']
         self.assertEqual(['COMPLETE'], [item['state'] for item in records.values()])
+        self.assertEqual(
+            [{'material': 'Known material', 'received': 2,
+              'owned': 6, 'status': 'OBSERVED_OCR_ONLY'}],
+            self.task.info['Selected material OCR receipt'])
 
     def test_satisfied_goal_is_excluded_from_bounded_receipt_batch(self):
         stack, queue, _, _, _ = self._material_run_context(
-            other_goal=True, after_inventory={'Known material': 6})
+            other_goal=True, after_inventory={'Known material': 6, 'Other material': 2})
         queue.goals[1].required = queue.goals[1].owned  # Already complete.
         dispatch = Mock()
         with stack, patch.object(self.task, '_dispatch', dispatch):
@@ -359,6 +363,25 @@ class TestResourceRoutineTask(unittest.TestCase):
             ['UNCERTAIN'],
             [item['state'] for item in ActionJournal(
                 self.folder / 'automation-actions.json').snapshot()['activities'].values()])
+
+    def test_unrelated_item_increase_keeps_material_attempt_uncertain(self):
+        stack, queue, _, _, _ = self._material_run_context(
+            other_goal=True,
+            after_inventory={'Known material': 4, 'Other material': 3})
+        queue.goals[1].required = queue.goals[1].owned
+        dispatch = Mock()
+        with stack, patch.object(self.task, '_dispatch', dispatch):
+            with self.assertRaisesRegex(
+                UncertainReceipt, 'no actual target inventory increase'
+            ):
+                self.task.run()
+        dispatch.assert_called_once()
+        self.assertNotIn('Selected material OCR receipt', self.task.info)
+        self.assertEqual(4, queue.goals[0].owned)
+        actions = ActionJournal(
+            self.folder / 'automation-actions.json'
+        ).snapshot()['activities']
+        self.assertEqual(['UNCERTAIN'], [item['state'] for item in actions.values()])
 
     def test_multi_material_bounded_route_rejects_before_inventory_or_journal(self):
         stack, _, observer, _, _ = self._material_run_context(other_goal=True)
