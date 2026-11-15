@@ -41,9 +41,10 @@
   **NO-GO**.
 - Gemini 3.8 Flash Medium was available through native Antigravity CLI 1.5.9
   and a read-only authentication probe returned successfully. Its headless
-  implementation session did not complete or return a patch; Codex took over
-  the bounded test work. Terra review was completed; no independent live
-  source/runtime qualification was possible.
+  implementation session did not finish the requested work or tests; its
+  isolated worktree contained only partial import edits, which were not
+  integrated. Codex took over the bounded test work. Terra review was
+  completed; no independent live source/runtime qualification was possible.
 
 ## 2026-11-15 — shared daily-task OCR material binding and receipt integration
 
