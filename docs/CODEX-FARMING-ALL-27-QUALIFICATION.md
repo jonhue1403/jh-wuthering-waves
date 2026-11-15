@@ -1,5 +1,20 @@
 # Farming Assistant qualification: all 27 materials
 
+## Post-report implementation notice (2026-11-15)
+
+After the measured 1,117-passed baseline, the Farming Assistant received
+additional **shared OK-WW OCR material-identity and receipt checks** in
+`src/automation/observations.py`, `src/automation/material_receipt.py`,
+`src/task/ResourceRoutineTask.py` and `src/task/CultivationTask.py`.
+The additions include focused regressions in `TestMaterialReceipt` and
+`TestRoutineOCRItemBinding`. Those regressions have **NOT RUN** in this
+GitHub-only implementation turn. The exact earlier implementation/result
+below remains unchanged and must not be reused to qualify the new HEAD.
+No live farming, current-game receipt, publisher authorization or route
+qualification was established by these source changes.
+
+---
+
 **2026-11-15 (Malaysia) · Production: NO-GO.** The Qt and standalone Edge previews and the synthetic offline scenarios were exercised for all 27 materials. **0/27** current-game item/source observations, **0/27** verified live inventory receipts and **0/27** materials qualified for live execution. The 27 remain `GAME_OBSERVATION_BLOCKED`. No game input, resource spending, reward claim, inventory mutation or launch was issued.
 
 ## Environment and scope
