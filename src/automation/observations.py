@@ -29,8 +29,19 @@ class RoutineObserver:
                 raise ValueError('wrong activity')
             if hashlib.sha256((self.path.parent / p['screenshot']).read_bytes()).hexdigest() != p['screenshot_sha256']:
                 raise ValueError('calibration reference drift')
-            if not p['page_feature'] or not p['inventory']:
+            if not p['page_feature'] or not isinstance(p['inventory'], dict) or not p['inventory']:
                 raise ValueError('screen and actual inventory required')
+            # The dictionary key is the material that ResourceGoalQueue credits.
+            # The item-detail OCR label MUST name that same material, otherwise
+            # a profile could credit FF Mech Core when a different item increased.
+            # Do not infer aliases from UI slugs or community drop references.
+            for material, spec in p['inventory'].items():
+                if (not isinstance(material, str) or not material.strip()
+                        or not isinstance(spec, dict)
+                        or not isinstance(spec.get('item_text'), str)
+                        or not spec['item_text'].strip()
+                        or compact_text(material) != compact_text(spec['item_text'])):
+                    raise ValueError('Inventory OCR item label is not bound to its credited material')
             self.identity_profile = str((self.path.parent / p['identity_profile']).resolve())
         except (OSError, KeyError, TypeError, ValueError) as error:
             raise ResourcePolicyError(f'Invalid routine observation profile: {error}') from error
