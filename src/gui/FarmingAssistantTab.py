@@ -7,7 +7,7 @@ FarmingAssistantView model as the web tab. It cannot start gameplay.
 
 from urllib.parse import urlsplit
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import QSignalBlocker, Qt, QUrl
 from PySide6.QtGui import QDesktopServices, QIntValidator
 from PySide6.QtWidgets import (
     QButtonGroup, QHBoxLayout, QLabel, QLineEdit, QListWidget,
@@ -260,7 +260,13 @@ class FarmingAssistantTab(CustomTab):
 
     def _refresh_preview(self, *_):
         selected = self.target_list.currentItem()
-        self._selected_id = selected.data(Qt.UserRole) if selected is not None else None
+        selected_id = selected.data(Qt.UserRole) if selected is not None else None
+        if selected_id != self._selected_id:
+            # A goal belongs to the selected item, not to the search results.
+            with QSignalBlocker(self.goal):
+                self.goal.clear()
+        self._selected_id = selected_id
+        self.goal.setEnabled(selected_id is not None)
         self._preview = None
         if not self._selected_id:
             self.target_name.setText(self.tr("No matching targets"))

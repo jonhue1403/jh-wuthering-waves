@@ -37,9 +37,12 @@ export function mount(container, context) {
       state.goal = "";
       state.query = "";
       search.value = "";
+      state.rows = [];
       state.selectedId = null;
       state.detail = null;
       updateKinds();
+      list.replaceChildren(node("p", "farm-muted", t("Loading targets…")));
+      renderDetail();
       void refresh();
     });
     kindButtons.push([kind, button]);
@@ -91,7 +94,13 @@ export function mount(container, context) {
         state.selectedId = item.id;
         state.goal = "";
         state.detail = null;
-        renderList();
+        // Keep the option in the DOM so keyboard activation retains focus.
+        for (const option of list.querySelectorAll("[role=option]")) {
+          const active = option === button;
+          option.classList.toggle("selected", active);
+          option.setAttribute("aria-selected", String(active));
+        }
+        renderDetail();
         void refreshDetail();
       });
       list.append(button);
@@ -100,6 +109,8 @@ export function mount(container, context) {
 
   function renderDetail() {
     if (state.destroyed) return;
+    const previousGoal = right.querySelector("#farm-goal");
+    const restoreGoalFocus = previousGoal && document.activeElement === previousGoal;
     right.replaceChildren();
     const data = state.detail;
     if (!data) {
@@ -263,21 +274,22 @@ export function mount(container, context) {
       right.append(section);
     }
     const encounterMode = data.stop_criterion?.mode === "ENCOUNTER_LIMIT";
-    right.append(
-      node("div", "farm-divider"),
-      node("label", "farm-label", t(encounterMode
-        ? "Maximum mob encounters (optional)"
-        : "Target inventory total (optional)"))
-    );
+    const goalLabel = node("label", "farm-label", t(encounterMode
+      ? "Maximum mob encounters (optional)"
+      : "Target inventory total (optional)"));
+    goalLabel.htmlFor = "farm-goal";
+    right.append(node("div", "farm-divider"), goalLabel);
     const goal = node("input");
+    goal.id = "farm-goal";
     goal.type = "number";
     goal.min = "1";
     goal.max = "9999999";
     goal.step = "1";
     goal.inputMode = "numeric";
     goal.placeholder = t("No target set");
-    goal.value = state.goal;
+    goal.value = restoreGoalFocus ? previousGoal.value : state.goal;
     goal.addEventListener("change", () => {
+      if (!goal.reportValidity()) return;
       state.goal = goal.value;
       void refreshDetail();
     });
@@ -299,6 +311,7 @@ export function mount(container, context) {
       node("div", "farm-muted", data.next_step)
     );
     right.append(status);
+    if (restoreGoalFocus) goal.focus({preventScroll: true});
   }
 
   async function refreshDetail() {
@@ -319,7 +332,8 @@ export function mount(container, context) {
       state.detail = data;
       renderDetail();
     } catch (error) {
-      if (state.destroyed || seq !== state.detailRequest) return;
+      if (state.destroyed || seq !== state.detailRequest ||
+          state.selectedId !== id || state.kind !== kind) return;
       context.notify(error.message || String(error), "error");
       state.detail = null;
       renderDetail();
@@ -337,6 +351,7 @@ export function mount(container, context) {
         state.selectedId = state.rows.length ? state.rows[0].id : null;
         state.goal = "";
         state.detail = null;
+        renderDetail();
       }
       renderList();
       void refreshDetail();

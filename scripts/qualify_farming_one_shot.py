@@ -31,6 +31,7 @@ TARGET_MODULES = (
     "tests.TestFarmingPreflight",
     "tests.TestFarmingCalibrationGuide",
     "tests.TestFarmingStopPolicy",
+    "tests.TestFarmingAll27Replay",
     "tests.TestMaterialRoute",
     "tests.TestResourceGoals",
     "tests.TestResourceRoutineTask",

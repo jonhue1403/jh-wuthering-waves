@@ -149,6 +149,25 @@ class TestFarmingAssistantQt(unittest.TestCase):
         self.assertFalse(self.tab.reference_button.isEnabled())
         self.assertFalse(self.tab.start_button.isEnabled())
 
+    def test_goal_belongs_to_one_target_even_within_the_same_kind(self):
+        self.tab.goal.setText("8")
+        self.tab.search.setText("mEcH")
+        self.assertEqual(8, self.tab._preview["stop_criterion"]["requested"])
+
+        self.tab.search.setText("premium")
+        self.assertGreater(self.tab.target_list.count(), 1)
+        self.assertIsNone(self.tab._preview["stop_criterion"]["requested"])
+        self.tab.goal.setText("16")
+        self.tab.target_list.setCurrentRow(1)
+        self.assertEqual("", self.tab.goal.text())
+        self.assertIsNone(self.tab._preview["stop_criterion"]["requested"])
+
+        self.tab.search.setText("no matching item")
+        self.assertFalse(self.tab.goal.isEnabled())
+        self.tab.search.setText("mEcH")
+        self.assertTrue(self.tab.goal.isEnabled())
+        self.assertEqual("", self.tab.goal.text())
+
     def test_invalid_reference_never_exposes_browser_button(self):
         self.assertFalse(self.tab._is_safe_reference("http://example.org/"))
         self.assertFalse(self.tab._is_safe_reference("https://user:pass@example.org/"))

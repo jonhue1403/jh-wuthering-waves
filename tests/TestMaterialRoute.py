@@ -7,6 +7,8 @@ import tempfile
 import unittest
 from unittest.mock import Mock
 
+from src.automation.farming_selection import SCREENSHOT_MATERIALS
+from src.automation.farming_strategy import plan_material_acquisition
 from src.overworld.controller import HuntAbort, HuntCancelled, HuntState
 from src.overworld.material_route import (
     CampSegment, InventoryObservation, MaterialRoute, MaterialRouteRuntime,
@@ -146,6 +148,60 @@ class TestMaterialRoute(unittest.TestCase):
         with self.assertRaisesRegex(HuntAbort, "time limit"):
             self.run_route()
         self.assertEqual(("stop",), self.runtime.events[-1])
+
+    def test_all_mob_reference_materials_use_bounded_synthetic_routes(self):
+        fixture = self.route
+        for slug, _ in SCREENSHOT_MATERIALS:
+            if not any(option["method"] == "MOB_DROP"
+                       for option in plan_material_acquisition(slug)["possible_methods"]):
+                continue
+            for case in ("target", "no-drop", "wrong-item", "cancelled", "timeout", "stale-profile"):
+                with self.subTest(material=slug, case=case):
+                    self.runtime = Runtime()
+                    self.navigator = Navigator(self.runtime)
+                    self.route = replace(fixture, material_id=slug)
+                    self.reads = 0
+                    pickup = Mock()
+
+                    def read(material_id):
+                        observation = self.inventory(material_id)
+                        if case == "wrong-item" and self.reads > 1:
+                            return replace(observation, material_id="synthetic-other-item")
+                        if case == "no-drop":
+                            return replace(observation, quantity=0)
+                        return observation
+
+                    if case == "cancelled":
+                        self.navigator.results = [NavigationStatus.CANCELLED]
+                    elif case == "timeout":
+                        self.route = replace(self.route, max_seconds=1)
+                    elif case == "stale-profile":
+                        self.route = replace(self.route, profile_sha256="0" * 64)
+                        with self.assertRaises(ValueError):
+                            self.run_route(target=2, read_inventory=read, pickup=pickup)
+                        self.assertEqual([], self.navigator.targets)
+                        pickup.assert_not_called()
+                        continue
+
+                    if case in ("wrong-item", "timeout"):
+                        with self.assertRaisesRegex(HuntAbort, "identified item" if case == "wrong-item"
+                                                    else "time limit"):
+                            self.run_route(target=2, read_inventory=read, pickup=pickup)
+                    else:
+                        run, material = self.run_route(target=2, read_inventory=read, pickup=pickup)
+                        if case == "target":
+                            pickup.assert_called_once()
+                            self.assertEqual([2], [row["received"] for row in material.receipts])
+                            self.assertTrue(material.goal_reached())
+                        elif case == "no-drop":
+                            self.assertEqual(2, pickup.call_count)
+                            self.assertEqual([0, 0], [row["received"] for row in material.receipts])
+                            self.assertFalse(material.goal_reached())
+                        else:
+                            self.assertEqual(HuntState.CANCELLED, run.state)
+                            self.assertEqual([], material.receipts)
+                            pickup.assert_not_called()
+                    self.assertEqual(("stop",), self.runtime.events[-1])
 
     def test_completed_route_emits_one_cleared_transition_per_camp(self):
         run, material = self.run_route()
