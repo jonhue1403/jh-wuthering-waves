@@ -8,10 +8,67 @@ from src.automation.farming_strategy import (
     AcquisitionOption, SourceKind, Workflow,
     plan_material_acquisition, plan_mob_hunt,
 )
+from src.automation.farming_acquisition_reference import documented_acquisition
 from src.automation.farming_view import FarmingAssistantView
 
 
 class TestFarmingStrategy(unittest.TestCase):
+    _METHOD_CONTRACTS = {
+        "MOB_DROP": ("BOUNDED_OVERWORLD", True, "RESOURCE_IMPACT_UNVERIFIED"),
+        "FORGERY_CHALLENGE": ("FORGERY_CHALLENGE", True, "POTENTIAL_WAVEPLATE_COST"),
+        "SIMULATION_TRAINING": ("SIMULATION_TRAINING", True, "POTENTIAL_WAVEPLATE_COST"),
+        "TACET_FIELD": ("TACET_FIELD", True, "POTENTIAL_WAVEPLATE_COST"),
+        "SYNTHESIS": ("SYNTHESIS", False, "MATERIAL_CONSUMPTION_UNVERIFIED"),
+        "EXPLORATION_OR_QUEST": ("MANUAL_REWARD", False, "RESOURCE_IMPACT_UNVERIFIED"),
+        "EVENT_OR_EXCHANGE": ("MANUAL_REWARD", False, "RESOURCE_IMPACT_UNVERIFIED"),
+        "HISTORICAL_SUBSCRIPTION": ("HISTORICAL_ONLY", False, "RESOURCE_IMPACT_UNVERIFIED"),
+    }
+
+    def test_all_27_reference_scenarios_map_source_workflows_and_block_execution(self):
+        view = FarmingAssistantView()
+        self.assertEqual(27, len(SCREENSHOT_MATERIALS))
+        for slug, _name in SCREENSHOT_MATERIALS:
+            with self.subTest(material=slug):
+                references = documented_acquisition(slug)["methods"]
+                plan = plan_material_acquisition(slug)
+                self.assertEqual(
+                    [method["kind"] for method in references],
+                    [option["method"] for option in plan["possible_methods"]],
+                )
+                expected_adapter_count = 0
+                for method, option in zip(references, plan["possible_methods"]):
+                    with self.subTest(material=slug, method=method["kind"]):
+                        self.assertIn(method["kind"], self._METHOD_CONTRACTS)
+                        workflow, has_candidate, resource_policy = self._METHOD_CONTRACTS[
+                            method["kind"]
+                        ]
+                        expected_adapter_count += int(has_candidate)
+                        self.assertEqual(method["kind"], option["method"])
+                        self.assertEqual(workflow, option["workflow"])
+                        self.assertEqual(method["label"], option["label"])
+                        self.assertEqual(method["reference_url"], option["reference_url"])
+                        self.assertTrue(option["reference_url"].startswith("https://"))
+                        self.assertEqual(has_candidate, option["automation_candidate_exists"])
+                        self.assertEqual(resource_policy, option["resource_policy"])
+                        self.assertEqual("CURRENT_GAME_EVIDENCE_REQUIRED",
+                                         option["qualification"])
+                        self.assertFalse(option["can_execute"])
+
+                self.assertEqual(expected_adapter_count,
+                                 plan["possible_automation_adapter_count"])
+                self.assertEqual([], plan["qualified_provider_ids"])
+                self.assertIsNone(plan["selected_provider"])
+                self.assertFalse(plan["can_dispatch"])
+                self.assertFalse(plan["can_start"])
+                self.assertEqual("NOT_PERMITTED_WITH_REFERENCE_ONLY_DATA",
+                                 plan["source_auto_selection"])
+
+                preview = view.preview("material", slug, "5")
+                self.assertEqual(plan, preview["acquisition_plan"])
+                self.assertFalse(preview["can_start"])
+                self.assertFalse(preview["can_pause"])
+                self.assertFalse(preview["can_stop"])
+
     def test_every_screenshot_material_has_preview_only_provider_options(self):
         for slug, _name in SCREENSHOT_MATERIALS:
             with self.subTest(material=slug):
