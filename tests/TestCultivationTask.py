@@ -207,6 +207,21 @@ class TestCultivationTask(unittest.TestCase):
         self.assertEqual('10/10，已满足', self.task.info['材料乙'])
         self.assertEqual('培养材料已满足需求', self.task.info['停止原因'])
 
+    def test_selected_material_receipt_uses_existing_cultivation_ocr(self):
+        self.task.goals = [
+            MaterialGoal('Needed', 4, 12),
+            MaterialGoal('Satisfied', 7, 7),
+        ]
+        self.task.update_goals({'Needed': 6, 'Satisfied': 8})
+        self.assertEqual([6, 8], [goal.owned for goal in self.task.goals])
+        # Only the requested unmet item is credited. Incidental growth for a
+        # completed material is not a qualifying receipt.
+        self.assertEqual(
+            [{'material': 'Needed', 'received': 2,
+              'owned': 6, 'status': 'OBSERVED_OCR_ONLY'}],
+            self.task.info['Selected material OCR receipt'],
+        )
+
     def test_update_goals_rejects_inventory_regression(self):
         self.task.goals = [MaterialGoal('材料甲', 5, 28), MaterialGoal('材料乙', 2, 10)]
 
