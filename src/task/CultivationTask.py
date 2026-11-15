@@ -11,6 +11,7 @@ from src.task.BaseCombatTask import NotInCombatException
 from src.task.DomainTask import DomainTask
 from src.task.task_icons import task_icon
 from src.automation.goals import MaterialGoal, ResourceGoalQueue, compact_text, parse_quantity
+from src.automation.material_receipt import verify_selected_inventory_receipt
 from src.automation.resource_policy import (
     ActionJournal, ClaimIdentity, ResourceBudget, ResourceLedger,
     ResourcePolicyError, UncertainReceipt, verify_debit,
@@ -313,6 +314,14 @@ class CultivationTask(DomainTask):
             raise CultivationError('奖励库存小于领取前库存。已停止，请核对材料。')
         if not any(inventory[g.name] > g.owned for g in self.goals if g.missing):
             raise CultivationError('领取后目标材料未增加。已停止，请核对奖励。')
+        # The Guidebook and item-detail readers already provide real OCR
+        # quantities. Apply the same exact-target receipt rule as the
+        # resource queue; incidental gains for completed items cannot credit
+        # a different unmet cultivation material.
+        deltas = verify_selected_inventory_receipt(
+            {g.name: g.owned for g in self.goals},
+            inventory, {g.name for g in self.goals if g.missing},
+        )
         for goal in self.goals:
             previous_owned = goal.owned
             goal.owned = inventory[goal.name]
@@ -322,6 +331,11 @@ class CultivationTask(DomainTask):
                 state.goal_complete = goal.missing == 0
                 state.reason = 'actual post-claim inventory verified'
         self.report_goals(self.goals)
+        self.info_set('Selected material OCR receipt', [
+            {'material': row.material, 'received': row.received,
+             'owned': row.after, 'status': 'OBSERVED_OCR_ONLY'}
+            for row in deltas
+        ])
 
     def restart_challenge(self):
         buttons = self.result_buttons()
