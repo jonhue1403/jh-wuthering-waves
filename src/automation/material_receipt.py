@@ -69,6 +69,6 @@ def verify_selected_inventory_receipt(before, after, target_materials):
     )
     if not any(delta.target_gained for delta in deltas):
         raise UncertainReceipt(
-            "Selected material receipt unverified: only unrelated items changed"
+            "Selected material receipt unverified: no actual target inventory increase (only unrelated items changed)"
         )
     return deltas
