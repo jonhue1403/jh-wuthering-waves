@@ -8,6 +8,7 @@ from pathlib import Path
 import time
 
 from src.automation.goals import MaterialGoal, ResourceGoalQueue, SourceMapping
+from src.automation.material_receipt import verify_selected_inventory_receipt
 from src.automation.domain_selection import inspect_domain_selector
 from src.automation.observations import RoutineObserver
 from src.automation.identity import observe_identity
@@ -371,8 +372,20 @@ class ResourceRoutineTask(WWOneTimeTask, BaseWWTask):
                 if after.identity != before.identity or after.observed_at <= before.observed_at:
                     raise ResourcePolicyError('Goal inventory identity/cycle changed or post-observation is stale')
                 names = {g.name for g in source_goals}
+                # OCR was performed by RoutineObserver using the existing
+                # BaseWWTask framework. Independently check that the specific
+                # queued material(s), not an unrelated OCR inventory row,
+                # actually increased before completing the durable attempt.
+                receipt = verify_selected_inventory_receipt(
+                    inventory_before, inventory, names
+                )
                 queue.receive({name: inventory[name] for name in names if name in inventory}, materials=names)
                 journal.complete(attempt, after.evidence)
+                self.info_set('Selected material OCR receipt', [
+                    {'material': row.material, 'received': row.received,
+                     'owned': row.after, 'status': 'OBSERVED_OCR_ONLY'}
+                    for row in receipt
+                ])
             except BaseException as error:
                 # A crash, cancellation, absent receipt or a mismatched OCR
                 # result must not allow a second automatic dispatch.
