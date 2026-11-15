@@ -118,6 +118,29 @@ modules and executes `tests.TestFarmingPreflight` and
 Inspect these test reports on the exact fetched HEAD. Preserve the disabled
 Start/Pause/Stop state for all reference-only and unqualified materials.
 
+## Material-specific reuse of OK-WW OCR (new focused tests)
+
+The next exact-SHA qualification must exercise the shared OCR receipt changes,
+not assume the preceding 1,117-test result covers them:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.TestMaterialReceipt tests.TestRoutineOCRItemBinding tests.TestResourceRoutineTask tests.TestCultivationTask -v
+```
+
+`RoutineObserver` must reject an OCR profile that credits one material name
+while reading a different item-detail label, including duplicate normalized
+aliases. The selected-material receipt helper must reject missing, regressing,
+ambiguous or unchanged target quantities and an unrelated item increase.
+`ResourceRoutineTask` may complete a durable material activity only after
+an actual selected-target OCR delta; `CultivationTask` uses the same rule
+after its existing Guidebook/item-detail OCR reader. These functions do
+not navigate or capture themselves. Preserve original framework capture,
+identity and session guards. No live permission is inferred from an OCR
+observation or from a passing unit test.
+
+If these targeted tests pass, rerun `run-farming-one-shot.cmd` from a clean
+checkout and record the new exact SHA, real results and any independent review.
+
 ## Phase 2 — GUI and HTTP acceptance
 
 Launch native Qt with `main.py` and standalone read-only browser with
